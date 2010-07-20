@@ -1,27 +1,73 @@
-# Chronologic: activity feeds as a service.
+Chronologic: activity feeds as a service
+========================================
 
-# edit conf/storage-conf.xml to define keyspace:
-  <Keyspace Name="Chronologic">
-    <ColumnFamily Name="Object" CompareWith="UTF8Type" />
-    <ColumnFamily Name="Subscription" CompareWith="UTF8Type" />
-    <ColumnFamily Name="Event" ColumnType="Super" CompareWith="UTF8Type" CompareSubcolumnsWith="UTF8Type" />
-    <ColumnFamily Name="Timeline" CompareWith="TimeUUIDType" />
-    
-    <ReplicaPlacementStrategy>org.apache.cassandra.locator.RackUnawareStrategy</ReplicaPlacementStrategy>
-    <ReplicationFactor>1</ReplicationFactor>
-    <EndPointSnitch>org.apache.cassandra.locator.EndPointSnitch</EndPointSnitch>
-  </Keyspace>
+Chronologic is a library for managing Activity Streams (aka News
+Feeds or Timelines). Like Twitter, or just about any social network.
+It uses Cassandra.
 
-# start cassandra
-  cd ~/Desktop/apache-cassandra-0.6.3/
-  export JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Home
-  export PATH=$JAVA_HOME/bin:$PATH
-  bin/cassandra -f
+Overview
+--------
 
-# start server
-  shotgun
+TODO
 
-# TODO
+Installing Cassandra
+--------------------
+
+TODO
+
+Dependencies
+------------
+
+    gem install cassandra
+
+
+Installation
+------------
+
+Start cassandra
+    cd ~/Desktop/apache-cassandra-0.6.3/
+    export JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Home
+    export PATH=$JAVA_HOME/bin:$PATH
+    bin/cassandra -f
+
+Start server
+    shotgun
+
+
+Configuration
+-------------
+
+Edit conf/storage-conf.xml to define the keyspace:
+
+    <Keyspace Name="Chronologic">
+      <ColumnFamily Name="Object" CompareWith="UTF8Type" />
+      <ColumnFamily Name="Subscription" CompareWith="UTF8Type" />
+      <ColumnFamily Name="Event" ColumnType="Super" CompareWith="UTF8Type" CompareSubcolumnsWith="UTF8Type" />
+      <ColumnFamily Name="Timeline" CompareWith="TimeUUIDType" />
+      
+      <ReplicaPlacementStrategy>org.apache.cassandra.locator.RackUnawareStrategy</ReplicaPlacementStrategy>
+      <ReplicationFactor>1</ReplicationFactor>
+      <EndPointSnitch>org.apache.cassandra.locator.EndPointSnitch</EndPointSnitch>
+    </Keyspace>
+
+
+Examples
+--------
+
+See the examples/ directory.
+
+
+Meta
+----
+* Author: Scott Raymond <sco@scottraymond.net> @sco
+* Code: `git clone git://github.com/gowalla/chronologic.git`
+* Home: <http://github.com/gowalla/chronologic>
+* Docs: <http://gowalla.github.com/chronologic/>
+* Bugs: <http://github.com/gowalla/chronologic/issues>
+* Gems: <http://rubygems.org/gems/chronologic>
+
+TODO
+----
 - tidy up readme formatting
 - sub-events
 - web UI

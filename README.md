@@ -1,41 +1,23 @@
 Chronologic: activity feeds as a service
 ========================================
 
-Chronologic is a library for managing Activity Streams (aka News
-Feeds or Timelines). Like Twitter, or just about any social network.
-It uses Cassandra.
+Chronologic is a library for managing activity feeds (aka news feeds or timelines), 
+like Twitter, or just about any social network. It uses Cassandra. It's meant to be
+easy to scale, be we shall see.
+
 
 Overview
 --------
 
 TODO
 
-Installing Cassandra
---------------------
 
-TODO
+Installation & Configuration
+----------------------------
 
-Dependencies
-------------
+Install chronologic:
 
-    gem install cassandra
-
-
-Installation
-------------
-
-Start cassandra
-    cd ~/Desktop/apache-cassandra-0.6.3/
-    export JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Home
-    export PATH=$JAVA_HOME/bin:$PATH
-    bin/cassandra -f
-
-Start server
-    shotgun
-
-
-Configuration
--------------
+    sudo gem install chronologic
 
 Edit conf/storage-conf.xml to define the keyspace:
 
@@ -44,11 +26,20 @@ Edit conf/storage-conf.xml to define the keyspace:
       <ColumnFamily Name="Subscription" CompareWith="UTF8Type" />
       <ColumnFamily Name="Event" ColumnType="Super" CompareWith="UTF8Type" CompareSubcolumnsWith="UTF8Type" />
       <ColumnFamily Name="Timeline" CompareWith="TimeUUIDType" />
-      
+
       <ReplicaPlacementStrategy>org.apache.cassandra.locator.RackUnawareStrategy</ReplicaPlacementStrategy>
       <ReplicationFactor>1</ReplicationFactor>
       <EndPointSnitch>org.apache.cassandra.locator.EndPointSnitch</EndPointSnitch>
     </Keyspace>
+
+Start cassandra:
+    cd ~/Desktop/apache-cassandra-0.6.3/
+    export JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Home
+    export PATH=$JAVA_HOME/bin:$PATH
+    bin/cassandra -f
+
+Start server:
+    shotgun
 
 
 Examples
@@ -59,26 +50,25 @@ See the examples/ directory.
 
 Meta
 ----
-* Author: Scott Raymond <sco@scottraymond.net> @sco
+* Author:
+  * Scott Raymond
+  * <sco@scottraymond.net>
+  * <http://twitter.com/sco>
 * Code: `git clone git://github.com/gowalla/chronologic.git`
 * Home: <http://github.com/gowalla/chronologic>
 * Docs: <http://gowalla.github.com/chronologic/>
 * Bugs: <http://github.com/gowalla/chronologic/issues>
 * Gems: <http://rubygems.org/gems/chronologic>
 
+
 TODO
 ----
-- tidy up readme formatting
 - sub-events
 - web UI
 - get some specs running
 - set up gem
-- link to cassandra-gem tasks for installing cassandra
-- use it through the HTTP interface, or directly through Chronologic::Connection?
-  - HTTP lets us scale it separately from the rest of the app, re-write the storage bits as needed
-    (cassandra, friendly, redis, mongo, neo4j, memcached?), or re-write the server as needed (node, scala?),
-    use memcached/redis for performance, if needed
-  - direct is faster
+- document/streamline cassandra installation
+- recommend using the HTTP interface, or directly through Chronologic::Connection?
 - enqueue fanout? or will it be fast enough? what if cassandra is temporarily down?
   - even though writes are fast, maybe they should still be triggered by a queue, so that we can group together notifications, publishing, etc., and pause cassandra sometimes.
 - this system won't help scale the checkins, itemevents, etc tables. but it should help us read from them less.

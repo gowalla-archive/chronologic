@@ -2,10 +2,10 @@
 
 # edit conf/storage-conf.xml to define keyspace:
   <Keyspace Name="Chronologic">
-    <ColumnFamily CompareWith="UTF8Type" Name="Objects" />
-    <ColumnFamily CompareWith="UTF8Type" Name="Subscriptions" ColumnType="Super" CompareSubcolumnsWith="TimeUUIDType" />
-    <ColumnFamily CompareWith="UTF8Type" Name="Events" /><!-- compare with time? -->
-    <ColumnFamily CompareWith="UTF8Type" Name="Timelines" ColumnType="Super" CompareSubcolumnsWith="TimeUUIDType" />
+    <ColumnFamily Name="Object" CompareWith="UTF8Type" />
+    <ColumnFamily Name="Subscription" CompareWith="UTF8Type" />
+    <ColumnFamily Name="Event" ColumnType="Super" CompareWith="UTF8Type" CompareSubcolumnsWith="UTF8Type" />
+    <ColumnFamily Name="Timeline" CompareWith="TimeUUIDType" />
     
     <ReplicaPlacementStrategy>org.apache.cassandra.locator.RackUnawareStrategy</ReplicaPlacementStrategy>
     <ReplicationFactor>1</ReplicationFactor>
@@ -21,26 +21,12 @@
 # start server
   shotgun
 
-
-$LOAD_PATH.unshift 'lib'
-require 'chronologic'
-db = Cassandra.new('Chronologic')
-db.clear_keyspace!
-c = Chronologic::Connection.new(db)
-c.insert_object(:user_1, {'username' => 'sco'})
-c.insert_object(:user_2, {'username' => 'jw'})
-c.get_object(:user_1)
-c.insert_subscription(:user_2_friends, :user_1)
-c.get_subscribers(:user_1)
-c.insert_event({'type' => 'checkin', 'id' => '1', 'message' => 'Hello'}, :timelines => [:user_1, :spot_1], :subscribers => [:user_1])
-c.get_timeline(:user_2_friends)
-
-
 # TODO
-- integrate objects into get_timeline
+- tidy up readme formatting
 - sub-events
+- web UI
 - get some specs running
-- set up repo/gem
+- set up gem
 - link to cassandra-gem tasks for installing cassandra
 - use it through the HTTP interface, or directly through Chronologic::Connection?
   - HTTP lets us scale it separately from the rest of the app, re-write the storage bits as needed

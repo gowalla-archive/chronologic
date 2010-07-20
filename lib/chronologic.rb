@@ -3,8 +3,8 @@ require 'chronologic/version'
 require 'chronologic/errors'
 
 module Chronologic
-  #extend self
-  #
+  extend self
+  
   def cassandra=(cassandra)
     @cassandra = cassandra
   end

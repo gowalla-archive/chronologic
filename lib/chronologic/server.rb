@@ -4,18 +4,17 @@ require 'chronologic'
 module Chronologic
   class Server < Sinatra::Base
     configure do
-      db = Cassandra.new('Chronologic')
-      #db.clear_keyspace!
-      CONN = Connection.new(db)
+      CONN = Connection.new
     end
 
-    # not_found do
-    #   'Not found'
-    # end
-    #      
-    # get '/' do
-    #   "hello world"
-    # end
+    get '/' do
+      "hello world"
+    end
+    
+    post '/clear' do
+      CONN.clear!
+      status 204
+    end
 
     put '/objects/:key' do |key|
       CONN.insert_object(key, params)
@@ -27,24 +26,25 @@ module Chronologic
       status 204
     end
 
-    put '/subscriptions/:subject/:target' do |subject, target|
-      CONN.insert_subscription(subject, target)
+    put '/subscriptions/:subscriber/:subscription' do |subscriber, subscription|
+      CONN.insert_subscription(subscriber, subscription)
       status 204
     end
     
-    delete '/subscriptions/:subject/:target' do |subject, target|
-      CONN.remove_subscription(subject, target)
+    delete '/subscriptions/:subscriber/:subscription' do |subscriber, subscription|
+      CONN.remove_subscription(subscriber, subscription)
       status 204
     end
 
     post '/events' do
-      event_info = params[:event] || {}         # { :type => 'checkin', :id => '1', :message => 'Hello' }
-      key = params[:key]                        # 'checkin_1'
-      objects = params[:objects] || []          # [ { :name => 'spot', :key => 'spot_1' }, { :name => 'user', :key => 'user_1' } ]
-      events = params[:events] || []            # [ :checkin_1 ] (for photos, comments, etc)
-      timelines = params[:timelines] || []      # [ :user_1, :spot_1 ]
-      subscribers = params[:subscribers] || []  # [ :user_1 ]
-      CONN.insert_event(event_info, :key => key, :objects => objects, :events => events, :timelines => timelines, :subscribers => subscribers)
+      CONN.insert_event(
+        :info => params[:info] || {},               # { :type => 'checkin', :id => '1', :message => 'Hello' }
+        :key => params[:key],                       # 'checkin_1'
+        :timelines => params[:timelines] || [],     # [ :user_1, :spot_1 ]
+        :subscribers => params[:subscribers] || [], # [ :user_1 ]
+        :objects => params[:objects] || {} ,        # { :spot => :spot_1, :user => :user_1 }
+        :events => params[:events] || []            # [ :checkin_1 ] (for photos, comments, etc)
+      )
       status 204
     end
 

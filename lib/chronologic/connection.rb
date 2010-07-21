@@ -6,7 +6,7 @@ module Chronologic
       Chronologic.cassandra.clear_keyspace!
     end
     
-    def insert_object(key, info)
+    def object(key, info)
       Chronologic.cassandra.insert(:Object, key.to_s, stringify_keys(info))
       nil
     end
@@ -21,7 +21,7 @@ module Chronologic
       nil
     end
 
-    def insert_subscription(subscriber, subscription)
+    def subscribe(subscriber, subscription)
       Chronologic.cassandra.batch do
         Chronologic.cassandra.insert(:Subscription, "#{subscriber}:subscriptions", {subscription.to_s => ''})
         Chronologic.cassandra.insert(:Subscription, "#{subscription}:subscribers", {subscriber.to_s => ''})
@@ -29,13 +29,14 @@ module Chronologic
       nil
     end
   
-    def get_subscribers(subscriptions)
+    def subscribers(subscriptions)
       subscriptions = [subscriptions] unless subscriptions.is_a?(Array)
       subscriptions = subscriptions.map{ |k| "#{k}:subscribers" }
       Chronologic.cassandra.multi_get(:Subscription, subscriptions).map{ |k,v| v.keys }.flatten
     end
 
-    def remove_subscription(subscriber, subscription)
+    # TODO
+    def unsubscribe(subscriber, subscription)
       #Chronologic.cassandra.batch do
       #  Chronologic.cassandra.remove(:Subscription, subject.to_s, ...?)
       #  Chronologic.cassandra.remove(:Subscription, subject.to_s, ...?)
@@ -43,7 +44,7 @@ module Chronologic
       nil
     end
     
-    def insert_event(options={})
+    def event(options={})
       Chronologic.cassandra.batch do
         event_key = (options[:key] || SimpleUUID::UUID.new.to_guid).to_s
         event_data = {
@@ -54,7 +55,7 @@ module Chronologic
           'events' => stringify_keys(options[:events] || []),
         }
         Chronologic.cassandra.insert(:Event, event_key, event_data)
-        timelines = (options[:timelines] + get_subscribers(options[:subscribers])).flatten
+        timelines = (options[:timelines] + subscribers(options[:subscribers])).flatten
         timelines.each do |timeline_key|
           Chronologic.cassandra.insert(:Timeline, timeline_key.to_s, { SimpleUUID::UUID.new => event_key })
         end
@@ -69,12 +70,12 @@ module Chronologic
       nil
     end
 
-    def get_timeline(timeline_key)
+    def timeline(timeline_key)
       keys = Chronologic.cassandra.get(:Timeline, timeline_key.to_s, :reversed => true).map(&:last)
       rows = Chronologic.cassandra.multi_get(:Event, keys)
       rows.map do |k, v|
         result = v['info']
-        v['objects'].each do |object_name, object_key|
+        (v['objects'] || []).each do |object_name, object_key|
           result[object_name] = regular_hash(Chronologic.cassandra.get(:Object, object_key)) # TODO: multi-get
         end
         regular_hash(result)

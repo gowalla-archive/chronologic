@@ -5,7 +5,7 @@ Gem::Specification.new do |s|
   s.name              = "chronologic"
   s.version           = Chronologic::Version
   s.date              = Time.now.strftime('%Y-%m-%d')
-  s.summary           = "Activity streams as a service."
+  s.summary           = "Activity feeds as a service."
   s.homepage          = "http://github.com/gowalla/chronologic"
   s.email             = "sco@gowalla.com"
   s.authors           = [ "Scott Raymond" ]

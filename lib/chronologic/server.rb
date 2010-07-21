@@ -17,7 +17,7 @@ module Chronologic
     end
 
     put '/objects/:key' do |key|
-      CONN.insert_object(key, params)
+      CONN.object(key, params)
       status 204
     end
     
@@ -27,17 +27,17 @@ module Chronologic
     end
 
     put '/subscriptions/:subscriber/:subscription' do |subscriber, subscription|
-      CONN.insert_subscription(subscriber, subscription)
+      CONN.subscribe(subscriber, subscription)
       status 204
     end
     
     delete '/subscriptions/:subscriber/:subscription' do |subscriber, subscription|
-      CONN.remove_subscription(subscriber, subscription)
+      CONN.unsubscribe(subscriber, subscription)
       status 204
     end
 
     post '/events' do
-      CONN.insert_event(
+      CONN.event(
         :info => params[:info] || {},               # { :type => 'checkin', :id => '1', :message => 'Hello' }
         :key => params[:key],                       # 'checkin_1'
         :timelines => params[:timelines] || [],     # [ :user_1, :spot_1 ]
@@ -54,7 +54,7 @@ module Chronologic
     end
 
     get '/timelines/:key' do |key|
-      events = CONN.get_timeline(key)
+      events = CONN.timeline(key)
       content_type :json
       { :events => events }.to_json
     end

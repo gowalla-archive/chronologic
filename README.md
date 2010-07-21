@@ -9,7 +9,67 @@ easy to scale, be we shall see.
 Overview
 --------
 
-TODO
+Suppose you want to create a Twitter. Users can add tweets to their timeline, and
+view a user's tweets in reverse-chronological order.
+
+	# Create a connection
+    chronologic = Chronologic::Connection.new
+
+	# Scott creates some tweets
+    chronologic.event(:timelines => [:sco], :info => { :text => 'Hello, world.' })
+    chronologic.event(:timelines => [:sco], :info => { :text => 'Hello again.' })
+
+	# Get all of Scott's tweets
+	chronologic.timeline(:sco) # => [{"text"=>"Hello again."}, {"text"=>"Hello, world."}]
+
+Nothing fancy. But all of the information is stored in Cassandra, which provides
+extremely high write performance, and automatic partitioning of data across multiple nodes.
+
+Swell. But you don't want to look at just one user's tweets at a time -- you want to
+follow a bunch of users, and then get their messages aggregated. To do that, you'll
+create some _subscriptions_.
+
+	# Scott follows Josh and Keegan
+    chronologic.subscribe(:sco_friends, :jw)
+    chronologic.subscribe(:sco_friends, :keeg)
+
+	# Josh and Keegan tweet
+    chronologic.event(:timelines => [:jw], :subscribers => [:jw], :info => { :text => 'This is Josh.' })
+    chronologic.event(:timelines => [:keeg], :subscribers => [:keeg], :info => { :text => 'This is Keegan.' })
+
+	# Gets Scott's friends' tweets
+	chronologic.timeline(:sco_friends) # => [{:text=>"This is Keegan."}, {:text=>"This is Josh."}]
+
+Alright, but you really need to know which user made each tweet, not just the text.
+And to display it in a feed, you'll also want their name, image URL, etc. To do that,
+you'll create some _objects_. 
+
+    # Store some metadata for Scott, Josh, and Keegan
+    chronologic.object(:sco, {:name => 'Scott Raymond', :image_url => "http://..."})
+    chronologic.object(:jw, {:name => 'Josh Williams', :image_url => "http://..."})
+    chronologic.object(:keeg, {:name => 'Keegan Jones', :image_url => "http://..."})
+
+	# Keegan tweets again
+    chronologic.event(:timelines => [:keeg], :subscribers => [:keeg], :objects => { :user => :keeg }, :info => { :text => 'Me again.' })
+
+	# Gets Scott's friends' tweets again -- this time, with embedded user info
+	chronologic.timeline(:sco_friends) # => [{:text=>"Me again.", :user=>{:name=>"Keegan Jones", :image_url=>"http://..."}}]
+
+All fine and good, but what if you want to add comments, or likes, to tweets? No problem;
+you can add an event that's not attached to any particular timeline, but is attached to
+another event.
+
+    chronologic.event(:events => [:tweet_1], :objects => { :user => :sco }, :info => { :text => 'Nice tweet!' })
+
+Say you want to get crazy and include more than just tweets in a timeline. Cassandra is
+schemaless, so the structure of objects and event-info hashes is entirely arbitrary. Just
+add a "type" property or something to help you distinguish event types.
+
+    chronologic.event(:timelines => [:sco], :info => { :type => 'ad', :text => 'This is a message from our sponsor...' })
+
+What happens if a user changes their image? Or deletes a tweet? Or un-follows a friend?
+
+    # TODO
 
 
 Installation & Configuration

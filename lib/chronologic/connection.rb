@@ -47,16 +47,21 @@ module Chronologic
     def event(options={})
       Chronologic.cassandra.batch do
         event_key = (options[:key] || SimpleUUID::UUID.new.to_guid).to_s
+        info = options[:info] || {}
+        subscribers = options[:subscribers] || []
+        timelines = options[:timelines] || []
+        objects = options[:objects] || {}
+        events = options[:events] || []
         event_data = {
-          'info' => stringify_keys(options[:info] || {}),
-          'timelines' => stringify_keys(options[:timelines] || []),
-          'subscribers' => stringify_keys(options[:subscribers] || []),
-          'objects' => stringify_keys(options[:objects] || {}),
-          'events' => stringify_keys(options[:events] || []),
+          'info' => stringify_keys(info),
+          'subscribers' => stringify_keys(subscribers),
+          'timelines' => stringify_keys(timelines),
+          'objects' => stringify_keys(objects),
+          'events' => stringify_keys(events),
         }
+        all_timelines = ([:_global] + timelines + subscribers(subscribers)).flatten
         Chronologic.cassandra.insert(:Event, event_key, event_data)
-        timelines = (options[:timelines] + subscribers(options[:subscribers])).flatten
-        timelines.each do |timeline_key|
+        all_timelines.each do |timeline_key|
           Chronologic.cassandra.insert(:Timeline, timeline_key.to_s, { SimpleUUID::UUID.new => event_key })
         end
         # TODO: store links to timelines for the objects/events, so that we can delete the events if the objects are deleted
@@ -81,12 +86,16 @@ module Chronologic
         regular_hash(result)
       end
     end
+    
+    def global_timeline
+      timeline(:_global)
+    end
 
     private
     
     def regular_hash(ordered_hash)
       ordered_hash.inject({}) do |h, (k, v)|
-        h[k] = v
+        h[k.to_sym] = v
         h
       end
     end

@@ -9,67 +9,100 @@ easy to scale, be we shall see.
 Overview
 --------
 
-Suppose you want to create a Twitter. Users can add tweets to their timeline, and
-view a user's tweets in reverse-chronological order.
+# Events
+
+Suppose you want to create a new social network with the requisite activity stream,
+so that users can see what their friends are up to. You start simple: users can create
+status updates, and view a timeline of all statuses, in reverse-chronological order.
 
 	# Create a connection
+	require 'chronologic'
     chronologic = Chronologic::Connection.new
 
-	# Scott creates some tweets
-    chronologic.event(:timelines => [:sco], :info => { :text => 'Hello, world.' })
-    chronologic.event(:timelines => [:sco], :info => { :text => 'Hello again.' })
+	# Scott and Josh update their status (the structure of the :info hash is arbitrary)
+    chronologic.event(:info => { :username => 'sco', :status => 'This is Scott.' })
+    chronologic.event(:info => { :username => 'jw',  :status => 'This is Josh.' })
 
-	# Get all of Scott's tweets
-	chronologic.timeline(:sco) # => [{"text"=>"Hello again."}, {"text"=>"Hello, world."}]
+	# Get all events
+	chronologic.global_timeline
+	=> [{:username => 'jw', :status=>'This is Josh.'}, {:username => 'sco', :status=>'This is Scott.'}]
 
-Nothing fancy. But all of the information is stored in Cassandra, which provides
-extremely high write performance, and automatic partitioning of data across multiple nodes.
+# Timelines
 
-Swell. But you don't want to look at just one user's tweets at a time -- you want to
-follow a bunch of users, and then get their messages aggregated. To do that, you'll
-create some _subscriptions_.
+Okay, but you also need to be able to view all of the events from one user. To enable that,
+specify timeline(s) when you create an event.
+
+    # Add events and push them to specific timelines
+    chronologic.event(:timelines => [:sco], :info => { :username => 'sco', :status => 'This is Scott.' })
+    chronologic.event(:timelines => [:jw],  :info => { :username => 'jw',  :status => 'This is Josh.' })
+
+    # Get a timeline by name
+    chronologic.timeline(:sco)
+	=> [{:username => 'sco', :status=>'This is Scott.'}]
+
+# Subscriptions
+
+Simple enough. But you don't want to look at just one user's activity at a time -- you want to
+follow a bunch of users, and see their activity aggregated. To do that, create some _subscriptions_:
 
 	# Scott follows Josh and Keegan
     chronologic.subscribe(:sco_friends, :jw)
     chronologic.subscribe(:sco_friends, :keeg)
 
-	# Josh and Keegan tweet
-    chronologic.event(:timelines => [:jw], :subscribers => [:jw], :info => { :text => 'This is Josh.' })
-    chronologic.event(:timelines => [:keeg], :subscribers => [:keeg], :info => { :text => 'This is Keegan.' })
+	# Josh and Keegan update, pushing their events to their subscribers
+    chronologic.event(:subscribers => [:jw],   :timelines => [:jw],   :info => { :username => 'jw',   :status => 'This is Josh.' })
+    chronologic.event(:subscribers => [:keeg], :timelines => [:keeg], :info => { :username => 'keeg', :status => 'This is Keegan.' })
 
-	# Gets Scott's friends' tweets
-	chronologic.timeline(:sco_friends) # => [{:text=>"This is Keegan."}, {:text=>"This is Josh."}]
+	# Get aggregated activity from Scott's friends
+	chronologic.timeline(:sco_friends)
+	=> [{ :username => 'keeg', :status=>"This is Keegan." }, { :username => 'jw', :status=>"This is Josh." }]
 
-Alright, but you really need to know which user made each tweet, not just the text.
-And to display it in a feed, you'll also want their name, image URL, etc. To do that,
-you'll create some _objects_. 
+# Objects
 
-    # Store some metadata for Scott, Josh, and Keegan
-    chronologic.object(:sco, {:name => 'Scott Raymond', :image_url => "http://..."})
-    chronologic.object(:jw, {:name => 'Josh Williams', :image_url => "http://..."})
-    chronologic.object(:keeg, {:name => 'Keegan Jones', :image_url => "http://..."})
+To display a complete activity feed, you'll probably want the user's name, image URL, etc. You
+could store that data right in the event, but that's a lot of duplicated storage. And what happens
+if the user changes their name? To address these issues, you'll want to use _objects_.
 
-	# Keegan tweets again
-    chronologic.event(:timelines => [:keeg], :subscribers => [:keeg], :objects => { :user => :keeg }, :info => { :text => 'Me again.' })
+    # Cache a metadata object for each user (any time they're created or changed)
+    chronologic.object(:keeg, { :username => 'keeg',  :name => 'Keegan Jones' })
 
-	# Gets Scott's friends' tweets again -- this time, with embedded user info
-	chronologic.timeline(:sco_friends) # => [{:text=>"Me again.", :user=>{:name=>"Keegan Jones", :image_url=>"http://..."}}]
+	# When creating an event, include references to any object it relies on
+    chronologic.event(:objects => { :user => :keeg }, :subscribers => [:keeg], :timelines => [:keeg], :info => { :status => 'This is Keegan.' })
 
-All fine and good, but what if you want to add comments, or likes, to tweets? No problem;
-you can add an event that's not attached to any particular timeline, but is attached to
-another event.
+	# When the event is retrieved, the associated object's metadata will be included
+	chronologic.timeline(:sco_friends)
+	=> [{ :status => "This is Keegan.", :user => { :username => 'keeg', :name => 'Keegan Jones' }}]
 
-    chronologic.event(:events => [:tweet_1], :objects => { :user => :sco }, :info => { :text => 'Nice tweet!' })
+# Child events
 
-Say you want to get crazy and include more than just tweets in a timeline. Cassandra is
-schemaless, so the structure of objects and event-info hashes is entirely arbitrary. Just
-add a "type" property or something to help you distinguish event types.
+Sometimes you want to attach one event to another -- for example, a comment on a post --
+but it's not directly attached to any timeline. Just use the :events option.
 
-    chronologic.event(:timelines => [:sco], :info => { :type => 'ad', :text => 'This is a message from our sponsor...' })
+    # When creating an event, use the :key option to override the default UUID key
+    chronologic.event(:key => "status_1", :info => { :status => 'This is Keegan.' })
 
-What happens if a user changes their image? Or deletes a tweet? Or un-follows a friend?
+	# To create a child, reference the parent event key
+    chronologic.event(:events => [:status_1], :info => { :status => 'Hi, Keegan!' })
+
+# Mixing event types
+
+Say you want to get crazy and include more than just statues in a timeline. Cassandra is
+schemaless, so the structure of objects and event-info hashes is up to you. Just add a
+:type property or something to help you distinguish event types.
+
+    chronologic.event(:timelines => [:sco], :info => { :type => 'ad', :status => 'This is a message from our sponsor...' })
+
+What happens if a user deletes an event? Or un-follows a friend?
 
     # TODO
+
+
+Performance & Scalability
+-------------------------
+
+All of the information is stored in Cassandra, which provides high availability, high write
+performance, and automatic partitioning of data across multiple nodes. So even with tons of
+users and tons of messages, it'll still be pretty fast to get the recent events for each user.
 
 
 Installation & Configuration
@@ -123,11 +156,15 @@ Meta
 
 TODO
 ----
-- sub-events
+- maybe go back to the underscore-prefixed special event attributes, so that we can ditch the info hash?
+- rename 'subscribers' option to 'topics'?
+- child events
 - web UI
 - get some specs running
 - set up gem
 - document/streamline cassandra installation
+- app should keep its own stats
+- redis for real-time notifications?
 - recommend using the HTTP interface, or directly through Chronologic::Connection?
 - enqueue fanout? or will it be fast enough? what if cassandra is temporarily down?
   - even though writes are fast, maybe they should still be triggered by a queue, so that we can group together notifications, publishing, etc., and pause cassandra sometimes.
@@ -136,7 +173,6 @@ TODO
 - etag/if-modified-since etc?
 - can this system become the basis for the PSHB feeds, the notifications system (APS and atom-based), and the real-time web notifications?
 - how do we tell the system that some timelines should be capped, and some should be infinite?
-- store sub-events, like comments, likes, item-events, etc
 - handle deletes/changes/attachments (comments, photos, etc)
 - adding a subscription adds events to the right timelines
 - store copies of user names, user images, spot names, etc.? if not, we're hitting the main db to get it. if so, how do we keep everything consistent?

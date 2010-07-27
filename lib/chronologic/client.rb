@@ -1,51 +1,77 @@
 begin
-  require 'httparty'
+  require 'uri'
+  require 'net/http/persistent'
+  require 'yajl/http_stream'
 rescue LoadError
+  require 'uri'
   require 'rubygems'
-  require 'httparty'
+  require 'net/http/persistent'
+  require 'yajl/http_stream'
 end
 
 module Chronologic
   class Client
-    include HTTParty
-
-    base_uri 'localhost:9393'
-    default_options[:headers] = { "Accept" => "application/json", "Content-type" => "application/json" }
+    def initialize
+      @http = Net::HTTP::Persistent.new
+      @base_url = URI.parse('http://localhost:9393/')
+    end
     
     def clear!
-      self.class.delete('/')
+      request = Net::HTTP::Delete.new(@base_url.path)
+      response = @http.request(@base_url, request)
     end
 
-    def object(key, data)
-      self.class.put("/objects/#{key}", data)
+    def object(object_key, data)
+      url = @base_url + "objects/#{object_key}"
+      request = Net::HTTP::Put.new(url.path)
+      request.set_form_data(data)
+      response = @http.request(url, request)
     end
 
-    def get_object(key)
-      self.class.get("/objects/#{key}")['object']
-    end
-
-    def remove_object(key)
-      self.class.delete("/objects/#{key}")
+    def remove_object(object_key)
+      url = @base_url + "objects/#{object_key}"
+      request = Net::HTTP::Delete.new(url.path)
+      response = @http.request(url, request)
     end
 
     def subscribe(subscriber, subscription)
-      self.class.put("/subscriptions/#{subscriber}/#{subscription}")
+      url = @base_url + "subscriptions/#{subscriber}/#{subscription}"
+      request = Net::HTTP::Put.new(url.path)
+      response = @http.request(url, request)
     end
   
     def unsubscribe(subscriber, subscription)
-      self.class.delete("/subscriptions/#{subscriber}/#{subscription}")
+      url = @base_url + "subscriptions/#{subscriber}/#{subscription}"
+      request = Net::HTTP::Delete.new(url.path)
+      response = @http.request(url, request)
     end
     
-    def event(key, options={})
-      self.class.put("/events/#{key}", :body => options.to_json)
+    def event(event_key, options={})
+      url = @base_url + "events/#{event_key}"
+      request = Net::HTTP::Put.new(url.path, {"Content-type" => "application/json"})
+      request.body = Yajl::Encoder.encode(options)
+      response = @http.request(url, request)
     end
 
-    def remove_event(key)
-      self.class.delete("/events/#{key}")
+    def remove_event(event_key)
+      url = @base_url + "events/#{event_key}"
+      request = Net::HTTP::Delete.new(url.path)
+      response = @http.request(url, request)
     end
 
     def timeline(timeline_key)
-      self.class.get("/timelines/#{timeline_key}")['events']
+      url = @base_url + "timelines/#{timeline_key}"
+      response = Yajl::HttpStream.get(url)
+      response['events'].map{ |e| symbolize_keys(e) }
+    end
+    
+    private
+
+    def symbolize_keys(hash)
+      hash.inject({}) do |options, (key, value)|
+        options[(key.to_sym rescue key) || key] = (value.is_a?(Hash) ? symbolize_keys(value) : value)
+        options
+      end
     end
   end
 end

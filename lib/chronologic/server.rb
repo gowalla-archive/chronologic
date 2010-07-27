@@ -1,8 +1,10 @@
 begin
   require 'sinatra/base'
+  require 'yajl'
 rescue LoadError
   require 'rubygems'
   require 'sinatra/base'
+  require 'yajl'
 end
 require 'chronologic'
 
@@ -16,16 +18,10 @@ module Chronologic
     end
 
     put '/objects/:key' do |key|
-      options.connection.object(key, params)
+      options.connection.object(key, request.POST)
       status 204
     end
 
-    get '/objects/:key' do |key|
-      object = options.connection.get_object(key)
-      content_type :json
-      { :object => object }.to_json
-    end
-    
     delete '/objects/:key' do |key|
       options.connection.remove_object(key)
       status 204
@@ -42,14 +38,7 @@ module Chronologic
     end
 
     put '/events/:key' do |key|
-      opts = JSON.parse(request.body.read)
-      options.connection.event(key,
-        :data        => opts['data'],
-        :timelines   => opts['timelines'],
-        :subscribers => opts['subscribers'],
-        :objects     => opts['objects'],
-        :events      => opts['events']
-      )
+      options.connection.event(key, Yajl::Parser.parse(request.body))
       status 204
     end
 
@@ -61,7 +50,7 @@ module Chronologic
     get '/timelines/:key' do |key|
       events = options.connection.timeline(key)
       content_type :json
-      { :events => events }.to_json
+      Yajl::Encoder.encode({ :events => events })
     end
   end
 end

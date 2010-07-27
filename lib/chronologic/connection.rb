@@ -22,13 +22,13 @@ module Chronologic
     end
     
     def object(object_key, data)
-      cassandra.insert(:Object, object_key.to_s, stringify_keys(data))
+      cassandra.insert(:Object, object_key.to_s, stringify_keys(data.to_hash))
       nil
     end
 
-    def get_object(object_key)
-      symbolize_keys(cassandra.get(:Object, object_key.to_s))
-    end
+    # def get_object(object_key)
+    #   symbolize_keys(cassandra.get(:Object, object_key.to_s))
+    # end
 
     def remove_object(object_key)
       cassandra.batch do
@@ -55,24 +55,19 @@ module Chronologic
       nil
     end
     
-    def event(key, options={})
-      event_key = key.to_s
-      data = options[:data] || {}
-      subscribers = options[:subscribers] || []
-      timelines = options[:timelines] || []
-      objects = options[:objects] || {}
-      events = options[:events] || []
+    def event(event_key, options={})
+      options = symbolize_keys(options)
       event_data = {
-        'data' => stringify_keys(data),
-        'subscribers' => stringify_keys(subscribers),
-        'timelines' => stringify_keys(timelines),
-        'objects' => stringify_keys(objects),
-        'events' => stringify_keys(events),
+        'data'        => stringify_keys(options[:data] || {}),
+        'subscribers' => stringify_keys(options[:subscribers] || []),
+        'timelines'   => stringify_keys(options[:timelines] || []),
+        'objects'     => stringify_keys(options[:objects] || {}),
+        'events'      => stringify_keys(options[:events] || []),
       }
       cassandra.batch do
-        cassandra.insert(:Event, event_key, event_data)
+        cassandra.insert(:Event, event_key.to_s, event_data)
         timeline_keys(event_data).each do |timeline_key|
-          cassandra.insert(:Timeline, timeline_key.to_s, { SimpleUUID::UUID.new => event_key })
+          cassandra.insert(:Timeline, timeline_key, { SimpleUUID::UUID.new => event_key.to_s })
         end
       end
       nil
@@ -90,7 +85,7 @@ module Chronologic
       nil
     end
 
-    def timeline(timeline_key)
+    def timeline(timeline_key = :_global)
       keys = event_keys(timeline_key)
       rows = cassandra.multi_get(:Event, keys)
       rows.map do |k, v|
@@ -106,13 +101,13 @@ module Chronologic
     private
     
     def timeline_keys(event_data)
-      timelines = event_data['timelines']
-      timelines << :_global
-      timelines << subscription_timelines(event_data['subscribers'])
-      timelines << event_data['objects'].map{ |k| "_object:#{k}" }
-      timelines << event_data['events'].map{ |k| "_event:#{k}" }
-      timelines << event_data['subscribers'].map{ |k| "_subscriber:#{k}" }
-      timelines
+      timelines = event_data['timelines'].keys
+      timelines << '_global'
+      timelines << subscription_timelines(event_data['subscribers'].keys)
+      timelines << event_data['objects'].keys.map{ |k| "_object:#{k}" }
+      timelines << event_data['events'].keys.map{ |k| "_event:#{k}" }
+      timelines << event_data['subscribers'].keys.map{ |k| "_subscriber:#{k}" }
+      timelines.flatten
     end
     
     def remove_timeline_event(timeline_key, event_key)

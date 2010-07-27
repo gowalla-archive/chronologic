@@ -24,8 +24,8 @@ some _events_:
     chronologic.event(:status_1, :data => {:username => 'sco', :status => 'This is Scott.'})
     chronologic.event(:status_2, :data => {:username => 'jw',  :status => 'This is Josh.'})
 
-	# Get all the events in the special global timeline
-	chronologic.timeline(:_global)
+	# Get all the events in the timeline
+	chronologic.timeline
 	=> [{:username => 'jw', :status=>'This is Josh.'}, {:username => 'sco', :status=>'This is Scott.'}]
 
 Note that the contents of the `:data` hash is arbitrary (except that all the values should
@@ -37,7 +37,7 @@ your application calls for something more like this:
 ### Timelines
 
 You'll also want to view all of the events from a given user. To allow that, create events
-with associated _timeline(s)_:
+with an associated _timeline_:
 
     # Create events and add them to some timelines
     chronologic.event(:status_1, :timelines => [:sco], :data => {:username => 'sco', :status => 'This is Scott.'})
@@ -111,9 +111,8 @@ performance, and automatic partitioning of data across multiple nodes. So even w
 of users and tons of messages, it'll still be pretty fast to get the recent events for
 each user.
 
-[Pull on Demand model, vs. Push on Change model]
-
-TODO: more detail about how the storage works, benchmarks
+TODO: more detail about how the storage works, benchmarks, idempotence, Pull on Demand
+vs. Push on Change model
 
 
 Installation & Configuration
@@ -151,7 +150,7 @@ Start server:
 Examples
 --------
 
-See the +examples+ directory.
+See the `examples` directory.
 
 
 Meta
@@ -169,7 +168,7 @@ Meta
 
 TODO
 ----
-- store timestamps with everything
+- store timestamps with everything (perhaps prepend event keys with a datetime string (so require created_at?))
 - also a good idea to make event-ids in timelines key names, not values, so that inserts are idempotent (then how are they sorted? prepend timestamp?)
 - speed up ruby client: persistent connections, yajl, etc
 - re-write server/connection in node
@@ -178,17 +177,19 @@ TODO
 - memcached for caching responses
 - support for re-building a timeline
 - etag/if-modified-since etc
+- server should catch exceptions and return error codes
+- support PSHB feeds, the notifications system (APS and atom-based), and the real-time web notifications
 
+- create github site
+- add rdoc comments
 - privacy: does a checkin get published to the spot feed even if the user is private? if I look at a spot feed, shouldn't I see my private friends?
   - perhaps the event should have a private flag, so it can be excluded from results if there's not a subscription between the requester and the event creator
-- can this system become the basis for the PSHB feeds, the notifications system (APS and atom-based), and the real-time web notifications?
 - allow timelines to be (optionally) capped, and to remove parentless events that are no longer represented in a timeline
 - ensure adding a subscription adds events to the right timelines
 - enforce the requirement that :data values be keys
 - document how to run on heroku (is there any hosted cassandra?)
 - support retries and falling back to another node
 - recommend using the HTTP interface, or directly through Chronologic::Connection?
-- note: all updates should be idempotent (so they can handle retries. so maybe require the :key option on #event)
 - consider storing full copies of events in timelines, so that reads don't require joins (multigets)
 - document rails-specific idioms (how to config, use observers to create events)
 - document how to create a top-news feed

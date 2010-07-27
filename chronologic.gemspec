@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
   s.rdoc_options      = ["--charset=UTF-8"]
 
   s.add_dependency "cassandra", ">= 0.9.0"
+  s.add_dependency "httparty",  ">= 0.6.1"
   s.add_dependency "sinatra",   ">= 1.0.0"
   s.add_dependency "vegas",     ">= 0.1.7"
   s.add_dependency "rack",      ">= 1.2.1"

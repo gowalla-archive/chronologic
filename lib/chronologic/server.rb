@@ -1,60 +1,65 @@
-require 'sinatra/base'
+begin
+  require 'sinatra/base'
+rescue LoadError
+  require 'rubygems'
+  require 'sinatra/base'
+end
 require 'chronologic'
 
 module Chronologic
   class Server < Sinatra::Base
-    configure do
-      CONN = Connection.new
-    end
-
-    get '/' do
-      "hello world"
-    end
+    set :connection, Connection.new
     
-    post '/clear' do
-      CONN.clear!
+    delete '/' do
+      options.connection.clear!
       status 204
     end
 
     put '/objects/:key' do |key|
-      CONN.object(key, params)
+      options.connection.object(key, params)
       status 204
+    end
+
+    get '/objects/:key' do |key|
+      object = options.connection.get_object(key)
+      content_type :json
+      { :object => object }.to_json
     end
     
     delete '/objects/:key' do |key|
-      CONN.remove_object(key)
+      options.connection.remove_object(key)
       status 204
     end
 
     put '/subscriptions/:subscriber/:subscription' do |subscriber, subscription|
-      CONN.subscribe(subscriber, subscription)
+      options.connection.subscribe(subscriber, subscription)
       status 204
     end
     
     delete '/subscriptions/:subscriber/:subscription' do |subscriber, subscription|
-      CONN.unsubscribe(subscriber, subscription)
+      options.connection.unsubscribe(subscriber, subscription)
       status 204
     end
 
-    post '/events' do
-      CONN.event(
-        :info => params[:info] || {},               # { :type => 'checkin', :id => '1', :message => 'Hello' }
-        :key => params[:key],                       # 'checkin_1'
-        :timelines => params[:timelines] || [],     # [ :user_1, :spot_1 ]
-        :subscribers => params[:subscribers] || [], # [ :user_1 ]
-        :objects => params[:objects] || {} ,        # { :spot => :spot_1, :user => :user_1 }
-        :events => params[:events] || []            # [ :checkin_1 ] (for photos, comments, etc)
+    put '/events/:key' do |key|
+      opts = JSON.parse(request.body.read)
+      options.connection.event(key,
+        :data        => opts['data'],
+        :timelines   => opts['timelines'],
+        :subscribers => opts['subscribers'],
+        :objects     => opts['objects'],
+        :events      => opts['events']
       )
       status 204
     end
 
     delete '/events/:key' do |key|
-      CONN.remove_event(key)
+      options.connection.remove_event(key)
       status 204
     end
 
     get '/timelines/:key' do |key|
-      events = CONN.timeline(key)
+      events = options.connection.timeline(key)
       content_type :json
       { :events => events }.to_json
     end

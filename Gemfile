@@ -3,6 +3,7 @@ source :rubygems
 gem "chronologic", :path => File.expand_path("..", __FILE__)
 
 gem 'cassandra', '>= 0.9.0'
+gem 'httparty',  '>= 0.6.1'
 gem 'sinatra',   '>= 1.0'
 gem 'vegas',     '>= 0.1.7'
 gem 'rack',      '>= 1.2.1'

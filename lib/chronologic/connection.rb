@@ -26,10 +26,6 @@ module Chronologic
       nil
     end
 
-    # def get_object(object_key)
-    #   symbolize_keys(cassandra.get(:Object, object_key.to_s))
-    # end
-
     def remove_object(object_key)
       cassandra.batch do
         cassandra.remove(:Object, object_key.to_s)
@@ -64,10 +60,20 @@ module Chronologic
         'objects'     => stringify_keys(options[:objects] || {}),
         'events'      => stringify_keys(options[:events] || []),
       }
+      event_data['created_at'] = if options[:created_at]
+        if options[:created_at].is_a?(Time)
+          options[:created_at].to_i.to_s
+        elsif options[:created_at].is_a?(String)
+          Time.parse(options[:created_at]).to_i.to_s
+        end
+      else
+        Time.now.utc.to_i.to_s
+      end
       cassandra.batch do
         cassandra.insert(:Event, event_key.to_s, event_data)
+        prefixed_event_key = event_data['created_at'] + ":" + event_key.to_s
         timeline_keys(event_data).each do |timeline_key|
-          cassandra.insert(:Timeline, timeline_key, { SimpleUUID::UUID.new => event_key.to_s })
+          cassandra.insert(:Timeline, timeline_key, { prefixed_event_key => "" })
         end
       end
       nil
@@ -85,17 +91,21 @@ module Chronologic
       nil
     end
 
-    def timeline(timeline_key = :_global)
-      keys = event_keys(timeline_key)
-      rows = cassandra.multi_get(:Event, keys)
-      rows.map do |k, v|
-        result = v['data']
-        (v['objects'] || []).each do |object_name, object_key|
+    def timeline(timeline_key = :_global, include_subevents = true)
+      timeline_key = :_global if timeline_key.nil?
+      events = cassandra.multi_get(:Event, event_keys(timeline_key)).map do |key, info|
+        event = info['data']
+        event[:created_at] = Time.at(info['created_at'].keys.first.to_i)
+        (info['objects'] || []).each do |object_name, object_key|
           # TODO: multi-get
-          result[object_name] = regular_hash(cassandra.get(:Object, object_key))
+          event[object_name] = regular_hash(cassandra.get(:Object, object_key))
         end
-        regular_hash(result)
+        if include_subevents
+          event[:events] = timeline("_event:#{key.split(':')[1]}", false)
+        end
+        regular_hash(event)
       end
+      { :events => events }
     end
 
     private
@@ -116,7 +126,7 @@ module Chronologic
     end
     
     def event_keys(timeline_key)
-      cassandra.get(:Timeline, timeline_key.to_s, :reversed => true).map(&:last)
+      cassandra.get(:Timeline, timeline_key.to_s, :reversed => true).map{ |k, v| k.split(':')[1] }
     end
     
     def subscription_timelines(subscription_keys)

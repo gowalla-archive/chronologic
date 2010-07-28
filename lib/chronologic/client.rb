@@ -49,6 +49,7 @@ module Chronologic
     def event(event_key, options={})
       url = @base_url + "events/#{event_key}"
       request = Net::HTTP::Put.new(url.path, {"Content-type" => "application/json"})
+      options[:created_at] = options[:created_at].utc.iso8601 if options[:created_at]
       request.body = Yajl::Encoder.encode(options)
       response = @http.request(url, request)
     end
@@ -61,8 +62,13 @@ module Chronologic
 
     def timeline(timeline_key)
       url = @base_url + "timelines/#{timeline_key}"
-      response = Yajl::HttpStream.get(url)
-      response['events'].map{ |e| symbolize_keys(e) }
+      timeline = Yajl::HttpStream.get(url)
+      timeline['events'] = timeline['events'].map do |event|
+        event = symbolize_keys(event)
+        event[:created_at] = Time.parse(event[:created_at])
+        event
+      end
+      symbolize_keys(timeline)
     end
     
     private

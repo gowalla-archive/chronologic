@@ -25,7 +25,7 @@ some _events_:
     chronologic.event(:status_2, :data => {:username => 'jw',  :status => 'This is Josh.'})
 
 	# Get all the events in the timeline
-	chronologic.timeline
+	chronologic.timeline[:events]
 	=> [{:username => 'jw', :status=>'This is Josh.'}, {:username => 'sco', :status=>'This is Scott.'}]
 
 Note that the contents of the `:data` hash is arbitrary (except that all the values should
@@ -44,7 +44,7 @@ with an associated _timeline_:
     chronologic.event(:status_2, :timelines => [:jw],  :data => {:username => 'jw',  :status => 'This is Josh.'})
 
     # Get a timeline by name
-    chronologic.timeline(:sco)
+    chronologic.timeline(:sco)[:events]
 	=> [{:username => 'sco', :status=>'This is Scott.'}]
 
 ### Subscriptions
@@ -63,7 +63,7 @@ these scenarios, use _subscriptions_:
     chronologic.event(:status_3, :subscribers => [:keeg], :data => {:username => 'keeg', :status => 'This is Keegan.'})
 
 	# Get aggregated activity from Scott's friends
-	chronologic.timeline(:sco_friends)
+	chronologic.timeline(:sco_friends)[:events]
 	=> [{:username => 'keeg', :status=>"This is Keegan."}, {:username => 'jw', :status=>"This is Josh."}]
 
 Note that subscriptions are useful for more than just a social graph. You might also use
@@ -84,7 +84,7 @@ these issues, you'll want to use _objects_:
     chronologic.event(:status_3, :objects => {:user => :keeg}, :timelines => [:keeg], :data => {:status => 'This is Keegan.'})
 
 	# When the event is returned in a timeline, the associated objects' metadata will be included
-	chronologic.timeline(:keeg)
+	chronologic.timeline(:keeg)[:events]
 	=> [{:status => "This is Keegan.", :user => {:username => 'keeg', :name => 'Keegan Jones'}}]
 
 Objects are appropriate for any data that's needed to represent a complete feed, but
@@ -125,10 +125,10 @@ Install chronologic:
 Edit conf/storage-conf.xml to define the keyspace:
 
     <Keyspace Name="Chronologic">
-      <ColumnFamily Name="Object" CompareWith="UTF8Type" /><!-- BytesType? -->
-      <ColumnFamily Name="Subscription" CompareWith="UTF8Type" /><!-- BytesType? -->
-      <ColumnFamily Name="Event" ColumnType="Super" CompareWith="UTF8Type" CompareSubcolumnsWith="UTF8Type" />
-      <ColumnFamily Name="Timeline" CompareWith="TimeUUIDType" /><!-- Bytes? -->
+      <ColumnFamily Name="Object" CompareWith="UTF8Type" />
+      <ColumnFamily Name="Subscription" CompareWith="UTF8Type" />
+      <ColumnFamily Name="Event" CompareWith="UTF8Type" />
+      <ColumnFamily Name="Timeline" CompareWith="UTF8Type" />
 
       <ReplicaPlacementStrategy>org.apache.cassandra.locator.RackUnawareStrategy</ReplicaPlacementStrategy>
       <ReplicationFactor>1</ReplicationFactor>
@@ -168,18 +168,30 @@ Meta
 
 TODO
 ----
-- store timestamps with everything (perhaps prepend event keys with a datetime string (so require created_at?))
-- also a good idea to make event-ids in timelines key names, not values, so that inserts are idempotent (then how are they sorted? prepend timestamp?)
-- speed up ruby client: persistent connections, yajl, etc
-- re-write server/connection in node
-- web UI
-- redis for real-time notifications and queuing?
-- memcached for caching responses
-- support for re-building a timeline
-- etag/if-modified-since etc
+- return subevents in timelines
+- re-building a timeline
+- pagination
+- node-based server
+- mongo backend?
 - server should catch exceptions and return error codes
-- support PSHB feeds, the notifications system (APS and atom-based), and the real-time web notifications
 
+- web UI
+  - display a list of all timelines
+  - add-object form
+  - add-subscription form
+  - add-event form (with dropdowns for all timelines, objects, events, etc)
+  - stats
+- redis for real-time notifications and queuing?
+- etag/if-modified-since
+- PSHB
+  - the app requests notification when a timeline changes, and fires the hub notification then
+  - not efficient: it'd be better if we could ping the hub with all the changes at once (user, spot, area, all friends, etc)
+- atom/json notifications (easy; separate timelines)
+- APS notifications
+- websockets notifications
+- avro or some other interface?
+- memcached for caching responses
+- consider something other than cassandra as backend: mongo? riak? 
 - create github site
 - add rdoc comments
 - privacy: does a checkin get published to the spot feed even if the user is private? if I look at a spot feed, shouldn't I see my private friends?

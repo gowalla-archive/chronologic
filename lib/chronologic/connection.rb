@@ -91,9 +91,11 @@ module Chronologic
       nil
     end
 
-    def timeline(timeline_key = :_global, include_subevents = true)
+    # TODO: multi-get the objects, and only fetch events if there are any
+    def timeline(timeline_key = :_global, options={}, include_subevents = true)
       timeline_key = :_global if timeline_key.nil?
-      events = cassandra.multi_get(:Event, event_keys(timeline_key)).map do |key, info|
+      event_keys = event_keys(timeline_key, options)
+      events = cassandra.multi_get(:Event, event_keys).map do |key, info|
         event = info['data']
         event[:created_at] = Time.at(info['created_at'].keys.first.to_i)
         (info['objects'] || []).each do |object_name, object_key|
@@ -101,7 +103,8 @@ module Chronologic
           event[object_name] = regular_hash(cassandra.get(:Object, object_key))
         end
         if include_subevents
-          event[:events] = timeline("_event:#{key.split(':')[1]}", false)
+          timeline = timeline("_event:#{key}", options, false)
+          event[:events] = timeline[:events] if timeline[:events].size > 0
         end
         regular_hash(event)
       end
@@ -119,14 +122,16 @@ module Chronologic
       timelines << event_data['subscribers'].keys.map{ |k| "_subscriber:#{k}" }
       timelines.flatten
     end
+
+    def event_keys(timeline_key, options={})
+      #options.merge!(:reversed => true)
+      options = { :reversed => true }
+      cassandra.get(:Timeline, timeline_key.to_s, options).map{ |k, v| k.split(':')[1] }
+    end
     
     def remove_timeline_event(timeline_key, event_key)
       # TODO: this isn't right
       cassandra.remove(:Timeline, timeline_key.to_s, event_key.to_s)
-    end
-    
-    def event_keys(timeline_key)
-      cassandra.get(:Timeline, timeline_key.to_s, :reversed => true).map{ |k, v| k.split(':')[1] }
     end
     
     def subscription_timelines(subscription_keys)

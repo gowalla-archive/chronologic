@@ -13,8 +13,8 @@ Overview
 
 Suppose you want to create a new social network, with the requisite activity stream, so
 that users can see what their friends are up to. You start simple: users can create status
-updates, and view a timeline of all statuses in reverse-chronological order. Just create
-some _events_:
+updates, and view a timeline of all statuses in reverse-chronological order. First you'll
+create some _events_:
 
 	# Create a connection
 	require 'chronologic'
@@ -28,16 +28,16 @@ some _events_:
 	chronologic.timeline[:events]
 	=> [{:username => 'jw', :status=>'This is Josh.'}, {:username => 'sco', :status=>'This is Scott.'}]
 
-Note that the contents of the `:data` hash is arbitrary (except that all the values should
-be strings). There is no assumption that you'll store Twitter-like status updates; maybe
-your application calls for something more like this:
+Note that the keys in the `:data` hash are arbitrary, but all the values must be strings.
+There is no assumption that you'll store Twitter-like status updates; maybe your application
+calls for something more like this:
 
     { :actor => "sco", :verb => "joined_group", :object => "Rubyists", :created_at => "2010-07-22 18:12:30" }
 
 ### Timelines
 
-You'll also want to view all of the events from a given user. To allow that, create events
-with an associated _timeline_:
+Next you'll want to view all of the events from a given user. To do that, assign events
+to any number of _timelines_:
 
     # Create events and add them to some timelines
     chronologic.event(:status_1, :timelines => [:sco], :data => {:username => 'sco', :status => 'This is Scott.'})
@@ -49,10 +49,12 @@ with an associated _timeline_:
 
 ### Subscriptions
 
-Now, you want to follow a bunch of users, and see their activity aggregated. You could
-handle this by looking up a user's followers, and adding each of them to the :timelines
-array. But what happens when the user gets a new follower? Or loses one? To help with
-these scenarios, use _subscriptions_:
+Next you want to follow a bunch of users, and see their activity aggregated. You *could*
+do this aggregation on demand: fetch a bunch of users' timelines, and merge them all together.
+But that's a lot of wasted effort, and could be slow if you follow thousands of people. You
+could also do the fan-out on write: look up a user's followers, and adding each of them to
+the :timelines array. But what happens when the user gets a new follower? Or loses one? To
+help with these scenarios, use _subscriptions_:
 
 	# Scott follows Josh and Keegan
     chronologic.subscribe(:sco_friends, :jw)
@@ -67,15 +69,16 @@ these scenarios, use _subscriptions_:
 	=> [{:username => 'keeg', :status=>"This is Keegan."}, {:username => 'jw', :status=>"This is Josh."}]
 
 Note that subscriptions are useful for more than just a social graph. You might also use
-them to provide aggregated activity for all members of a group, etc. Unsubscribing
-will cause all of the appropriate events to be removed from the appropriate timelines.
+them to provide aggregated activity for all members of a group, disparate activity around
+a common object, etc. Unsubscribing will cause all of the appropriate events to be removed
+from the appropriate timelines.
 
 ### Objects
 
-To display a complete activity feed, you'll probably want the user's name, image URL,
+To display a complete activity feed, you'll probably need the user's name, image URL,
 and some other metadata. You could store that stuff right in the event, but that creates
-a lot of duplicated storage. And what happens if the user changes their name? To address
-these issues, you'll want to use _objects_:
+a lot of duplicated storage, making it difficult to deal with changes. To address
+these issues, use _objects_:
 
     # Store a metadata object for each user (any time they're created or changed)
     chronologic.object(:keeg, {:username => 'keeg',  :name => 'Keegan Jones'})
@@ -93,14 +96,14 @@ it depends on to be deleted.
 
 ### Sub-events
 
-Some events shouldn't be directly part of a timeline, but attached another event -- like
+Some events aren't directly part of a timeline, but attached another event -- like
 a comment on a post. Do that with the _:events_ option:
 
 	# To create a child, reference the parent event key
     chronologic.event(:events => [:status_3], :data => {:status => 'Hi, Keegan!'})
 
-You may also create an event that's both a sub-event, *and* added to a timeline -- e.g.,
-attach a comment to a post, and send a notification to the creator of the post.
+An event can both a sub-event, *and* added to a timeline -- e.g., attach a comment
+to a post, and send a notification to the creator of the post.
 
 
 Implementation, Performance & Scalability
@@ -138,13 +141,19 @@ Edit conf/storage-conf.xml to define the keyspace:
 The RandomPartitioner should be used.
 
 Start cassandra:
-    cd ~/Desktop/apache-cassandra-0.6.3/
     export JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Home
     export PATH=$JAVA_HOME/bin:$PATH
     bin/cassandra -f
 
 Start server:
     shotgun
+
+
+### As a Rails plugin:
+
+Edit your Gemfile:
+
+    gem "chronologic", :require_as => ["chronologic", "chronologic/railtie"]
 
 
 Examples
@@ -168,13 +177,25 @@ Meta
 
 TODO
 ----
-- return subevents in timelines
-- re-building a timeline
 - pagination
-- node-based server
-- mongo backend?
+  - consider making a Timeline class, to help with pagination etc
+- re-building a timeline
+- etag/if-modified-since
+- maybe make created_at a required argument for #event, since it's an essential part of the idempotence thing
+- PSHB
+  - the app requests notification when a timeline changes, and fires the hub notification then
+  - not efficient: it'd be better if we could ping the hub with all the changes at once (user, spot, area, all friends, etc)
+  - maybe you can tell Chronologic which timelines should cause hub pings and let it manage them
+  - or maybe chronologic itself should provide hub functionality
+- APS notifications (outside of scope?)
+- websockets notifications (outside of scope?)
 - server should catch exceptions and return error codes
 
+- node-based server
+- any need for a broadcast system like zeromq?
+- mongo backend?
+- riak backend?
+- document creating atom/activitystreams feeds
 - web UI
   - display a list of all timelines
   - add-object form
@@ -182,16 +203,11 @@ TODO
   - add-event form (with dropdowns for all timelines, objects, events, etc)
   - stats
 - redis for real-time notifications and queuing?
-- etag/if-modified-since
-- PSHB
-  - the app requests notification when a timeline changes, and fires the hub notification then
-  - not efficient: it'd be better if we could ping the hub with all the changes at once (user, spot, area, all friends, etc)
-- atom/json notifications (easy; separate timelines)
-- APS notifications
-- websockets notifications
 - avro or some other interface?
 - memcached for caching responses
-- consider something other than cassandra as backend: mongo? riak? 
+  - perhaps every time a timeline changes, preemptively cache it, so that even cold requests are fast
+  - could still use a TTL so that feeds timelines that are never requested and never change don't eat up space
+  - or get fancy, and try to prioritize timelines that are frequently requested
 - create github site
 - add rdoc comments
 - privacy: does a checkin get published to the spot feed even if the user is private? if I look at a spot feed, shouldn't I see my private friends?

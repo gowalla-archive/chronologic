@@ -18,6 +18,15 @@ ActiveRecord::Schema.define do
   create_table :spots do |t|
     t.string :name
   end
+  create_table :trips do |t|
+    t.string :name
+  end
+  create_table :kinds do |t|
+    t.string :name
+  end
+  create_table :highlight_types do |t|
+    t.string :name
+  end
   create_table :checkins do |t|
     t.references :user, :spot
     t.string :message
@@ -33,22 +42,13 @@ ActiveRecord::Schema.define do
     t.string :message
     t.timestamps
   end
-  create_table :trips do |t|
-    t.string :name
-  end
   create_table :pins do |t|
     t.references :user, :trip
     t.timestamps
   end
-  create_table :kinds do |t|
-    t.string :name
-  end
   create_table :items do |t|
     t.references :kind, :user, :spot
     t.timestamps
-  end
-  create_table :highlight_types do |t|
-    t.string :name
   end
   create_table :highlights do |t|
     t.references :highlight_type, :user, :spot
@@ -62,6 +62,7 @@ class User < ActiveRecord::Base
   has_many :checkins
   has_many :pins
   has_many :photos
+  has_many :highlights
 
   def follow(user)
     CHRONO.subscribe("user_#{id}_home", "user_#{user.id}")
@@ -72,17 +73,41 @@ class User < ActiveRecord::Base
   def after_save
     CHRONO.object("user_#{id}", { :name => name })
   end
-  def timeline
-    Timeline.new("user_#{id}")
+  def timeline(options={})
+    options.reverse_merge!(:count => 25)
+    GowallaTimeline.new("user_#{id}", options)
   end
   def home_timeline(options={})
-    Timeline.new("user_#{id}_home", options)
+    options.reverse_merge!(:count => 25)
+    GowallaTimeline.new("user_#{id}_home", options)
   end
 end
 
 class Spot < ActiveRecord::Base
   def after_save
     CHRONO.object("spot_#{id}", { :name => name })
+  end
+
+  def timeline(options={})
+    GowallaTimeline.new("spot_#{id}", options)
+  end
+end
+
+class Trip < ActiveRecord::Base
+  def after_save
+    CHRONO.object("trip_#{id}", { :name => name })
+  end
+end
+
+class Kind < ActiveRecord::Base
+  def after_save
+    CHRONO.object("kind_#{id}", { :name => name })
+  end
+end
+
+class HighlightType < ActiveRecord::Base
+  def after_save
+    CHRONO.object("highlight_type_#{id}", { :name => name })
   end
 end
 
@@ -93,9 +118,10 @@ class Checkin < ActiveRecord::Base
   has_many :photos
 
   def after_save
-    CHRONO.event("checkin_#{id}",
-      :data => { :type => "checkin", :message => message },
+    CHRONO.event(
+      :key => "checkin_#{id}",
       :created_at => created_at,
+      :data => { :type => "checkin", :message => message },
       :timelines => ["user_#{user_id}", "spot_#{spot_id}"],
       :subscribers => ["user_#{user_id}"],
       :objects => { :spot => "spot_#{spot_id}", :user => "user_#{user_id}" }
@@ -108,9 +134,10 @@ class Comment < ActiveRecord::Base
   belongs_to :checkin
 
   def after_save
-    CHRONO.event("comment_#{id}",
-      :data => { :type => "comment", :message => message },
+    CHRONO.event(
+      :key => "comment_#{id}",
       :created_at => created_at,
+      :data => { :type => "comment", :message => message },
       :objects => { :user => "user_#{user_id}" },
       :events => [ "checkin_#{checkin_id}" ]
     )
@@ -122,18 +149,13 @@ class Photo < ActiveRecord::Base
   belongs_to :checkin
 
   def after_save
-    CHRONO.event("photo_#{id}",
-      :data => { :type => "photo", :message => message },
+    CHRONO.event(
+      :key => "photo_#{id}",
       :created_at => created_at,
+      :data => { :type => "photo", :message => message },
       :objects => { :user => "user_#{user_id}" },
       :events => [ "checkin_#{checkin_id}" ]
     )
-  end
-end
-
-class Trip < ActiveRecord::Base
-  def after_save
-    CHRONO.object("trip_#{id}", { :name => name })
   end
 end
 
@@ -142,18 +164,13 @@ class Pin < ActiveRecord::Base
   belongs_to :trip
 
   def after_save
-    CHRONO.event("pin_#{id}",
-      :data => { :type => "pin" },
+    CHRONO.event(
+      :key => "pin_#{id}",
       :created_at => created_at,
+      :data => { :type => "pin" },
       :timelines => ["user_#{user_id}", "trip_#{trip_id}"],
       :objects => { :trip => "trip_#{trip_id}", :user => "user_#{user_id}" }
     )
-  end
-end
-
-class Kind < ActiveRecord::Base
-  def after_save
-    CHRONO.object("kind_#{id}", { :name => name })
   end
 end
 
@@ -163,9 +180,10 @@ class Item < ActiveRecord::Base
   belongs_to :spot
 
   def bonus_event(checkin)
-    CHRONO.event("item_#{id}_bonus",
-      :data => { :type => "item_bonus" },
+    CHRONO.event(
+      :key => "item_#{id}_bonus",
       :created_at => checkin.created_at,
+      :data => { :type => "item_bonus" },
       :objects => { :kind => "kind_#{kind_id}" },
       :events => [ "checkin_#{checkin.id}" ],
       :timelines => [ "item_#{id}" ]
@@ -173,9 +191,10 @@ class Item < ActiveRecord::Base
   end
 
   def drop_event(checkin)
-    CHRONO.event("item_#{id}_drop",
-      :data => { :type => "item_drop" },
+    CHRONO.event(
+      :key => "item_#{id}_drop",
       :created_at => Time.now,
+      :data => { :type => "item_drop" },
       :objects => { :kind => "kind_#{kind_id}" },
       :events => [ "checkin_#{checkin.id}" ],
       :timelines => [ "item_#{id}" ]
@@ -185,18 +204,13 @@ class Item < ActiveRecord::Base
   # TODO: swap
   
   def vault_event
-    CHRONO.event("item_#{id}_vault",
-      :data => { :type => "item_vault" },
+    CHRONO.event(
+      :key => "item_#{id}_vault",
       :created_at => Time.now,
+      :data => { :type => "item_vault" },
       :objects => { :kind => "kind_#{kind_id}" },
       :timelines => [ "item_#{id}" ]
     )
-  end
-end
-
-class HighlightType < ActiveRecord::Base
-  def after_save
-    CHRONO.object("highlight_type_#{id}", { :name => name })
   end
 end
 
@@ -206,49 +220,61 @@ class Highlight < ActiveRecord::Base
   belongs_to :spot
 
   def after_save
-    CHRONO.event("highlight_#{id}",
-      :data => { :type => "highlight", :message => message },
+    CHRONO.event(
+      :key => "highlight_#{id}",
       :created_at => created_at,
+      :data => { :type => "highlight", :message => message },
       :objects => { :highlight_type => "highlight_type_#{highlight_type_id}", :user => "user_#{user_id}", :spot => "spot_#{spot_id}" },
-      :timelines => ["user_#{user_id}", "highlight_type_#{highlight_type_id}", "spot_#{spot_id}"]
+      :timelines => ["user_#{user_id}", "highlight_type_#{highlight_type_id}", "spot_#{spot_id}"],
+      :subscribers => ["user_#{user_id}"]
     )
   end
 end
 
-class Timeline
+class GowallaTimeline
   def initialize(key, options={})
-    @info = CHRONO.timeline(key, options)
+    @key = key
+    @options = options
   end
+  
+  def next
+    self.class.new(@key, @options.merge(:start => info[:finish]))
+  end
+
+  def info
+    @info ||= CHRONO.timeline(@key, @options)
+  end
+
   def to_s
-    lines = []
-    @info[:events].each do |event|
-      if event[:type]=='checkin'
-        lines << "- #{event[:user][:name]} checked in at #{event[:spot][:name]}: \"#{event[:message]}\" (#{event[:created_at].strftime("%H:%M %a")})"
-        (event[:events] || []).each do |subevent|
+    info[:events].map do |event_info|
+      if event_info[:type]=='checkin'
+        str = "- #{event_info[:user][:name]} checked in at #{event_info[:spot][:name]}: \"#{event_info[:message]}\" (#{event_info[:created_at].strftime("%H:%M %a")})"
+        (event_info[:events] || []).each do |subevent|
           if subevent[:type]=='comment'
-            lines << "  - #{subevent[:user][:name]} commented: \"#{subevent[:message]}\""
+            str << "\n  - #{subevent[:user][:name]} commented: \"#{subevent[:message]}\""
           elsif subevent[:type]=='photo'
-            lines << "  - #{subevent[:user][:name]} took a photo: \"#{subevent[:message]}\""
+            str << "\n  - #{subevent[:user][:name]} took a photo: \"#{subevent[:message]}\""
           else
-            # unknown event type
+            str << "\n  - (unknown event type: #{subevent.inspect})"
           end
         end
-      elsif event[:type]=='pin'
-        lines << "- #{event[:user][:name]} earned the #{event[:trip][:name]} pin"
+        str
+      elsif event_info[:type]=='pin'
+        "- #{event_info[:user][:name]} earned the #{event_info[:trip][:name]} pin (#{event_info[:created_at].strftime("%H:%M %a")})"
+      elsif event_info[:type]=='highlight'
+        "- #{event_info[:user][:name]} made #{event_info[:spot][:name]} a highlight: #{event_info[:highlight_type][:name]} (#{event_info[:created_at].strftime("%H:%M %a")})"
       else
-        # unknown event type
+        "- (unknown event type: #{event_info[:type]})"
       end
-    end
-    lines.join("\n")
+    end.join("\n")
   end
 end
 
 
-
-CHRONO = Chronologic::Connection.new
+CHRONO = Chronologic::Client.new
 CHRONO.clear!
 
-puts "Creating users, spots, trips, kinds, subscriptions..."
+puts "Creating users, spots, trips, kinds, highlight types, subscriptions..."
 jw = User.create(:name => 'Josh Williams')
 iconmaster = User.create(:name => 'John Marstall')
 etherbrian = User.create(:name => 'Brian Brasher')
@@ -279,12 +305,15 @@ coffeesnob = Trip.create(:name => "I'm a Coffee Snob!")
 lush = Trip.create(:name => "I'm a Drunk!")
 foodie = Trip.create(:name => "I'm a Fattie!")
 
-Kind.create(:name => "some Ribs")
-Kind.create(:name => "a Watering Can")
-Kind.create(:name => "some Cutoffs")
+ribs = Kind.create(:name => "some Ribs")
+wateringcan = Kind.create(:name => "a Watering Can")
+cutoffs = Kind.create(:name => "some Cutoffs")
 
-puts "Users check in, earn pins, etc..."
-50.downto(0) do |i|
+happyplace = HighlightType.create(:name => "My Happy Place")
+bestcup = HighlightType.create(:name => "Best Cup")
+
+10.downto(0) do |i|
+  puts "Creating checkins, pins, etc..."
   base = (i*24).hours
 
   sco.checkins.create(:spot => juan, :message => "Coffee break!", :created_at => 25.hours.ago - base)
@@ -292,12 +321,14 @@ puts "Users check in, earn pins, etc..."
   sco.checkins.create(:spot => driskill, :message => "Drinks", :created_at => 12.hours.ago - base)
   sco.checkins.create(:spot => jos, :message => "Charging up", :created_at => 4.hours.ago - base)
   sco.checkins.create(:spot => gowalla, :message => "Building cool shit", :created_at => 45.minutes.ago - base)
+  #sco.highlights.create(:spot => gingerman, :highlight_type => happyplace, :message => "Mmm, beer", :created_at => 20.hours.ago - base)
 
   checkin = keeg.checkins.create(:spot => gowalla, :message => "Working", :created_at => 15.hours.ago - base)
   checkin.comments.create(:user => jw, :message => "Good!", :created_at => 14.hours.ago - base)
   keeg.checkins.create(:spot => halcyon, :created_at => 5.hours.ago - base)
   keeg.checkins.create(:spot => gingerman, :message => "Trivia night.", :created_at => 30.minutes.ago - base)
   keeg.pins.create(:trip => lush, :created_at => 30.minutes.ago - base)
+  #keeg.highlights.create(:spot => juan, :highlight_type => bestcup, :message => "Mmm, coffee", :created_at => 10.hours.ago - base)
 
   iconmaster.checkins.create(:spot => apple, :message => "Picking up a new mouse", :created_at => 10.hours.ago - base)
   iconmaster.checkins.create(:spot => onetaco, :message => "Lunch!", :created_at => 1.hours.ago - base)
@@ -313,14 +344,18 @@ puts "Users check in, earn pins, etc..."
 
   # TODO: drop/swap some items
 end
-
-puts "Press enter to get timelines...";
-gets;
-
-puts "Scott's user timeline:"
-puts sco.timeline
 puts
 
+# puts "Scott's user timeline:"
+# puts sco.timeline(:count => 20)
+# puts
+
 puts "Josh's home timeline:"
-puts jw.home_timeline#(:count => 10)
+timeline = jw.home_timeline
+puts timeline
+puts
+
+puts "Next page of Josh's home timeline:"
+timeline = timeline.next
+puts timeline
 puts

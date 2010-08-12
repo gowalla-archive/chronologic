@@ -138,15 +138,39 @@ Edit conf/storage-conf.xml to define the keyspace:
       <EndPointSnitch>org.apache.cassandra.locator.EndPointSnitch</EndPointSnitch>
     </Keyspace>
 
+...or conf/cassandra.yml:
+
+- name: Chronologic
+  replica_placement_strategy: org.apache.cassandra.locator.RackUnawareStrategy
+  replication_factor: 1
+  column_families:
+    - name: Object
+      compare_with: UTF8Type
+
+    - name: Subscription
+      compare_with: UTF8Type
+
+    - name: Event
+      compare_with: UTF8Type
+
+    - name: Timeline
+      compare_with: UTF8Type
+
 The RandomPartitioner should be used.
 
 Start cassandra:
+    sudo rm -rf /var/log/cassandra
+    sudo rm -rf /var/lib/cassandra
+    sudo mkdir -p /var/log/cassandra
+    sudo chown -R `whoami` /var/log/cassandra
+    sudo mkdir -p /var/lib/cassandra
+    sudo chown -R `whoami` /var/lib/cassandra
     export JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Home
     export PATH=$JAVA_HOME/bin:$PATH
     bin/cassandra -f
 
 Start server:
-    shotgun
+    rackup
 
 
 ### As a Rails plugin:
@@ -177,11 +201,6 @@ Meta
 
 TODO
 ----
-- pagination
-  - consider making a Timeline class, to help with pagination etc
-- re-building a timeline
-- etag/if-modified-since
-- maybe make created_at a required argument for #event, since it's an essential part of the idempotence thing
 - PSHB
   - the app requests notification when a timeline changes, and fires the hub notification then
   - not efficient: it'd be better if we could ping the hub with all the changes at once (user, spot, area, all friends, etc)
@@ -191,21 +210,25 @@ TODO
 - websockets notifications (outside of scope?)
 - server should catch exceptions and return error codes
 
-- node-based server
-- any need for a broadcast system like zeromq?
-- mongo backend?
-- riak backend?
+- evented-sinatra ruby server? (could use evented cassandra)
+- test with millions of objects/events/subscriptions
+- etag/if-modified-since
+- consider storing full copies of events in timelines, so that reads don't require joins/multigets
+- document how to build a new timeline or re-build one
+- consider making a Timeline class, to help with pagination etc
 - document creating atom/activitystreams feeds
 - web UI
-  - display a list of all timelines
+  - stats
+  - display a list of all timelines (or just recently changed ones)
   - add-object form
   - add-subscription form
   - add-event form (with dropdowns for all timelines, objects, events, etc)
-  - stats
 - redis for real-time notifications and queuing?
-- avro or some other interface?
-- memcached for caching responses
-  - perhaps every time a timeline changes, preemptively cache it, so that even cold requests are fast
+- client-side memcached
+  - store etag or last-mod values, and response body, so server can say not-modified
+  - also consider supporting short Expires headers
+- server-side memcached
+  - when a timeline changes, preemptively cache it, so that even cold requests are fast
   - could still use a TTL so that feeds timelines that are never requested and never change don't eat up space
   - or get fancy, and try to prioritize timelines that are frequently requested
 - create github site
@@ -218,12 +241,15 @@ TODO
 - document how to run on heroku (is there any hosted cassandra?)
 - support retries and falling back to another node
 - recommend using the HTTP interface, or directly through Chronologic::Connection?
-- consider storing full copies of events in timelines, so that reads don't require joins (multigets)
 - document rails-specific idioms (how to config, use observers to create events)
 - document how to create a top-news feed
 - get some specs running
 - document/streamline cassandra installation
-- stats (?)
+- node-based server
+- avro or some other interface?
+- any need for a broadcast system like zeromq?
+- mongo backend?
+- riak backend?
 - enqueue fanout? or will it be fast enough? what if cassandra is temporarily down?
   - even though writes are fast, maybe they should still be triggered by a queue, so that we can group together notifications, publishing, etc., and pause cassandra sometimes.
 - event clustering? (so your friends-feed can't be overrun by one hyper checker-inner). probably out of scope.

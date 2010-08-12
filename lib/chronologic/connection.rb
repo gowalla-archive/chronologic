@@ -6,6 +6,7 @@ rescue LoadError
 end
 
 module Chronologic
+  # TODO: rename to CassandraAdapter?
   class Connection
     def cassandra=(cassandra)
       @cassandra = cassandra
@@ -51,7 +52,9 @@ module Chronologic
       nil
     end
     
-    def event(event_key, options={})
+    def event(options={})
+      event_key = options.delete(:key)
+      created_at = options.delete(:created_at) || options.delete('created_at')
       options = symbolize_keys(options)
       event_data = {
         'data'        => stringify_keys(options[:data] || {}),
@@ -59,19 +62,20 @@ module Chronologic
         'timelines'   => stringify_keys(options[:timelines] || []),
         'objects'     => stringify_keys(options[:objects] || {}),
         'events'      => stringify_keys(options[:events] || []),
+        'meta'        => {},
       }
-      event_data['created_at'] = if options[:created_at]
-        if options[:created_at].is_a?(Time)
-          options[:created_at].to_i.to_s
-        elsif options[:created_at].is_a?(String)
-          Time.parse(options[:created_at]).to_i.to_s
+      event_data['meta']['created_at'] = if created_at
+        if created_at.is_a?(Time)
+          created_at.to_i.to_s
+        elsif created_at.is_a?(String)
+          Time.parse(created_at).to_i.to_s
         end
       else
         Time.now.utc.to_i.to_s
       end
       cassandra.batch do
         cassandra.insert(:Event, event_key.to_s, event_data)
-        prefixed_event_key = event_data['created_at'] + ":" + event_key.to_s
+        prefixed_event_key = event_data['meta']['created_at'] + ":" + event_key.to_s
         timeline_keys(event_data).each do |timeline_key|
           cassandra.insert(:Timeline, timeline_key, { prefixed_event_key => "" })
         end
@@ -91,24 +95,31 @@ module Chronologic
       nil
     end
 
-    # TODO: multi-get the objects, and only fetch events if there are any
-    def timeline(timeline_key = :_global, options={}, include_subevents = true)
+    # TODO: only fetch events if there are any
+    def timeline(timeline_key = :_global, options={})
+      include_subevents = options.delete(:include_subevents) || true
       timeline_key = :_global if timeline_key.nil?
       event_keys = event_keys(timeline_key, options)
-      events = cassandra.multi_get(:Event, event_keys).map do |key, info|
+      events = cassandra.multi_get(:Event, event_keys.map{ |k, v| k.split(':')[1] })
+      object_keys = events.map{ |key, info| (info['objects'] || {}).values }.flatten.uniq
+      objects = cassandra.multi_get(:Object, object_keys)
+      events = events.map do |key, info|
         event = info['data']
-        event[:created_at] = Time.at(info['created_at'].keys.first.to_i)
+        event[:created_at] = Time.at(info['meta']['created_at'].to_i)
         (info['objects'] || []).each do |object_name, object_key|
-          # TODO: multi-get
-          event[object_name] = regular_hash(cassandra.get(:Object, object_key))
+          event[object_name] = regular_hash(objects[object_key])
         end
-        if include_subevents
-          timeline = timeline("_event:#{key}", options, false)
-          event[:events] = timeline[:events] if timeline[:events].size > 0
-        end
+        #if include_subevents
+        #  timeline = timeline("_event:#{key}", :include_subevents => false)
+        #  event[:events] = timeline[:events] if timeline[:events].size > 0
+        #end
         regular_hash(event)
       end
-      { :events => events }
+      { :events => events,
+        :total_count => events_count(timeline_key),
+        :count => event_keys.size,
+        :start => event_keys.first,
+        :finish => event_keys.last }
     end
 
     private
@@ -122,11 +133,14 @@ module Chronologic
       timelines << event_data['subscribers'].keys.map{ |k| "_subscriber:#{k}" }
       timelines.flatten
     end
+    
+    def events_count(timeline_key)
+      cassandra.count_columns(:Timeline, timeline_key.to_s)
+    end
 
     def event_keys(timeline_key, options={})
-      #options.merge!(:reversed => true)
-      options = { :reversed => true }
-      cassandra.get(:Timeline, timeline_key.to_s, options).map{ |k, v| k.split(':')[1] }
+      options = symbolize_keys(options).merge(:reversed => true)
+      cassandra.get(:Timeline, timeline_key.to_s, options).keys
     end
     
     def remove_timeline_event(timeline_key, event_key)

@@ -6,8 +6,11 @@ rescue LoadError
 end
 
 module Chronologic
-  # TODO: rename to CassandraAdapter?
   class Connection
+    def initialize(cassandra=nil)
+      @cassandra = cassandra
+    end
+    
     def cassandra=(cassandra)
       @cassandra = cassandra
     end
@@ -30,15 +33,25 @@ module Chronologic
     def remove_object(object_key)
       cassandra.batch do
         cassandra.remove(:Object, object_key.to_s)
-        event_keys("_object:#{object_key}").each{ |event_key| remove_event(event_key) }
+        event_keys("_object:#{object_key}").each do |event_key|
+          remove_event(event_key)
+        end
       end
       nil
     end
 
+    # TODO: enqueue the event-copying work
     def subscribe(timeline_key, subscription_key)
       cassandra.batch do
         cassandra.insert(:Subscription, "#{timeline_key}:subscriptions", {subscription_key.to_s => ''})
         cassandra.insert(:Subscription, "#{subscription_key}:timelines", {timeline_key.to_s => ''})
+
+        event_keys = event_keys("_subscriber:#{subscription_key}")
+        events = cassandra.multi_get(:Event, event_keys.map{ |k, v| k.split(':')[1] })
+        events = events.each do |event_key, event_data|
+          prefixed_event_key = event_data['meta']['created_at'] + ":" + event_key.to_s
+          cassandra.insert(:Timeline, timeline_key, { prefixed_event_key => "" })
+        end
       end
       nil
     end
@@ -47,7 +60,9 @@ module Chronologic
       cassandra.batch do
         cassandra.remove(:Subscription, "#{timeline_key}:subscriptions", subscription_key.to_s)
         cassandra.remove(:Subscription, "#{subscription_key}:timelines", timeline_key.to_s)
-        event_keys("_subscriber:#{subscription_key}").each{ |event_key| remove_timeline_event(timeline_key, event_key) }
+        event_keys("_subscriber:#{subscription_key}").each do |event_key|
+          remove_timeline_event(timeline_key, event_key)
+        end
       end
       nil
     end
@@ -78,6 +93,8 @@ module Chronologic
         prefixed_event_key = event_data['meta']['created_at'] + ":" + event_key.to_s
         timeline_keys(event_data).each do |timeline_key|
           cassandra.insert(:Timeline, timeline_key, { prefixed_event_key => "" })
+          # TODO: why not make the key a timeUUID, and the value an un-prefixed event id?, like so?:
+          # cassandra.insert(:Timeline, timeline_key, { event_data['meta']['created_at'] => event_key.to_s })
         end
       end
       nil
@@ -109,10 +126,10 @@ module Chronologic
         (info['objects'] || []).each do |object_name, object_key|
           event[object_name] = regular_hash(objects[object_key])
         end
-        #if include_subevents
-        #  timeline = timeline("_event:#{key}", :include_subevents => false)
-        #  event[:events] = timeline[:events] if timeline[:events].size > 0
-        #end
+        if include_subevents
+         timeline = timeline("_event:#{key}", :include_subevents => false)
+         event[:events] = timeline[:events] if timeline[:events].size > 0
+        end
         regular_hash(event)
       end
       { :events => events,

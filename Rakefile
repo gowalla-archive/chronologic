@@ -1,43 +1,59 @@
 #require "bundler"
 #Bundler.setup
 
-#require "rspec/core/rake_task"
-#Rspec::Core::RakeTask.new(:spec)
+require 'rubygems'
+require 'rake'
+require 'rake/testtask'
+require 'rake/rdoctask'
 
-#gemspec = eval(File.read("chronologic.gemspec"))
+$LOAD_PATH.unshift 'lib'
+require 'chronologic/version'
 
-#task :build => "#{gemspec.full_name}.gem"
-#file "#{gemspec.full_name}.gem" => gemspec.files + ["chronologic.gemspec"] do
-#  system "gem build chronologic.gemspec"
-#  system "gem install chronologic-#{Chronologic::VERSION}.gem"
-#end
-#
-#load 'tasks/redis.rake'
-#require 'rake/testtask'
-#
-#def command?(command)
-#  system("type #{command} > /dev/null 2>&1")
-#end
-#
-#task :default => :test
-#
-#desc "Run the test suite"
-#task :test do
-#  rg = command?(:rg)
-#  Dir['test/**/*_test.rb'].each do |f|
-#    rg ? sh("rg #{f}") : ruby(f)
-#  end
-#end
-#
-#task :install => [ 'redis:install', 'dtach:install' ]
-#
-#desc "Push a new version to Gemcutter"
-#task :publish do
-#  require 'chronologic/version'
-#  sh "gem build chronologic.gemspec"
-#  sh "gem push chronologic-#{Chronologic::Version}.gem"
-#  sh "git tag v#{Chronologic::Version}"
-#  sh "git push origin v#{Chronologic::Version}"
-#  sh "git push origin master"
-#  sh "git clean -fd"
-#end
+begin
+  require 'jeweler'
+  Jeweler::Tasks.new do |gem|
+    gem.name              = "chronologic"
+    gem.summary           = "Activity feeds as a service."
+    gem.description       = "Chronologic is a library for managing Activity Streams (aka News Feeds or Timelines). Like Twitter, or just about any social network. It uses Cassandra."
+    gem.version           = Chronologic::Version
+    gem.date              = Time.now.strftime('%Y-%m-%d')
+    gem.homepage          = "http://github.com/gowalla/chronologic"
+    gem.email             = "sco@gowalla.com"
+    gem.authors           = [ "Scott Raymond" ]
+
+    gem.files             = %w( config.ru init.rb LICENSE Rakefile README.md )
+    gem.files            += Dir.glob("examples/**/*")
+    gem.files            += Dir.glob("lib/**/*")
+    gem.files            += Dir.glob("tasks/**/*")
+    gem.files            += Dir.glob("test/**/*")
+
+    gem.extra_rdoc_files  = [ "LICENSE", "README.md" ]
+    gem.rdoc_options      = ["--charset=UTF-8"]
+
+    gem.add_dependency "net-http-persistent", ">= 1.2.4"
+    gem.add_dependency "cassandra", ">= 0.9.0"
+    gem.add_dependency "yajl-ruby", ">= 0.7.7"
+    gem.add_dependency "sinatra", ">= 1.0.0"
+
+    gem.add_development_dependency "thoughtbot-shoulda", ">= 0"
+  end
+  Jeweler::GemcutterTasks.new
+rescue LoadError
+  puts "Jeweler (or a dependency) not available. Install it with: gem install jeweler"
+end
+
+Rake::TestTask.new(:test) do |test|
+  test.libs << 'lib' << 'test'
+  test.pattern = 'test/**/test_*.rb'
+  test.verbose = true
+end
+
+task :test => :check_dependencies
+task :default => :test
+
+Rake::RDocTask.new do |rdoc|
+  rdoc.rdoc_dir = 'rdoc'
+  rdoc.title = "Chronologic #{Chronologic::Version}"
+  rdoc.rdoc_files.include('README*')
+  rdoc.rdoc_files.include('lib/**/*.rb')
+end

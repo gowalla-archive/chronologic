@@ -194,6 +194,7 @@ Meta
   * Scott Raymond <sco@gowalla.com>
 * Code: `git clone git://github.com/gowalla/chronologic.git`
 * Home: <http://github.com/gowalla/chronologic>
+* Copyright 2010 Scott Raymond. See LICENSE for details.
 
 
 TODO

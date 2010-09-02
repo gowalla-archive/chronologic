@@ -8,7 +8,3 @@ require 'chronologic/server'
 use Rack::Lint
 use Rack::ShowExceptions
 run Chronologic::Server.new
-
-# require "rubygems"
-# require "bundler"
-# Bundler.setup

@@ -1,11 +1,11 @@
 begin
   require 'uri'
-  require 'yajl/http_stream'
+  require 'yajl'
   require 'patron'
 rescue LoadError
-  require 'uri'
   require 'rubygems'
-  require 'yajl/http_stream'
+  require 'uri'
+  require 'yajl'
   require 'patron'
 end
 

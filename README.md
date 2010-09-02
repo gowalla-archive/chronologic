@@ -212,6 +212,7 @@ TODO
 
 - support for browers to request timelines directly from chronologic server, via auth token
 - evented ruby server
+  - we can use yajl's streaming encoder
   - could use evented cassandra
   - would require thin or similarly EM-based rack server
   - http://github.com/raggi/async_sinatra

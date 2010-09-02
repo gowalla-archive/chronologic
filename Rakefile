@@ -30,12 +30,13 @@ begin
     gem.extra_rdoc_files  = [ "LICENSE", "README.md" ]
     gem.rdoc_options      = ["--charset=UTF-8"]
 
-    gem.add_dependency "net-http-persistent", ">= 1.2.4"
-    gem.add_dependency "cassandra", ">= 0.9.0"
+    #gem.add_dependency "net-http-persistent", ">= 1.2.4"
+    gem.add_dependency "cassandra", ">= 0.8.2"
+    gem.add_dependency "patron", ">= 0.4.6"
     gem.add_dependency "yajl-ruby", ">= 0.7.7"
     gem.add_dependency "sinatra", ">= 1.0.0"
 
-    gem.add_development_dependency "thoughtbot-shoulda", ">= 0"
+    #gem.add_development_dependency "thoughtbot-shoulda", ">= 0"
   end
   Jeweler::GemcutterTasks.new
 rescue LoadError

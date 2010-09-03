@@ -12,44 +12,47 @@ require 'chronologic'
 
 module Chronologic
   class Server < Sinatra::Base
-    set :connection, Connection.new
+    def initialize(options)
+      super
+      @connection = Connection.new(options)
+    end
     
     get '/' do
       erb :index
     end
     
     delete '/' do
-      options.connection.clear!
+      @connection.clear!
       status 204
     end
 
     put '/objects/:object_key' do |object_key|
-      options.connection.object(object_key, request.POST)
+      @connection.object(object_key, request.POST)
       status 204
     end
 
     delete '/objects/:object_key' do |object_key|
-      options.connection.remove_object(object_key)
+      @connection.remove_object(object_key)
       status 204
     end
 
     put '/subscriptions/:subscriber/:subscription' do |subscriber, subscription|
-      options.connection.subscribe(subscriber, subscription)
+      @connection.subscribe(subscriber, subscription)
       status 204
     end
     
     delete '/subscriptions/:subscriber/:subscription' do |subscriber, subscription|
-      options.connection.unsubscribe(subscriber, subscription)
+      @connection.unsubscribe(subscriber, subscription)
       status 204
     end
 
     put '/events/:event_key' do |event_key|
-      options.connection.event(request.POST.merge(:key => event_key))
+      @connection.event(request.POST.merge(:key => event_key))
       status 204
     end
 
     delete '/events/:event_key' do |event_key|
-      options.connection.remove_event(event_key)
+      @connection.remove_event(event_key)
       status 204
     end
 
@@ -57,7 +60,7 @@ module Chronologic
       opts = {}
       opts[:count] = request.GET['count'].to_i if request.GET['count']
       opts[:start] = request.GET['start'] if request.GET['start']
-      timeline = options.connection.timeline(timeline_key=='' ? nil : timeline_key, opts)
+      timeline = @connection.timeline(timeline_key=='' ? nil : timeline_key, opts)
       timeline[:events].each do |e|
         e[:created_at] = e[:created_at].utc.iso8601
       end

@@ -125,7 +125,7 @@ Install chronologic:
 
     sudo gem install chronologic
 
-Edit conf/storage-conf.xml to define the keyspace:
+Edit your Cassandra config (conf/storage-conf.xml) to define the keyspace:
 
     <Keyspace Name="Chronologic">
       <ColumnFamily Name="Object" CompareWith="UTF8Type" />
@@ -171,15 +171,20 @@ Start cassandra:
     export PATH=$JAVA_HOME/bin:$PATH
     bin/cassandra -f
 
-Start server:
+Start the Chronologic server:
     rackup -s thin -p 4567
 
+In production, you probably want to point to your chronologic config, with your cassandra hosts:
+    CHRONOLOGIC_CONFIG=examples/config.yml rackup -s thin -p 4567 -E production
 
-### As a Rails plugin:
 
-Edit your Gemfile:
+To install the client as a plugin in a Rails app, edit your Gemfile:
 
     gem "chronologic", :require_as => ["chronologic", "chronologic/railtie"]
+
+
+Installation & Configuration
+----------------------------
 
 
 Examples
@@ -199,6 +204,8 @@ Meta
 
 TODO
 ----
+- split project into chronologic-client and chronologic-server?
+- add thin dependency?
 - server should catch exceptions and return error codes
 - privacy: does a checkin get published to the spot feed even if the user is private? if I look at a spot feed, shouldn't I see my private friends?
   - perhaps the event should have a private ('subscribers only') flag, so it can be excluded from results if there's not a subscription between the requester and the event creator

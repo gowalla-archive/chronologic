@@ -7,20 +7,13 @@ end
 
 module Chronologic
   class Connection
-    def initialize(cassandra=nil)
-      @cassandra = cassandra
+    attr_reader :cassandra
+
+    def initialize(options={})
+      options.merge!(:keyspace => 'Chronologic', :servers => "127.0.0.1:9160", :thrift_options => {})
+      @cassandra = options[:cassandra] || Cassandra.new(options[:keyspace], options[:servers], options[:thrift_options])
     end
     
-    def cassandra=(cassandra)
-      @cassandra = cassandra
-    end
-
-    def cassandra
-      return @cassandra if @cassandra
-      @cassandra = Cassandra.new('Chronologic')
-      @cassandra
-    end
-
     def clear!
       cassandra.clear_keyspace!
     end

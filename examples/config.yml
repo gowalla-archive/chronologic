@@ -1,0 +1,15 @@
+---
+defaults: &defaults
+  servers:
+  - 0.0.0.0
+  seed_servers:
+  - 0.0.0.0
+
+development:
+  <<: *defaults
+
+test:
+  <<: *defaults
+
+production:
+  <<: *defaults

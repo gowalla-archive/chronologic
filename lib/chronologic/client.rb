@@ -12,7 +12,7 @@ end
 module Chronologic
   class Client
     def initialize(options={})
-      options.merge!(:base_url => "http://127.0.0.1:4567")
+      base_url = options[:base_url] || 'http://127.0.0.1:4567'
       @http = Patron::Session.new
       @http.base_url = options[:base_url]
       @http.headers['Accept'] = 'application/json'

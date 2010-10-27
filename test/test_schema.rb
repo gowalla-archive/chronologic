@@ -19,8 +19,18 @@ describe Chronologic::Schema do
     @schema.object_for("user_1").must_equal attrs
   end
 
-  it "updates an object"
-  it "removes an object"
+  it "fetches multiple objects" do
+    akk = {"name" => "akk"}
+    sco = {"name" => "sco"}
+    @schema.create_object("user_1", akk)
+    @schema.create_object("user_2", sco)
+
+    @schema.object_for(["user_1", "user_2"]).must_equal [akk, sco]
+  end
+
+  it "removes an object" do
+    skip
+  end
 
   it "creates a subscription" do
     @schema.create_object("user_1", {"name" => "akk"})
@@ -31,23 +41,40 @@ describe Chronologic::Schema do
     @schema.subscriptions_for("user_2").must_equal ["user_1"]
   end
 
-  it "removes a subscription"
+  it "removes a subscription" do
+    skip
+  end
 
-  it "publishes an event" do
+  it "creates an event" do
     data = {"checkin" => {"message" => "I'm here!"}}
 
     @schema.create_event("checkin_1111", data)
     @schema.event_for("checkin_1111").must_equal data
   end
 
-  it "removes an event"
+  it "fetches multiple events" do
+    data = {"checkin" => {"message" => "I'm here!"}}
 
-  it "publishes a simple event to a timeline" do
+    @schema.create_event("checkin_1111", data)
+    @schema.create_event("checkin_1112", data)
+
+    @schema.event_for(["checkin_1111", "checkin_1112"]).must_equal [data, data]
+  end
+
+  it "removes an event" do
+    skip
+  end
+
+  it "creates a new timeline event" do
     data = {"gizmo" => {"message" => "I'm here!"}}
     @schema.create_event("gizmo_1111", data)
-    @schema.publish("_global", "gizmo_1111")
+    @schema.create_timeline_event("_global", "gizmo_1111")
 
-    @schema.timeline_for("_global").must_equal ["gizmo_1111"]
+    @schema.timeline_events_for("_global").must_equal ["gizmo_1111"]
+  end
+
+  it "removes an event" do
+    skip
   end
 
 end

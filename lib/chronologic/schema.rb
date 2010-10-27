@@ -10,8 +10,13 @@ class Chronologic::Schema
     uuid
   end
 
-  def object_for(key)
-    JSON.load(connection.get(:Object, key).values.first)
+  def object_for(object_key)
+    case object_key
+    when String
+      JSON.load(connection.get(:Object, object_key).values.first)
+    when Array
+      connection.multi_get(:Object, object_key).values.map { |hsh| JSON.load(hsh.values.first) }
+    end
   end
 
   def create_subscription(timeline, subscriber)
@@ -45,14 +50,19 @@ class Chronologic::Schema
   end
 
   def event_for(event_key)
-    connection.get(:Event, event_key)
+    case event_key
+    when Array
+      connection.multi_get(:Event, event_key).values
+    when String
+      connection.get(:Event, event_key)
+    end
   end
 
-  def publish(timeline, event_key)
+  def create_timeline_event(timeline, event_key)
     connection.insert(:Timeline, timeline, {new_guid => event_key})
   end
 
-  def timeline_for(timeline)
+  def timeline_events_for(timeline)
     connection.get(:Timeline, timeline).values
   end
 

@@ -4,9 +4,7 @@ class Chronologic::Schema
   attr_accessor :connection
 
   def create_object(key, attrs)
-    uuid = new_guid
     connection.insert(:Object, key, attrs)
-    uuid
   end
 
   def remove_object(object_key)
@@ -22,30 +20,17 @@ class Chronologic::Schema
     end
   end
 
-  def create_subscription(timeline, subscriber)
-    uuid = new_guid
-    connection.insert(
-      :Subscription, 
-      "#{timeline}:subscriptions", 
-      # FIXME: don't like this use of column->value
-      {uuid => subscriber}
-    )
-    connection.insert(
-      :Subscription, 
-      "#{subscriber}:timelines", 
-      # FIXME: don't like this use of column->value
-      {uuid => timeline}
-    )
-    # TODO: event copying (?)
-    uuid
+  def create_subscription(timeline_key, subscriber_key)
+    # FIXME: subscriber => '' column is kinda janky
+    connection.insert(:Subscription, timeline_key, {subscriber_key => ''})
   end
 
-  def subscribers_for(timeline)
-    connection.get(:Subscription, "#{timeline}:subscriptions").values
+  def remove_subscription(timeline_key, subscriber_key)
+    connection.remove(:Subscription, timeline_key, subscriber_key)
   end
 
-  def subscriptions_for(subscriber)
-    connection.get(:Subscription, "#{subscriber}:timelines").values
+  def subscribers_for(timeline_key)
+    connection.get(:Subscription, timeline_key).keys
   end
 
   def create_event(event_key, data)

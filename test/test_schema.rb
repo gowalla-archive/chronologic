@@ -35,16 +35,16 @@ describe Chronologic::Schema do
   end
 
   it "creates a subscription" do
-    @schema.create_object("user_1", {"name" => "akk"})
-    @schema.create_object("user_2", {"name" => "sco"})
     @schema.create_subscription("user_1", "user_2")
 
     @schema.subscribers_for("user_1").must_equal ["user_2"]
-    @schema.subscriptions_for("user_2").must_equal ["user_1"]
   end
 
   it "removes a subscription" do
-    skip
+    @schema.create_subscription("user_1", "user_2")
+    @schema.remove_subscription("user_1", "user_2")
+
+    @schema.subscribers_for("user_1").must_equal []
   end
 
   it "creates an event" do

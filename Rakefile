@@ -1,57 +1,57 @@
-#require "bundler"
-#Bundler.setup
+require "rake/testtask"
 
-require 'rubygems'
-require 'rake'
-require 'rake/testtask'
-require 'rake/rdoctask'
-
-$LOAD_PATH.unshift 'lib'
-require 'chronologic/version'
-
-begin
-  require 'jeweler'
-  Jeweler::Tasks.new do |gem|
-    gem.name        = "chronologic"
-    gem.summary     = "Activity feeds as a service."
-    gem.description = "Chronologic is a library for managing Activity Streams (aka News Feeds or Timelines). Like Twitter, or just about any social network. It uses Cassandra."
-    gem.version     = Chronologic::Version
-    gem.date        = Time.now.strftime('%Y-%m-%d')
-    gem.homepage    = "http://github.com/gowalla/chronologic"
-    gem.email       = "sco@gowalla.com"
-    gem.authors     = [ "Scott Raymond" ]
-                   
-    gem.files  = %w( config.ru init.rb LICENSE Rakefile README.md )
-    gem.files += Dir.glob("examples/**/*")
-    gem.files += Dir.glob("lib/**/*")
-    gem.files += Dir.glob("tasks/**/*")
-    gem.files += Dir.glob("test/**/*")
-
-    gem.extra_rdoc_files = [ "LICENSE", "README.md" ]
-    gem.rdoc_options     = ["--charset=UTF-8"]
-
-    gem.add_dependency "cassandra", ">= 0.8.2"
-    gem.add_dependency "patron", ">= 0.4.6"
-    gem.add_dependency "yajl-ruby", ">= 0.7.7"
-    gem.add_dependency "sinatra", ">= 1.0.0"
+  def name
+    @name ||= Dir['*.gemspec'].first.split('.').first
   end
-  Jeweler::GemcutterTasks.new
-rescue LoadError
-  puts "Jeweler (or a dependency) not available. Install it with: gem install jeweler"
-end
 
-Rake::TestTask.new(:test) do |test|
-  test.libs << 'lib' << 'test'
-  test.pattern = 'test/**/test_*.rb'
-  test.verbose = true
-end
+  def version
+    line = File.read("lib/#{name}.rb")[/^\s*VERSION\s*=\s*.*/]
+    line.match(/.*VERSION\s*=\s*['"](.*)['"]/)[1]
+  end
 
-task :test => :check_dependencies
+  def date
+    Date.today.to_s
+  end
+
+  def rubyforge_project
+    name
+  end
+
+  def gemspec_file
+    "#{name}.gemspec"
+  end
+
+  def gem_file
+    "#{name}-#{version}.gem"
+  end
+
+  def replace_header(head, header_name)
+    head.sub!(/(\.#{header_name}\s*= ').*'/) { "#{$1}#{send(header_name)}'"}
+  end
+
 task :default => :test
 
+Rake::TestTask.new do |t|
+  t.libs << "test"
+end
+
+desc "Generate RCov test coverage and open in your browser"
+task :coverage do
+  sh "rm -fr coverage"
+  sh "rcov test/test_*.rb"
+  sh "open coverage/index.html"
+end
+
+require 'rake/rdoctask'
 Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = "Chronologic #{Chronologic::Version}"
-  rdoc.rdoc_files.include('README*')
+  rdoc.title = "#{name} #{version}"
+  rdoc.rdoc_files.include('README.md')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
+
+desc "Open an irb session preloaded with this library"
+task :console do
+  sh "irb -rubygems -r ./lib/#{name}.rb"
+end
+

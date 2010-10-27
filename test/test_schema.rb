@@ -29,7 +29,9 @@ describe Chronologic::Schema do
   end
 
   it "removes an object" do
-    skip
+    @schema.create_object("user_1", {"name" => "akk"})
+    @schema.remove_object("user_1")
+    @schema.object_for("user_1").must_equal Hash.new
   end
 
   it "creates a subscription" do
@@ -62,7 +64,12 @@ describe Chronologic::Schema do
   end
 
   it "removes an event" do
-    skip
+    @schema.create_event(
+      "checkin_1111", 
+      {"checkin" => {"message" => "I'm here!"}}
+    )
+    @schema.remove_event("checkin_1111")
+    @schema.event_for("checkin_1111").must_equal Hash.new
   end
 
   it "creates a new timeline event" do
@@ -73,8 +80,12 @@ describe Chronologic::Schema do
     @schema.timeline_events_for("_global").must_equal ["gizmo_1111"]
   end
 
-  it "removes an event" do
-    skip
+  it "removes a timeline event" do
+    data = {"gizmo" => {"message" => "I'm here!"}}
+    uuid = @schema.create_event("gizmo_1111", data)
+    @schema.create_timeline_event("_global", "gizmo_1111")
+    @schema.remove_timeline_event("_global", uuid)
+    @schema.timeline_events_for("_global").must_equal []
   end
 
 end

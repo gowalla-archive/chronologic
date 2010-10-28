@@ -16,21 +16,26 @@ class Chronologic::Schema
     when String
       connection.get(:Object, object_key)
     when Array
-      connection.multi_get(:Object, object_key).values
+      connection.multi_get(:Object, object_key)
     end
   end
 
   def create_subscription(timeline_key, subscriber_key)
     # FIXME: subscriber => '' column is kinda janky
-    connection.insert(:Subscription, timeline_key, {subscriber_key => ''})
+    connection.insert(:Subscription, subscriber_key, {timeline_key => ''})
   end
 
   def remove_subscription(timeline_key, subscriber_key)
-    connection.remove(:Subscription, timeline_key, subscriber_key)
+    connection.remove(:Subscription, subscriber_key, timeline_key)
   end
 
   def subscribers_for(timeline_key)
-    connection.get(:Subscription, timeline_key).keys
+    case timeline_key
+    when String
+      connection.get(:Subscription, timeline_key).keys
+    when Array
+      connection.multi_get(:Subscription, timeline_key).map { |k, v| v.keys }.flatten
+    end
   end
 
   def create_event(event_key, data)

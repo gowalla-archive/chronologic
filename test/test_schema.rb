@@ -1,15 +1,9 @@
-require "rubygems"
-require "minitest/spec"
-MiniTest::Unit.autorun
-
-require "chronologic"
+require "helper"
 
 describe Chronologic::Schema do 
 
   before do
-    @schema = Chronologic::Schema.new
-    @schema.connection = Cassandra.new("Chronologic")
-    @schema.connection.clear_keyspace!
+    @schema = chronologic_schema
   end
 
   it "creates an object" do
@@ -25,7 +19,8 @@ describe Chronologic::Schema do
     @schema.create_object("user_1", akk)
     @schema.create_object("user_2", sco)
 
-    @schema.object_for(["user_1", "user_2"]).must_equal [akk, sco]
+    hsh = {"user_1" => akk, "user_2" => sco}
+    @schema.object_for(["user_1", "user_2"]).must_equal hsh
   end
 
   it "removes an object" do
@@ -35,9 +30,17 @@ describe Chronologic::Schema do
   end
 
   it "creates a subscription" do
-    @schema.create_subscription("user_1", "user_2")
+    @schema.create_subscription("user_1_home", "user_2")
 
-    @schema.subscribers_for("user_1").must_equal ["user_2"]
+    @schema.subscribers_for("user_2").must_equal ["user_1_home"]
+  end
+
+  it "fetches multiple subscriptions" do
+    @schema.create_subscription("user_1_home", "user_2")
+    @schema.create_subscription("user_2_home", "user_1")
+
+    @schema.subscribers_for(["user_1", "user_2"]).must_include "user_1_home"
+    @schema.subscribers_for(["user_1", "user_2"]).must_include "user_2_home"
   end
 
   it "removes a subscription" do

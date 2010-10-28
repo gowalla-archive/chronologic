@@ -13,21 +13,28 @@ describe Chronologic::Protocol do
     @protocol.record("user_1", akk)
     @protocol.record("spot_1", jp)
 
-    @protocol.schema.object_for(["user_1", "spot_1"]).must_equal [akk, jp]
+    hsh = {"user_1" => akk, "spot_1" => jp}
+    @protocol.schema.object_for(["user_1", "spot_1"]).must_equal hsh
   end
 
   it "unrecords an entity" do
-    skip("remove an object given a key")
+    @protocol.record("user_1", {"name" => "akk"})
+    @protocol.unrecord("user_1")
+
+    @protocol.schema.object_for("user_1").must_equal Hash.new
   end
 
-  it "subscribes a subscriber key to a timeline key" do
+  it "subscribes a subscriber key to a timeline key and populates a timeline" do
+    key = "checkin_1111"
+    timestamp = Time.now.utc
+    data = {"type" => "checkin", "message" => "I'm here!"}
+    objects = {"user" => "user_1", "spot" => "spot_1"}
+    timelines = ["user_1"]
+
+    @protocol.publish(key, timestamp, data, objects, timelines)
     @protocol.subscribe("user_1_home", "user_1")
 
-    @protocol.schema.subscribers_for("user_1").must_equal ["user_1_home"]
-  end
-
-  it "subscribes a subscriber key to a timeline key and prepopulates a timeline" do
-    skip("create subscription and pre-populate event timelines")
+    @protocol.schema.timeline_events_for("user_1_home").must_include key
   end
 
   it "unsubscribes a subscriber key from a timeline key" do

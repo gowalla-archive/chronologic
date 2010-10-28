@@ -7,8 +7,15 @@ class Chronologic::Protocol
     schema.create_object(event_key, data)
   end
 
+  def unrecord(event_key)
+    schema.remove_object(event_key)
+  end
+
   def subscribe(timeline_key, subscriber_key)
     schema.create_subscription(timeline_key, subscriber_key)
+
+    event_keys = schema.timeline_events_for(subscriber_key)
+    event_keys.each { |k| schema.create_timeline_event(timeline_key, k) }
   end
 
   # Should event be a proper object?

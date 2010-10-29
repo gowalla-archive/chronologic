@@ -55,18 +55,20 @@ class Chronologic::Schema
     end
   end
 
-  def create_timeline_event(timeline, event_key)
-    uuid = new_guid
+  def create_timeline_event(timeline, uuid, event_key)
     connection.insert(:Timeline, timeline, {uuid => event_key})
-    uuid
   end
 
-  def remove_timeline_event(timeline, event_key)
-    connection.remove(:Timeline, timeline, event_key)
+  def timeline_for(timeline)
+    connection.get(:Timeline, timeline)
   end
 
   def timeline_events_for(timeline)
-    connection.get(:Timeline, timeline).values
+    timeline_for(timeline).values
+  end
+
+  def remove_timeline_event(timeline, uuid)
+    connection.remove(:Timeline, timeline, uuid)
   end
 
   def new_guid

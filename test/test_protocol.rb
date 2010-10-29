@@ -34,11 +34,23 @@ describe Chronologic::Protocol do
     @protocol.publish(key, timestamp, data, objects, timelines)
     @protocol.subscribe("user_1_home", "user_1")
 
+    @protocol.schema.subscribers_for("user_1").must_equal ["user_1_home"]
     @protocol.schema.timeline_events_for("user_1_home").must_include key
   end
 
   it "unsubscribes a subscriber key from a timeline key" do
-    skip("remove subscription and clean up event timelines")
+    key = "checkin_1111"
+    timestamp = Time.now.utc
+    data = {"type" => "checkin", "message" => "I'm here!"}
+    objects = {"user" => "user_1", "spot" => "spot_1"}
+    timelines = ["user_1"]
+
+    @protocol.publish(key, timestamp, data, objects, timelines)
+    @protocol.subscribe("user_1_home", "user_1")
+    @protocol.unsubscribe("user_1_home", "user_1")
+
+    @protocol.schema.subscribers_for("user_1").must_equal []
+    @protocol.schema.timeline_events_for("user_1_home").must_equal []
   end
 
   it "publishes an event to one or more timeline keys" do
@@ -97,3 +109,4 @@ describe Chronologic::Protocol do
   end
 
 end
+

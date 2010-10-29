@@ -76,17 +76,20 @@ describe Chronologic::Schema do
   end
 
   it "creates a new timeline event" do
+    uuid = @schema.new_guid
     data = {"gizmo" => {"message" => "I'm here!"}}
     @schema.create_event("gizmo_1111", data)
-    @schema.create_timeline_event("_global", "gizmo_1111")
+    @schema.create_timeline_event("_global", uuid, "gizmo_1111")
 
+    @schema.timeline_for("_global").must_equal({uuid => "gizmo_1111"})
     @schema.timeline_events_for("_global").must_equal ["gizmo_1111"]
   end
 
   it "removes a timeline event" do
     data = {"gizmo" => {"message" => "I'm here!"}}
     uuid = @schema.create_event("gizmo_1111", data)
-    @schema.create_timeline_event("_global", "gizmo_1111")
+    timeline_guid = @schema.new_guid
+    @schema.create_timeline_event("_global", timeline_guid, "gizmo_1111")
     @schema.remove_timeline_event("_global", uuid)
     @schema.timeline_events_for("_global").must_equal []
   end

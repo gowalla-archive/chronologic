@@ -14,8 +14,17 @@ class Chronologic::Protocol
   def subscribe(timeline_key, subscriber_key)
     schema.create_subscription(timeline_key, subscriber_key)
 
-    event_keys = schema.timeline_events_for(subscriber_key)
-    event_keys.each { |k| schema.create_timeline_event(timeline_key, k) }
+    event_keys = schema.timeline_for(subscriber_key)
+    event_keys.each do |guid, event_key| 
+      schema.create_timeline_event(timeline_key, guid, event_key) 
+    end
+  end
+
+  def unsubscribe(timeline_key, subscriber_key)
+    schema.remove_subscription(timeline_key, subscriber_key)
+    schema.timeline_for(subscriber_key).each do |guid, event_key|
+      schema.remove_timeline_event(timeline_key, guid)
+    end
   end
 
   # Should event be a proper object?
@@ -27,8 +36,9 @@ class Chronologic::Protocol
       "objects" => objects
     }
     schema.create_event(event_key, columns)
+    uuid = schema.new_guid
     all_timelines = [timelines, schema.subscribers_for(timelines)].flatten
-    all_timelines.map { |t| schema.create_timeline_event(t, event_key) }
+    all_timelines.map { |t| schema.create_timeline_event(t, uuid, event_key) }
   end
 
   def feed(timeline_key)

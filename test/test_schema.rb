@@ -63,7 +63,7 @@ describe Chronologic::Schema do
     @schema.create_event("checkin_1111", data)
     @schema.create_event("checkin_1112", data)
 
-    @schema.event_for(["checkin_1111", "checkin_1112"]).must_equal [data, data]
+    @schema.event_for(["checkin_1111", "checkin_1112"]).must_equal("checkin_1111" => data, "checkin_1112" => data)
   end
 
   it "removes an event" do

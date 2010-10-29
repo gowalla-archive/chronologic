@@ -49,7 +49,7 @@ class Chronologic::Schema
   def event_for(event_key)
     case event_key
     when Array
-      connection.multi_get(:Event, event_key).values
+      connection.multi_get(:Event, event_key)
     when String
       connection.get(:Event, event_key)
     end
@@ -60,11 +60,23 @@ class Chronologic::Schema
   end
 
   def timeline_for(timeline)
-    connection.get(:Timeline, timeline)
+    case timeline
+    when String
+      connection.get(:Timeline, timeline)
+    when Array
+      connection.multi_get(:Timeline, timeline)
+    end
   end
 
   def timeline_events_for(timeline)
-    timeline_for(timeline).values
+    case timeline
+    when String
+      timeline_for(timeline).values
+    when Array
+      timeline_for(timeline).inject({}) do |hsh, (timeline_key, column)| 
+        hsh.update(timeline_key => column.values)
+      end
+    end
   end
 
   def remove_timeline_event(timeline, uuid)

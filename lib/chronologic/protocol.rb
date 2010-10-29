@@ -41,20 +41,42 @@ class Chronologic::Protocol
     all_timelines.map { |t| schema.create_timeline_event(t, uuid, event_key) }
   end
 
-  def feed(timeline_key)
+  def feed(timeline_key, fetch_subevents=false)
     event_keys = schema.timeline_events_for(timeline_key)
     events = schema.event_for(event_keys)
 
-    object_keys = events.map { |e| e["objects"].values }.flatten
-    objects = schema.object_for(object_keys)
+    subevents = {}
+    if fetch_subevents
+      subevent_keys = schema.timeline_events_for(event_keys)
+      result = schema.event_for(subevent_keys.values.flatten).values
+      subevents = result.inject({}) do |hsh, subevent|
+        parent = subevent["data"]["parent"]
+        hsh.update(parent => subevent)
+      end
+    end
+    
+    object_keys = [events.values, subevents.values].flatten.map do |e|
+      e["objects"].values
+    end
+    objects = schema.object_for(object_keys.flatten)
 
     # TODO: we can do better than returning a dumb hash
-    events.map do |e|
+    events.map do |event_key, e|
       # This is horribly unclear
-      objects = e["objects"].inject({}) do |hsh, (slot, key)|
+      objs = e["objects"].inject({}) do |hsh, (slot, key)|
         hsh.update(slot => objects[key])
       end
-      e.update("objects" => objects)
+
+      subs = {}
+      if fetch_subevents
+        subs = subevents[event_key]
+        subs["objects"] = subs["objects"].clone.inject({}) do |hsh, (slot, key)|
+          hsh.update(slot => objects[key])
+        end
+      end
+
+      # TODO: Handle multiple nested events
+      e.update("objects" => objs, "subevents" => [subs])
     end
   end
 

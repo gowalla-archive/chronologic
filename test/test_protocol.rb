@@ -73,10 +73,6 @@ describe Chronologic::Protocol do
     end
   end
 
-  it "publishes an event to another event's timeline" do
-    skip("write an event and add it to the timeline for another event")
-  end
-
   it "unpublishes an event from one or more timeline keys" do
     skip("remove event and clean up timelines")
   end
@@ -105,7 +101,33 @@ describe Chronologic::Protocol do
   end
 
   it "generates a feed for a timeline key, fetching nested timelines" do
-    skip("fetch event keys, fetch events, fetch embedded objects, fetch embedded timelines")
+    akk = {"name" => "akk"}
+    sco = {"name" => "sco"}
+    jp = {"name" => "Juan Pelota's"}
+    @protocol.record("user_1", akk)
+    @protocol.record("user_2", sco)
+    @protocol.record("spot_1", jp)
+
+    key = "checkin_1111"
+    timestamp = Time.now.utc
+    data = {"type" => "checkin", "message" => "I'm here!"}
+    objects = {"user" => "user_1", "spot" => "spot_1"}
+    timelines = ["user_1", "spot_1"]
+
+    @protocol.subscribe("user_1_home", "user_1")
+    event = @protocol.publish(key, timestamp, data, objects, timelines)
+
+    key = "comment_1"
+    timestamp = Time.now.utc
+    data = {"type" => "comment", "message" => "Me too!", "parent" => "checkin_1111"}
+    objects = {"user" => "user_2"}
+    timelines = ["checkin_1111"]
+    @protocol.publish(key, timestamp, data, objects, timelines)
+
+    @protocol.schema.timeline_events_for("checkin_1111").must_include key
+    event = @protocol.feed("user_1_home", true).first["subevents"].first
+    event["data"].must_equal data
+    event["objects"]["user"].must_equal @protocol.schema.object_for("user_2")
   end
 
 end

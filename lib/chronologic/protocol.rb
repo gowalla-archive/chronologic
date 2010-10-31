@@ -1,4 +1,5 @@
 require "time"
+require "hashie/mash"
 
 class Chronologic::Protocol
   attr_accessor :schema
@@ -35,7 +36,6 @@ class Chronologic::Protocol
   end
 
   def feed(timeline_key, fetch_subevents=false)
-    # TODO: return a Hashie::Dash
     event_keys = schema.timeline_events_for(timeline_key)
     events = schema.event_for(event_keys)
 
@@ -46,9 +46,9 @@ class Chronologic::Protocol
       subevents = result.inject({}) do |hsh, subevent|
         parent = subevent["data"]["parent"]
         if hsh.has_key?(parent)
-          hsh[parent] << subevent
+          hsh[parent] << Hashie::Mash.new(subevent)
         else
-          hsh[parent] = [subevent]
+          hsh[parent] = [Hashie::Mash.new(subevent)]
         end
         hsh
       end
@@ -59,8 +59,15 @@ class Chronologic::Protocol
     end
     objects = schema.object_for(object_keys.flatten)
 
-    # TODO: we can do better than returning a dumb hash
     events.map do |event_key, e|
+      event = Chronologic::Event.new
+      event.key = event_key
+      # FIXME: for some reason, the timestamps column ends up with multiple
+      # values
+      # event.timestamp = Time.parse(e["timestamp"])
+      event.data = Hashie::Mash.new(e["data"])
+      event.timelines = e["timelines"]
+
       # This is horribly unclear
       objs = e["objects"].inject({}) do |hsh, (slot, key)|
         hsh.update(slot => objects[key])
@@ -76,7 +83,9 @@ class Chronologic::Protocol
         end
       end
 
-      e.update("objects" => objs, "subevents" => subs)
+      event.objects = objs
+      event.subevents = subs
+      event
     end
   end
 
@@ -91,6 +100,7 @@ class Chronologic::Event < Hashie::Dash
   property :data
   property :objects
   property :timelines
+  property :subevents
 
   def to_columns
     raise NestedDataError.new if data_is_nested?

@@ -98,9 +98,9 @@ describe Chronologic::Protocol do
 
     ["user_1", "spot_1", "user_1_home"].each do |t|
       feed = @protocol.feed(t)
-      feed[0]["data"].must_equal event.data
-      feed[0]["objects"]["user"].must_equal @protocol.schema.object_for("user_1")
-      feed[0]["objects"]["spot"].must_equal @protocol.schema.object_for("spot_1")
+      feed[0].data.must_equal event.data
+      feed[0].objects["user"].must_equal @protocol.schema.object_for("user_1")
+      feed[0].objects["spot"].must_equal @protocol.schema.object_for("spot_1")
     end
   end
 
@@ -139,10 +139,10 @@ describe Chronologic::Protocol do
     @protocol.publish(event)
 
     @protocol.schema.timeline_events_for("checkin_1111").must_include event.key
-    subevents = @protocol.feed("user_1_home", true).first["subevents"]
-    subevents.last["data"].must_equal event.data
-    subevents.first["objects"]["user"].must_equal @protocol.schema.object_for("user_2")
-    subevents.last["objects"]["user"].must_equal @protocol.schema.object_for("user_1")
+    subevents = @protocol.feed("user_1_home", true).first.subevents
+    subevents.last.data.must_equal event.data
+    subevents.first.objects["user"].must_equal @protocol.schema.object_for("user_2")
+    subevents.last.objects["user"].must_equal @protocol.schema.object_for("user_1")
   end
 
 end

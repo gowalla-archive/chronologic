@@ -117,17 +117,25 @@ describe Chronologic::Protocol do
     @protocol.subscribe("user_1_home", "user_1")
     event = @protocol.publish(key, timestamp, data, objects, timelines)
 
-    key = "comment_1"
+    key = "comment_1111"
     timestamp = Time.now.utc
     data = {"type" => "comment", "message" => "Me too!", "parent" => "checkin_1111"}
     objects = {"user" => "user_2"}
     timelines = ["checkin_1111"]
     @protocol.publish(key, timestamp, data, objects, timelines)
 
+    key = "comment_2222"
+    timestamp = Time.now.utc
+    data = {"type" => "comment", "message" => "Great!", "parent" => "checkin_1111"}
+    objects = {"user" => "user_1"}
+    timelines = ["checkin_1111"]
+    @protocol.publish(key, timestamp, data, objects, timelines)
+
     @protocol.schema.timeline_events_for("checkin_1111").must_include key
-    event = @protocol.feed("user_1_home", true).first["subevents"].first
-    event["data"].must_equal data
-    event["objects"]["user"].must_equal @protocol.schema.object_for("user_2")
+    subevents = @protocol.feed("user_1_home", true).first["subevents"]
+    subevents.last["data"].must_equal data
+    subevents.first["objects"]["user"].must_equal @protocol.schema.object_for("user_2")
+    subevents.last["objects"]["user"].must_equal @protocol.schema.object_for("user_1")
   end
 
 end

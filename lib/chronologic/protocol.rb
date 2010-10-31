@@ -51,7 +51,12 @@ class Chronologic::Protocol
       result = schema.event_for(subevent_keys.values.flatten).values
       subevents = result.inject({}) do |hsh, subevent|
         parent = subevent["data"]["parent"]
-        hsh.update(parent => subevent)
+        if hsh.has_key?(parent)
+          hsh[parent] << subevent
+        else
+          hsh[parent] = [subevent]
+        end
+        hsh
       end
     end
     
@@ -70,13 +75,14 @@ class Chronologic::Protocol
       subs = {}
       if fetch_subevents
         subs = subevents[event_key]
-        subs["objects"] = subs["objects"].clone.inject({}) do |hsh, (slot, key)|
-          hsh.update(slot => objects[key])
+        subs.each do |sub|
+          sub["objects"] = sub["objects"].clone.inject({}) do |hsh, (slot, key)|
+            hsh.update(slot => objects[key])
+          end
         end
       end
 
-      # TODO: Handle multiple nested events
-      e.update("objects" => objs, "subevents" => [subs])
+      e.update("objects" => objs, "subevents" => subs)
     end
   end
 

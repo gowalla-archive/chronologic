@@ -27,21 +27,15 @@ class Chronologic::Protocol
     end
   end
 
-  # Should event be a proper object?
-  def publish(event_key, timestamp, data, objects, timelines)
-    columns = {
-      "timestamp" => timestamp.utc.iso8601,
-      # Note: this hash can only be one dimensional; nested hashes get ingloriously squashed
-      "data" => data,
-      "objects" => objects
-    }
-    schema.create_event(event_key, columns)
+  def publish(event)
+    schema.create_event(event.key, event.to_columns)
     uuid = schema.new_guid
-    all_timelines = [timelines, schema.subscribers_for(timelines)].flatten
-    all_timelines.map { |t| schema.create_timeline_event(t, uuid, event_key) }
+    all_timelines = [event.timelines, schema.subscribers_for(event.timelines)].flatten
+    all_timelines.map { |t| schema.create_timeline_event(t, uuid, event.key) }
   end
 
   def feed(timeline_key, fetch_subevents=false)
+    # TODO: return a Hashie::Dash
     event_keys = schema.timeline_events_for(timeline_key)
     events = schema.event_for(event_keys)
 
@@ -84,6 +78,31 @@ class Chronologic::Protocol
 
       e.update("objects" => objs, "subevents" => subs)
     end
+  end
+
+end
+
+require "hashie/dash"
+
+class Chronologic::Event < Hashie::Dash
+
+  property :key
+  property :timestamp
+  property :data
+  property :objects
+  property :timelines
+
+  def to_columns
+    raise NestedDataError.new if data_is_nested?
+    {
+      "timestamp" => timestamp.utc.iso8601,
+      "data" => data,
+      "objects" => objects
+    }
+  end
+
+  def data_is_nested?
+    data.values.any? { |v| v.is_a?(Hash) || v.is_a?(Array) || v.is_a?(Set) }
   end
 
 end

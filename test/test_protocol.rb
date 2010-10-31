@@ -25,27 +25,29 @@ describe Chronologic::Protocol do
   end
 
   it "subscribes a subscriber key to a timeline key and populates a timeline" do
-    key = "checkin_1111"
-    timestamp = Time.now.utc
-    data = {"type" => "checkin", "message" => "I'm here!"}
-    objects = {"user" => "user_1", "spot" => "spot_1"}
-    timelines = ["user_1"]
+    event = Chronologic::Event.new
+    event.key = "checkin_1111"
+    event.timestamp = Time.now.utc
+    event.data = {"type" => "checkin", "message" => "I'm here!"}
+    event.objects = {"user" => "user_1", "spot" => "spot_1"}
+    event.timelines = ["user_1"]
 
-    @protocol.publish(key, timestamp, data, objects, timelines)
+    @protocol.publish(event)
     @protocol.subscribe("user_1_home", "user_1")
 
     @protocol.schema.subscribers_for("user_1").must_equal ["user_1_home"]
-    @protocol.schema.timeline_events_for("user_1_home").must_include key
+    @protocol.schema.timeline_events_for("user_1_home").must_include event.key
   end
 
   it "unsubscribes a subscriber key from a timeline key" do
-    key = "checkin_1111"
-    timestamp = Time.now.utc
-    data = {"type" => "checkin", "message" => "I'm here!"}
-    objects = {"user" => "user_1", "spot" => "spot_1"}
-    timelines = ["user_1"]
+    event = Chronologic::Event.new
+    event.key = "checkin_1111"
+    event.timestamp = Time.now.utc
+    event.data = {"type" => "checkin", "message" => "I'm here!"}
+    event.objects = {"user" => "user_1", "spot" => "spot_1"}
+    event.timelines = ["user_1"]
 
-    @protocol.publish(key, timestamp, data, objects, timelines)
+    @protocol.publish(event)
     @protocol.subscribe("user_1_home", "user_1")
     @protocol.unsubscribe("user_1_home", "user_1")
 
@@ -54,22 +56,23 @@ describe Chronologic::Protocol do
   end
 
   it "publishes an event to one or more timeline keys" do
-    key = "checkin_1111"
-    timestamp = Time.now.utc
-    data = {"type" => "checkin", "message" => "I'm here!"}
-    objects = {"user" => "user_1", "spot" => "spot_1"}
-    timelines = ["user_1", "spot_1"]
+    event = Chronologic::Event.new
+    event.key = "checkin_1111"
+    event.timestamp = Time.now.utc
+    event.data = {"type" => "checkin", "message" => "I'm here!"}
+    event.objects = {"user" => "user_1", "spot" => "spot_1"}
+    event.timelines = ["user_1", "spot_1"]
 
     @protocol.subscribe("user_1_home", "user_1")
-    event = @protocol.publish(key, timestamp, data, objects, timelines)
+    @protocol.publish(event)
 
-    event = @protocol.schema.event_for(key)
-    event["timestamp"].must_equal({timestamp.iso8601 => ''})
-    event["data"].must_equal data
-    event["objects"].must_equal objects
-    @protocol.schema.timeline_events_for("user_1_home").must_include key
-    timelines.each do |t|
-      @protocol.schema.timeline_events_for(t).must_include key
+    fetched = @protocol.schema.event_for(event.key)
+    fetched["timestamp"].must_equal({event.timestamp.iso8601 => ''})
+    fetched["data"].must_equal event.data
+    fetched["objects"].must_equal event.objects
+    @protocol.schema.timeline_events_for("user_1_home").must_include event.key
+    event.timelines.each do |t|
+      @protocol.schema.timeline_events_for(t).must_include event.key
     end
   end
 
@@ -83,18 +86,19 @@ describe Chronologic::Protocol do
     @protocol.record("user_1", akk)
     @protocol.record("spot_1", jp)
 
-    key = "checkin_1111"
-    timestamp = Time.now.utc
-    data = {"type" => "checkin", "message" => "I'm here!"}
-    objects = {"user" => "user_1", "spot" => "spot_1"}
-    timelines = ["user_1", "spot_1"]
+    event = Chronologic::Event.new
+    event.key = "checkin_1111"
+    event.timestamp = Time.now.utc
+    event.data = {"type" => "checkin", "message" => "I'm here!"}
+    event.objects = {"user" => "user_1", "spot" => "spot_1"}
+    event.timelines = ["user_1", "spot_1"]
 
     @protocol.subscribe("user_1_home", "user_1")
-    @protocol.publish(key, timestamp, data, objects, timelines)
+    @protocol.publish(event)
 
     ["user_1", "spot_1", "user_1_home"].each do |t|
       feed = @protocol.feed(t)
-      feed[0]["data"].must_equal data
+      feed[0]["data"].must_equal event.data
       feed[0]["objects"]["user"].must_equal @protocol.schema.object_for("user_1")
       feed[0]["objects"]["spot"].must_equal @protocol.schema.object_for("spot_1")
     end
@@ -108,32 +112,35 @@ describe Chronologic::Protocol do
     @protocol.record("user_2", sco)
     @protocol.record("spot_1", jp)
 
-    key = "checkin_1111"
-    timestamp = Time.now.utc
-    data = {"type" => "checkin", "message" => "I'm here!"}
-    objects = {"user" => "user_1", "spot" => "spot_1"}
-    timelines = ["user_1", "spot_1"]
+    event = Chronologic::Event.new
+    event.key = "checkin_1111"
+    event.timestamp = Time.now
+    event.data = {"type" => "checkin", "message" => "I'm here!"}
+    event.objects = {"user" => "user_1", "spot" => "spot_1"}
+    event.timelines = ["user_1", "spot_1"]
 
     @protocol.subscribe("user_1_home", "user_1")
-    event = @protocol.publish(key, timestamp, data, objects, timelines)
+    event = @protocol.publish(event)
 
-    key = "comment_1111"
-    timestamp = Time.now.utc
-    data = {"type" => "comment", "message" => "Me too!", "parent" => "checkin_1111"}
-    objects = {"user" => "user_2"}
-    timelines = ["checkin_1111"]
-    @protocol.publish(key, timestamp, data, objects, timelines)
+    event = Chronologic::Event.new
+    event.key = "comment_1111"
+    event.timestamp = Time.now.utc
+    event.data = {"type" => "comment", "message" => "Me too!", "parent" => "checkin_1111"}
+    event.objects = {"user" => "user_2"}
+    event.timelines = ["checkin_1111"]
+    @protocol.publish(event)
 
-    key = "comment_2222"
-    timestamp = Time.now.utc
-    data = {"type" => "comment", "message" => "Great!", "parent" => "checkin_1111"}
-    objects = {"user" => "user_1"}
-    timelines = ["checkin_1111"]
-    @protocol.publish(key, timestamp, data, objects, timelines)
+    event = Chronologic::Event.new
+    event.key = "comment_2222"
+    event.timestamp = Time.now.utc
+    event.data = {"type" => "comment", "message" => "Great!", "parent" => "checkin_1111"}
+    event.objects = {"user" => "user_1"}
+    event.timelines = ["checkin_1111"]
+    @protocol.publish(event)
 
-    @protocol.schema.timeline_events_for("checkin_1111").must_include key
+    @protocol.schema.timeline_events_for("checkin_1111").must_include event.key
     subevents = @protocol.feed("user_1_home", true).first["subevents"]
-    subevents.last["data"].must_equal data
+    subevents.last["data"].must_equal event.data
     subevents.first["objects"]["user"].must_equal @protocol.schema.object_for("user_2")
     subevents.last["objects"]["user"].must_equal @protocol.schema.object_for("user_1")
   end

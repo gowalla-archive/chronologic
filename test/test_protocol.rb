@@ -77,7 +77,22 @@ describe Chronologic::Protocol do
   end
 
   it "unpublishes an event from one or more timeline keys" do
-    skip("remove event and clean up timelines")
+    event = Chronologic::Event.new
+    event.key = "checkin_1111"
+    event.timestamp = Time.now.utc
+    event.data = {"type" => "checkin", "message" => "I'm here!"}
+    event.objects = {"user" => "user_1", "spot" => "spot_1"}
+    event.timelines = ["user_1", "spot_1"]
+
+    @protocol.subscribe("user_1_home", "user_1")
+    uuid = @protocol.publish(event)
+    @protocol.unpublish(event, uuid)
+
+    @protocol.schema.event_for(event.key).must_equal Hash.new
+    @protocol.schema.timeline_events_for("user_1_home").wont_include event.key
+    event.timelines.each do |t|
+      @protocol.schema.timeline_events_for(t).wont_include event.key
+    end
   end
 
   it "generates a feed for a timeline key" do

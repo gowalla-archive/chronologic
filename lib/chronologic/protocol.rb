@@ -33,6 +33,13 @@ class Chronologic::Protocol
     uuid = schema.new_guid
     all_timelines = [event.timelines, schema.subscribers_for(event.timelines)].flatten
     all_timelines.map { |t| schema.create_timeline_event(t, uuid, event.key) }
+    uuid
+  end
+
+  def unpublish(event, uuid)
+    schema.remove_event(event.key)
+    all_timelines = [event.timelines, schema.subscribers_for(event.timelines)].flatten
+    all_timelines.map { |t| schema.remove_timeline_event(t, uuid) }
   end
 
   def feed(timeline_key, fetch_subevents=false)

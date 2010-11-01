@@ -1,7 +1,7 @@
 Make it work:
 	- Implement schema access @done
 	The bit that actually talks to Cassandra.
-	- Implement activity feed protocol
+	- Implement activity feed protocol @done
 	Exposes subscribe/unsubscribe, publish/unpublish, activity, object verbs.
 	- Build HTTP service on protocol
 	- Build client API for service	

@@ -1,5 +1,7 @@
 require "rubygems"
 require "minitest/spec"
+require "rack/test"
+
 MiniTest::Unit.autorun
 
 require "chronologic"

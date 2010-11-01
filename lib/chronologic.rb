@@ -6,5 +6,6 @@ module Chronologic
 
   autoload :Schema, "chronologic/schema"
   autoload :Protocol, "chronologic/protocol"
+  autoload :Event, "chronologic/event"
 
 end

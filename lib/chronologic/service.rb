@@ -24,8 +24,18 @@ class Chronologic::Service < Sinatra::Base
     status 204
   end
 
+  post "/subscription" do
+    connection.subscribe(params["timeline_key"], params["subscriber_key"])
+    status 201
+  end
+
+  delete "/subscription/:subscriber_key/:timeline_key" do
+    connection.unsubscribe(params["timeline_key"], params["subscriber_key"])
+    status 204
+  end
+
   helpers do
-    
+
     def json(object)
       JSON.dump(object)
     end

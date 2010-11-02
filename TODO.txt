@@ -3,7 +3,7 @@ Make it work:
 	The bit that actually talks to Cassandra.
 	- Implement activity feed protocol @done
 	Exposes subscribe/unsubscribe, publish/unpublish, activity, object verbs.
-	- Build HTTP service on protocol
+	- Build HTTP service on protocol @done
 	- Build client API for service	
 	- Build AR sugar on top of client API
 Make it right:

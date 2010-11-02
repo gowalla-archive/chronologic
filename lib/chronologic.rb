@@ -8,5 +8,6 @@ module Chronologic
   autoload :Protocol, "chronologic/protocol"
   autoload :Event, "chronologic/event"
   autoload :Service, "chronologic/service"
+  autoload :Client, "chronologic/client"
 
 end

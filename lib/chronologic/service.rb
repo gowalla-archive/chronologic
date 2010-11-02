@@ -16,6 +16,7 @@ class Chronologic::Service < Sinatra::Base
 
   get "/record/:object_key" do
     # FIXME: stomping on Demeter here
+    status 200
     json connection.schema.object_for(params["object_key"])
   end
 
@@ -46,6 +47,12 @@ class Chronologic::Service < Sinatra::Base
     event.key = params["event_key"]
     connection.unpublish(event, params["uuid"])
     status 204
+  end
+
+  get "/timeline/:timeline_key" do
+    feed = connection.feed(params["timeline_key"])
+    status 200
+    json("feed" => feed)
   end
 
   helpers do

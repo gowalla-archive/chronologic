@@ -94,7 +94,6 @@ describe Chronologic::Service do
     event.data = {"type" => "checkin", "message" => "I'm here!"}
     event.objects = {"user" => "user_1", "spot" => "spot_1"}
     event.timelines = ["user_1", "spot_1"]
-
     uuid = @protocol.publish(event)
 
     delete "/event/checkin_1111/#{uuid}"
@@ -103,7 +102,34 @@ describe Chronologic::Service do
     @protocol.schema.event_for("checkin_1111").must_equal Hash.new
   end
 
-  it "reads a timeline feed"
+  it "reads a timeline feed" do
+    jp = {"name" => "Juan Pelota's", "awesome_factor" => "100"}
+    keeg = {"name" => "Keegan", "awesome_factor" => "109"}
+    @protocol.record("spot_1", jp)
+    @protocol.record("user_1", keeg)
+
+    @protocol.subscribe("user_1_home", "user_1")
+
+    event = Chronologic::Event.new
+    event.key = "checkin_1111"
+    event.timestamp = Time.now.utc
+    event.data = {"type" => "checkin", "message" => "I'm here!"}
+    event.objects = {"user" => "user_1", "spot" => "spot_1"}
+    event.timelines = ["user_1", "spot_1"]
+
+    uuid = @protocol.publish(event)
+
+    get "/timeline/user_1_home"
+
+    last_response.status.must_equal 200
+    obj = json_body
+    obj["feed"].length.must_equal 1
+
+    result = obj["feed"].first
+    result["data"].must_equal event.data
+    result["objects"]["user"].must_equal keeg
+    result["objects"]["spot"].must_equal jp
+  end
 
   def json_body
     JSON.load(last_response.body)

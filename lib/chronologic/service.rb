@@ -34,10 +34,29 @@ class Chronologic::Service < Sinatra::Base
     status 204
   end
 
+  post "/event" do
+    uuid = connection.publish(event)
+    headers("Location" => "/event/#{params["key"]}/#{uuid}")
+    status 201
+  end
+
+  delete "/event/:event_key/:uuid" do
+    raw_event = connection.schema.event_for(params["event_key"])
+    event = Chronologic::Event.new(raw_event)
+    event.key = params["event_key"]
+    connection.unpublish(event, params["uuid"])
+    status 204
+  end
+
   helpers do
 
     def json(object)
       JSON.dump(object)
+    end
+
+    def event
+      timestamp = Time.parse(params["timestamp"])
+      Chronologic::Event.new(params.update("timestamp" => timestamp))
     end
 
   end

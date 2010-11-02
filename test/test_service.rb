@@ -67,9 +67,41 @@ describe Chronologic::Service do
     @protocol.schema.subscribers_for("user_2").wont_include "user_1_home"
   end
 
-  it "publishes an event"
+  it "publishes an event" do
+    event = {
+      "key" => "checkin_1212",
+      "timestamp" => Time.now.utc.iso8601,
+      "data" => {"type" => "checkin", "message" => "I'm here!"},
+      "objects" => {"user" => "user_1", "spot" => "spot_1"},
+      "timelines" => ["user_1", "spot_1"]
+    }
 
-  it "unpublishes an event"
+    post "/event", event
+
+    last_response.status.must_equal 201
+
+    result = @protocol.schema.event_for("checkin_1212")
+    result["data"].must_equal event["data"]
+    result["objects"].must_equal event["objects"]
+
+    last_response.headers["Location"].must_match %r!/event/#{event["key"]}/[\d\w-]*!
+  end
+
+  it "unpublishes an event" do
+    event = Chronologic::Event.new
+    event.key = "checkin_1111"
+    event.timestamp = Time.now.utc
+    event.data = {"type" => "checkin", "message" => "I'm here!"}
+    event.objects = {"user" => "user_1", "spot" => "spot_1"}
+    event.timelines = ["user_1", "spot_1"]
+
+    uuid = @protocol.publish(event)
+
+    delete "/event/checkin_1111/#{uuid}"
+
+    last_response.status.must_equal 204
+    @protocol.schema.event_for("checkin_1111").must_equal Hash.new
+  end
 
   it "reads a timeline feed"
 

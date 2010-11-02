@@ -14,7 +14,8 @@ class Chronologic::Event < Hashie::Dash
     {
       "timestamp" => timestamp.utc.iso8601,
       "data" => data,
-      "objects" => objects
+      "objects" => objects,
+      "timelines" => timelines
     }
   end
 

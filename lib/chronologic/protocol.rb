@@ -38,7 +38,11 @@ class Chronologic::Protocol
 
   def unpublish(event, uuid)
     schema.remove_event(event.key)
-    all_timelines = [event.timelines, schema.subscribers_for(event.timelines)].flatten
+    raw_timelines = event.timelines
+    # FIXME: this is a hackish way to handle both event objects and events
+    # pulled from Cassandra
+    timelines = raw_timelines.respond_to?(:keys) ? raw_timelines.keys : raw_timelines
+    all_timelines = [timelines, schema.subscribers_for(timelines)].flatten
     all_timelines.map { |t| schema.remove_timeline_event(t, uuid) }
   end
 

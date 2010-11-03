@@ -1,63 +1,54 @@
 require "helper"
 require "fakeweb"
+require "webmock/test_unit"
 
 describe Chronologic::Client do
+  include WebMock::API
 
   before do
     @protocol = Chronologic::Protocol.new
     @protocol.schema = chronologic_schema
     @client = Chronologic::Client.new('http://localhost:3000')
-    FakeWeb.allow_net_connect = false
+    WebMock.disable_net_connect!(:allow_localhost => true)
   end
 
   it "records an entity" do
-    FakeWeb.register_uri(
-      :post, 
-      "http://localhost:3000/record", 
-      :status => 201
-    )
+    stub_request(:post, "http://localhost:3000/record").
+      with(:body => {"object_key" => "user_1", "data" => {"name" => "akk"}}).
+      to_return(:status => 201)
 
     @client.record("user_1", {"name" => "akk"}).must_equal true
   end
 
   it "unrecords an entity" do
-    FakeWeb.register_uri(
-      :delete, 
-      "http://localhost:3000/record/spot_1", 
-      :status => 204
-    )
+    stub_request(:delete, "http://localhost:3000/record/spot_1").
+      to_return(:status => 204)
 
     @client.unrecord("spot_1").must_equal true
   end
 
   it "subscribes a user to a timeline" do
-    FakeWeb.register_uri(
-      :post,
-      "http://localhost:3000/subscription",
-      :status => 201
-    )
+    stub_request(:post, "http://localhost:3000/subscription").
+      with(:body => {
+        "subscriber_key" => "user_1_home", 
+        "timeline_key" => "user_2"
+      }).
+      to_return(:status => 201)
 
     @client.subscribe("user_1_home", "user_2").must_equal true
   end
 
   it "unsubscribes a user to a timeline" do
-    FakeWeb.register_uri(
-      :delete,
-      "http://localhost:3000/subscription/user_1_home/user_2",
-      :status => 204
-    )
+    stub_request(
+      :delete, 
+      "http://localhost:3000/subscription/user_1_home/user_2"
+    ).to_return(:status => 204)
 
     @client.unsubscribe("user_1_home", "user_2").must_equal true
   end
 
   it "publishes an event" do
     guid = SimpleUUID::UUID.new.to_guid
-    FakeWeb.register_uri(
-      :post,
-      "http://localhost:3000/event",
-      :status => 201,
-      :location => "/event/checkin_1/#{guid}"
-    )
 
     event = Chronologic::Event.new
     event.key = "checkin_1"
@@ -66,18 +57,23 @@ describe Chronologic::Client do
     event.objects = {"user" => "user_1", "spot" => "spot_1"}
     event.timelines = ["user_1", "spot_1"]
 
+    stub_request(:post, "http://localhost:3000/event").
+      with(:body => event.to_hash).
+      to_return(
+        :status => 201, 
+        :headers => {"Location" => "/event/checkin_1/#{guid}"}
+      )
+
     @client.publish(event).must_match /[\w\d-]*/
-    # TODO: verify request parameters via FakeWeb.last_request
   end
 
   it "unpublishes an event" do
     event_key = "checkin_1"
     uuid = "A6047FBA-045C-4649-8525-984C5C1266AF"
-    FakeWeb.register_uri(
+    stub_request(
       :delete,
-      "http://localhost:3000/event/#{event_key}/#{uuid}",
-      :status => 204
-    )
+      "http://localhost:3000/event/#{event_key}/#{uuid}"
+    ).to_return(:status => 204)
 
     @client.unpublish(event_key, uuid).must_equal true
   end
@@ -90,11 +86,11 @@ describe Chronologic::Client do
     event.objects = {"user" => "user_1", "spot" => "spot_1"}
     event.timelines = ["user_1", "spot_1"]
 
-    FakeWeb.register_uri(
-      :get,
-      "http://localhost:3000/timeline/user_1_home",
-      :body => [event].to_json,
-      :content_type => "application/json"
+    stub_request(:get, "http://localhost:3000/timeline/user_1_home").
+      to_return(
+        :status => 200, 
+        :body => {"feed" => [event]}.to_json,
+        :headers => {"Content-Type" => "application/json"}
     )
 
     result = @client.timeline("user_1_home")

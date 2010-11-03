@@ -9,7 +9,8 @@ class Chronologic::Client
   end
 
   def record(object_key, data)
-    resp = self.class.post("/record", {"object_key" => object_key, "data" => data})
+    body = {"object_key" => object_key, "data" => data}
+    resp = self.class.post("/record", :body => body)
     raise Chronologic::Exception.new("Error creating new record") unless resp.code == 201
     true
   end
@@ -25,7 +26,7 @@ class Chronologic::Client
       "subscriber_key" => subscriber_key,
       "timeline_key" => timeline_key
     }
-    resp = self.class.post("/subscription", body)
+    resp = self.class.post("/subscription", :body => body)
     raise Chronologic::Exception.new("Error creating subscription") unless resp.code == 201
     true
   end
@@ -38,7 +39,7 @@ class Chronologic::Client
 
   def publish(event)
     raise Chronologic::Exception.new("Event data cannot contain nested values") if event.data_is_nested?
-    resp = self.class.post("/event", event)
+    resp = self.class.post("/event", :body => event)
     raise Chronologic::Exception.new("Error publishing event") unless resp.code == 201
     url = resp.headers["Location"]
     url
@@ -53,7 +54,7 @@ class Chronologic::Client
   def timeline(timeline_key)
     resp = self.class.get("/timeline/#{timeline_key}")
     raise Chronologic::Exception.new("Error fetching timeline") unless resp.code == 200
-    resp.parsed_response.map { |v| Chronologic::Event.new(v) }
+    resp.parsed_response["feed"].map { |v| Chronologic::Event.new(v) }
   end
 
 end

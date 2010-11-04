@@ -1,8 +1,11 @@
+require "active_support/core_ext/class"
 require "httparty"
 
 class Chronologic::Client
 
   include HTTParty
+
+  cattr_accessor :instance
 
   def initialize(host)
     self.class.default_options[:base_uri] = host
@@ -10,13 +13,13 @@ class Chronologic::Client
 
   def record(object_key, data)
     body = {"object_key" => object_key, "data" => data}
-    resp = self.class.post("/record", :body => body)
+    resp = self.class.post("/object", :body => body)
     raise Chronologic::Exception.new("Error creating new record") unless resp.code == 201
     true
   end
 
   def unrecord(object_key)
-    resp = self.class.delete("/record/#{object_key}")
+    resp = self.class.delete("/object/#{object_key}")
     raise Chronologic::Exception.new("Error removing record") unless resp.code == 204
     true
   end

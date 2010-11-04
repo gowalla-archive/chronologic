@@ -9,12 +9,12 @@ class Chronologic::Service < Sinatra::Base
     self.connection = connection
   end
 
-  post "/record" do
+  post "/object" do
     connection.record(params["key"], params["data"])
     status 201
   end
 
-  get "/record/:object_key" do
+  get "/object/:object_key" do
     # FIXME: stomping on Demeter here
     status 200
     json connection.schema.object_for(params["object_key"])

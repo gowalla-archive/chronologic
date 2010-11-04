@@ -12,7 +12,7 @@ describe Chronologic::Client do
   end
 
   it "records an entity" do
-    stub_request(:post, "http://localhost:3000/record").
+    stub_request(:post, "http://localhost:3000/object").
       with(:body => {"object_key" => "user_1", "data" => {"name" => "akk"}}).
       to_return(:status => 201)
 
@@ -20,7 +20,7 @@ describe Chronologic::Client do
   end
 
   it "unrecords an entity" do
-    stub_request(:delete, "http://localhost:3000/record/spot_1").
+    stub_request(:delete, "http://localhost:3000/object/spot_1").
       to_return(:status => 204)
 
     @client.unrecord("spot_1").must_equal true
@@ -99,5 +99,9 @@ describe Chronologic::Client do
     end
   end
 
+  it "provides an instance of itself" do
+    Chronologic::Client.instance = @client
+    Chronologic::Client.instance.must_equal @client
+  end
 end
 

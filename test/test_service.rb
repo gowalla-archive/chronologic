@@ -14,7 +14,7 @@ describe Chronologic::Service do
       "awesome_factor" => "100"
     }
 
-    post "/record", {:key => "spot_1", :data => data}
+    post "/object", {:key => "spot_1", :data => data}
 
     last_response.status.must_equal 201
     @protocol.schema.object_for("spot_1").must_equal data
@@ -27,7 +27,7 @@ describe Chronologic::Service do
     }
     @protocol.record("spot_1", data)
 
-    get "/record/spot_1"
+    get "/object/spot_1"
 
     last_response.status.must_equal 200
     json_body.must_equal data

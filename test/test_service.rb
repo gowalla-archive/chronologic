@@ -109,14 +109,7 @@ describe Chronologic::Service do
     @protocol.record("user_1", keeg)
 
     @protocol.subscribe("user_1_home", "user_1")
-
-    event = Chronologic::Event.new
-    event.key = "checkin_1111"
-    event.timestamp = Time.now.utc
-    event.data = {"type" => "checkin", "message" => "I'm here!"}
-    event.objects = {"user" => "user_1", "spot" => "spot_1"}
-    event.timelines = ["user_1", "spot_1"]
-
+    event = simple_event
     uuid = @protocol.publish(event)
 
     get "/timeline/user_1_home"

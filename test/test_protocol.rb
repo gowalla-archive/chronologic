@@ -25,12 +25,7 @@ describe Chronologic::Protocol do
   end
 
   it "subscribes a subscriber key to a timeline key and populates a timeline" do
-    event = Chronologic::Event.new
-    event.key = "checkin_1111"
-    event.timestamp = Time.now.utc
-    event.data = {"type" => "checkin", "message" => "I'm here!"}
-    event.objects = {"user" => "user_1", "spot" => "spot_1"}
-    event.timelines = ["user_1"]
+    event = simple_event
 
     @protocol.publish(event)
     @protocol.subscribe("user_1_home", "user_1")
@@ -40,12 +35,7 @@ describe Chronologic::Protocol do
   end
 
   it "unsubscribes a subscriber key from a timeline key" do
-    event = Chronologic::Event.new
-    event.key = "checkin_1111"
-    event.timestamp = Time.now.utc
-    event.data = {"type" => "checkin", "message" => "I'm here!"}
-    event.objects = {"user" => "user_1", "spot" => "spot_1"}
-    event.timelines = ["user_1"]
+    event = simple_event
 
     @protocol.publish(event)
     @protocol.subscribe("user_1_home", "user_1")
@@ -77,12 +67,7 @@ describe Chronologic::Protocol do
   end
 
   it "unpublishes an event from one or more timeline keys" do
-    event = Chronologic::Event.new
-    event.key = "checkin_1111"
-    event.timestamp = Time.now.utc
-    event.data = {"type" => "checkin", "message" => "I'm here!"}
-    event.objects = {"user" => "user_1", "spot" => "spot_1"}
-    event.timelines = ["user_1", "spot_1"]
+    event = simple_event
 
     @protocol.subscribe("user_1_home", "user_1")
     uuid = @protocol.publish(event)
@@ -101,12 +86,7 @@ describe Chronologic::Protocol do
     @protocol.record("user_1", akk)
     @protocol.record("spot_1", jp)
 
-    event = Chronologic::Event.new
-    event.key = "checkin_1111"
-    event.timestamp = Time.now.utc
-    event.data = {"type" => "checkin", "message" => "I'm here!"}
-    event.objects = {"user" => "user_1", "spot" => "spot_1"}
-    event.timelines = ["user_1", "spot_1"]
+    event = simple_event
 
     @protocol.subscribe("user_1_home", "user_1")
     @protocol.publish(event)

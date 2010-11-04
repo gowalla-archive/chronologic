@@ -22,12 +22,7 @@ describe Chronologic::Publisher do
     stub_request(:post, "http://localhost:3000/event").
       to_return(:status => 201)
 
-    event = Chronologic::Event.new
-    event.key = "checkin_1"
-    event.timestamp = Time.now.utc
-    event.data = {"type" => "checkin", "message" => "I'm here!"}
-    event.objects = {"user" => "user_1", "spot" => "spot_1"}
-    event.timelines = ["user_1", "spot_1"]
+    event = simple_event
 
     @checkin.publish(event)
     assert_requested :post, "http://localhost:3000/event", :body => /checkin_1/

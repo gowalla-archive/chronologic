@@ -54,12 +54,7 @@ describe Chronologic::Client do
   it "publishes an event" do
     guid = SimpleUUID::UUID.new.to_guid
 
-    event = Chronologic::Event.new
-    event.key = "checkin_1"
-    event.timestamp = Time.now.utc.iso8601
-    event.data = {"type" => "checkin", "message" => "I'm here!"}
-    event.objects = {"user" => "user_1", "spot" => "spot_1"}
-    event.timelines = ["user_1", "spot_1"]
+    event = simple_event
 
     stub_request(:post, "http://localhost:3000/event").
       with(:body => event.to_hash).
@@ -87,12 +82,7 @@ describe Chronologic::Client do
   end
 
   it "fetches a timeline" do
-    event = Chronologic::Event.new
-    event.key = "checkin_1"
-    event.timestamp = Time.now.utc.iso8601
-    event.data = {"type" => "checkin", "message" => "I'm here!"}
-    event.objects = {"user" => "user_1", "spot" => "spot_1"}
-    event.timelines = ["user_1", "spot_1"]
+    event = simple_event
 
     stub_request(:get, "http://localhost:3000/timeline/user_1_home").
       to_return(

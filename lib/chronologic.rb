@@ -10,6 +10,7 @@ module Chronologic
   autoload :Service, "chronologic/service"
   autoload :Client, "chronologic/client"
   autoload :Publisher, "chronologic/publisher"
+  autoload :Record, "chronologic/record"
 
   class Exception < RuntimeError; end
 

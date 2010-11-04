@@ -15,8 +15,7 @@ module Chronologic::Publisher
     end
 
     def client
-      # FIXME: inject the client
-      @client ||= Chronologic::Client.new('http://localhost:3000')
+      Chronologic::Client.instance
     end
 
   end

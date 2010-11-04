@@ -9,6 +9,7 @@ module Chronologic
   autoload :Event, "chronologic/event"
   autoload :Service, "chronologic/service"
   autoload :Client, "chronologic/client"
+  autoload :Publisher, "chronologic/publisher"
 
   class Exception < RuntimeError; end
 

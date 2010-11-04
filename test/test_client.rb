@@ -1,6 +1,5 @@
 require "helper"
 require "fakeweb"
-require "webmock/test_unit"
 
 describe Chronologic::Client do
   include WebMock::API

@@ -1,6 +1,7 @@
 require "rubygems"
 require "minitest/spec"
 require "rack/test"
+require "webmock/test_unit"
 
 MiniTest::Unit.autorun
 

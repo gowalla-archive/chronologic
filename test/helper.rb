@@ -1,3 +1,4 @@
+require "pp"
 require "rubygems"
 require "minitest/spec"
 require "rack/test"
@@ -33,21 +34,12 @@ class MiniTest::Unit::TestCase
   end
 
   def nested_event
-    subevent = Chronologic::Event.new.tap do |event|
+    Chronologic::Event.new.tap do |event|
       event.key = "comment_1"
       event.timestamp = Time.now.utc
       event.data = {"type" => "comment", "message" => "Me too!"}
       event.objects = {"user" => "user_2", "checkin" => "checkin_1"}
       event.timelines = ["checkin_1"]
-    end
-
-    Chronologic::Event.new.tap do |event|
-      event.key = "checkin_2"
-      event.timestamp = Time.now.utc
-      event.data = {"type" => "checkin", "message" => "I'm here!"}
-      event.objects = {"user" => "user_1", "spot" => "spot_1"}
-      event.timelines = ["user_1", "spot_1"]
-      event.subevents = [subevent]
     end
   end
 

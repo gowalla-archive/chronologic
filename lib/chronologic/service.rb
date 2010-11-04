@@ -50,7 +50,7 @@ class Chronologic::Service < Sinatra::Base
   end
 
   get "/timeline/:timeline_key" do
-    feed = connection.feed(params["timeline_key"])
+    feed = connection.feed(params["timeline_key"], params.has_key?("subevents"))
     status 200
     json("feed" => feed)
   end

@@ -84,7 +84,7 @@ describe Chronologic::Client do
   it "fetches a timeline" do
     event = simple_event
 
-    stub_request(:get, "http://localhost:3000/timeline/user_1_home").
+    stub_request(:get, "http://localhost:3000/timeline/user_1_home?subevents=false").
       to_return(
         :status => 200, 
         :body => {"feed" => [event]}.to_json,
@@ -92,11 +92,27 @@ describe Chronologic::Client do
     )
 
     result = @client.timeline("user_1_home")
-    assert_requested :get, "http://localhost:3000/timeline/user_1_home"
+    assert_requested :get, "http://localhost:3000/timeline/user_1_home?subevents=false"
     result.length.must_equal 1
     (result.first.keys - ["timestamp"]).each do |k|
       result.first[k].must_equal event[k]
     end
+  end
+
+  it "fetches a timeline with subevents" do
+    event = simple_event
+    event["subevents"] = [nested_event]
+    
+    stub_request(:get, "http://localhost:3000/timeline/user_1_home?subevents=true").
+      to_return(
+        :status => 200,
+        :body => {"feed" => [event]}.to_json,
+        :headers => {"Content-Type" => "application/json"}
+      )
+
+    result = @client.timeline("user_1_home", true)
+    assert_requested :get, "http://localhost:3000/timeline/user_1_home?subevents=true"
+    result.first["subevents"].length.must_equal 1
   end
 
   it "provides an instance of itself" do

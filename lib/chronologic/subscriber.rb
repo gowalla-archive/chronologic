@@ -5,8 +5,8 @@ module Chronologic::Subscriber
 
   included do
 
-    def timeline(timeline_key)
-      client.timeline(timeline_key)
+    def timeline(timeline_key, fetch_subevents=false)
+      client.timeline(timeline_key, fetch_subevents)
     end
 
     def subscribe(subscriber_key, timeline_key)

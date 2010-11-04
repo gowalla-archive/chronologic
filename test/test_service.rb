@@ -124,6 +124,46 @@ describe Chronologic::Service do
     result["objects"]["spot"].must_equal jp
   end
 
+  it "reads a timeline with subevents" do
+    akk = {"name" => "akk"}
+    sco = {"name" => "sco"}
+    jp = {"name" => "Juan Pelota's"}
+    @protocol.record("user_1", akk)
+    @protocol.record("user_2", sco)
+    @protocol.record("spot_1", jp)
+
+    event = Chronologic::Event.new
+    event.key = "checkin_1111"
+    event.timestamp = Time.now
+    event.data = {"type" => "checkin", "message" => "I'm here!"}
+    event.objects = {"user" => "user_1", "spot" => "spot_1"}
+    event.timelines = ["user_1", "spot_1"]
+
+    @protocol.subscribe("user_1_home", "user_1")
+    event = @protocol.publish(event)
+
+    event = Chronologic::Event.new
+    event.key = "comment_1111"
+    event.timestamp = Time.now.utc
+    event.data = {"type" => "comment", "message" => "Me too!", "parent" => "checkin_1111"}
+    event.objects = {"user" => "user_2"}
+    event.timelines = ["checkin_1111"]
+    @protocol.publish(event)
+
+    event = Chronologic::Event.new
+    event.key = "comment_2222"
+    event.timestamp = Time.now.utc
+    event.data = {"type" => "comment", "message" => "Great!", "parent" => "checkin_1111"}
+    event.objects = {"user" => "user_1"}
+    event.timelines = ["checkin_1111"]
+    @protocol.publish(event)
+
+    get "/timeline/user_1_home", :subevents => true
+    obj = json_body
+    result = obj["feed"].first
+    result["subevents"].length.must_equal 2
+  end
+
   def json_body
     JSON.load(last_response.body)
   end

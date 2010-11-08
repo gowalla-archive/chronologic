@@ -5,32 +5,47 @@ Make it work:
 	Exposes subscribe/unsubscribe, publish/unpublish, activity, object verbs.
 	- Build HTTP service on protocol @done
 	- Build client API for service	 @done
-	- Build AR sugar on top of client API
-Make it right:
+	- Build AR sugar on top of client API @done
+Global timeline:
+	- Import users and spots, some % of checkins
+	Script importer to convert from PG to CL
+	- Add feature flipper
+	- Publish non-private checkins to Chronologic
+	- Connect firehose to global timeline
 	- Set up Cassandra staging cluster
-	2-4 node cluster, smaller instances. Used for testing load, adding/removing nodes, etc.
-	- Import checkin/activity data
-	Write some script to convert data from PG to Chronologic.
-	- Compare Chronologic feeds and gowalla-rails feeds
-	Make sure it all matches up, fix where it doesn't.
-Make it production:
-	- Add logging, set up centralized collection/searching of logs
+	2-4 node cluster, smaller instances. Used for testing load, adding/removing nodes, etc.	
+	- Spike out logging
 	Look into rsyslog or scribe for aggregating logs.
-	- Add instrumentation, connect to Ganglia
+	- Start smoke tests
+Region timelines:
+	- Subscribe regions to spots in the right WOE
+	- Add feature flipper
+	- Publish non-private checkins to spot timelines
+	- Use region timeline on region pages
+	- Spike out instrumentation and Ganglia monitoring
 	Track update, read times, transaction volume. Would be nice to track HTTP caching as well.
-	- Set up health/capacity monitoring
-	- Set up a client test cluster, run load tests
-	1-2 nodes to see how many checkins/sec and feeds/sec we can handle
-Make it whole:
-	- Refactor activity feeds to use Chronologic
-	- Refactor privacy controls to sit on top of data returned by Chronologic
-	Move privacy checks out of views and controllers and into Chronologic client library
-	- Refactor pagination to work with Chronologic
+Item timelines:
+	- Add feature flipper
+	- Publish bonuses, drops, swaps, and vaults to item timelines
+	- Use item timeline on time pages
+	- Add pagination to Chronologic
 	Can will_paginate work smoothly with this, or will we need something duck-type compatible?
-	- Add feature flipper for Chronologic feeds and publishing to Chronologic
-	- Test/debug in staging and production
-Make it the thing:
-	- Remove feature flipper
+Spot timelines:
+	- Add feature flipper
+	- Publish drops, swaps, bonuses, highlights and photos to spot timelines as subevents
+	- Use spot timeline on spot pages
+	- Add tombstones to Chronologic
+	- Build merged/deleted spot logic on top of tombstones
+	- Spike out privacy checking for showing private checkins to permitted users
+	Move privacy checks out of views and controllers and into Chronologic client library
+User timelines:
+	- Add feature flipper
+	- Import friend relationships as subscriptions
+	- Publish checkins, photos, comments to user timelines
+	- Use user timeline on passport page
+	- Use subscriber timeline on home page
+Finish:
+	- Remove feature flippers
 	- Remove old activity code
 	- Fill out documentation for writing to activity feeds and creating different timelines
 	- Celebrate

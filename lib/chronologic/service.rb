@@ -10,7 +10,7 @@ class Chronologic::Service < Sinatra::Base
   end
 
   post "/object" do
-    connection.record(params["key"], params["data"])
+    connection.record(params["object_key"], params["data"])
     status 201
   end
 
@@ -50,7 +50,8 @@ class Chronologic::Service < Sinatra::Base
   end
 
   get "/timeline/:timeline_key" do
-    feed = connection.feed(params["timeline_key"], params.has_key?("subevents"))
+    subevents = params["subevents"] == "true"
+    feed = connection.feed(params["timeline_key"], subevents)
     status 200
     json("feed" => feed)
   end
@@ -58,6 +59,7 @@ class Chronologic::Service < Sinatra::Base
   helpers do
 
     def json(object)
+      content_type("application/json")
       JSON.dump(object)
     end
 

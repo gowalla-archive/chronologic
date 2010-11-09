@@ -14,7 +14,7 @@ describe Chronologic::Service do
       "awesome_factor" => "100"
     }
 
-    post "/object", {:key => "spot_1", :data => data}
+    post "/object", {:object_key => "spot_1", :data => data}
 
     last_response.status.must_equal 201
     @protocol.schema.object_for("spot_1").must_equal data

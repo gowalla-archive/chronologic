@@ -57,7 +57,7 @@ class Chronologic::Client
   def timeline(timeline_key, fetch_subevents=false)
     resp = self.class.get("/timeline/#{timeline_key}", :query => {:subevents => fetch_subevents})
     raise Chronologic::Exception.new("Error fetching timeline") unless resp.code == 200
-    resp.parsed_response["feed"].map { |v| Chronologic::Event.new(v) }
+    resp["feed"].map { |v| Chronologic::Event.new(v) }
   end
 
 end

@@ -3,8 +3,7 @@ require "helper"
 describe Chronologic::Protocol do
 
   before do
-    @protocol = Chronologic::Protocol.new
-    @protocol.schema = chronologic_schema
+    @protocol = Chronologic::Protocol
   end
 
   it "records an entity" do

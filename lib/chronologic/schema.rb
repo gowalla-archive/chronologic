@@ -1,17 +1,16 @@
 require "cassandra"
 
-class Chronologic::Schema
-  attr_accessor :connection
+module Chronologic::Schema
 
-  def create_object(key, attrs)
+  def self.create_object(key, attrs)
     connection.insert(:Object, key, attrs)
   end
 
-  def remove_object(object_key)
+  def self.remove_object(object_key)
     connection.remove(:Object, object_key)
   end
 
-  def object_for(object_key)
+  def self.object_for(object_key)
     case object_key
     when String
       connection.get(:Object, object_key)
@@ -20,16 +19,16 @@ class Chronologic::Schema
     end
   end
 
-  def create_subscription(timeline_key, subscriber_key)
+  def self.create_subscription(timeline_key, subscriber_key)
     # FIXME: subscriber => '' column is kinda janky
     connection.insert(:Subscription, subscriber_key, {timeline_key => ''})
   end
 
-  def remove_subscription(timeline_key, subscriber_key)
+  def self.remove_subscription(timeline_key, subscriber_key)
     connection.remove(:Subscription, subscriber_key, timeline_key)
   end
 
-  def subscribers_for(timeline_key)
+  def self.subscribers_for(timeline_key)
     case timeline_key
     when String
       connection.get(:Subscription, timeline_key).keys
@@ -38,15 +37,15 @@ class Chronologic::Schema
     end
   end
 
-  def create_event(event_key, data)
+  def self.create_event(event_key, data)
     connection.insert(:Event, event_key, data)
   end
 
-  def remove_event(event_key)
+  def self.remove_event(event_key)
     connection.remove(:Event, event_key)
   end
 
-  def event_for(event_key)
+  def self.event_for(event_key)
     case event_key
     when Array
       connection.multi_get(:Event, event_key)
@@ -55,11 +54,11 @@ class Chronologic::Schema
     end
   end
 
-  def create_timeline_event(timeline, uuid, event_key)
+  def self.create_timeline_event(timeline, uuid, event_key)
     connection.insert(:Timeline, timeline, {uuid => event_key})
   end
 
-  def timeline_for(timeline)
+  def self.timeline_for(timeline)
     case timeline
     when String
       connection.get(:Timeline, timeline)
@@ -68,7 +67,7 @@ class Chronologic::Schema
     end
   end
 
-  def timeline_events_for(timeline)
+  def self.timeline_events_for(timeline)
     case timeline
     when String
       timeline_for(timeline).values
@@ -79,12 +78,16 @@ class Chronologic::Schema
     end
   end
 
-  def remove_timeline_event(timeline, uuid)
+  def self.remove_timeline_event(timeline, uuid)
     connection.remove(:Timeline, timeline, uuid)
   end
 
-  def new_guid
+  def self.new_guid
     SimpleUUID::UUID.new.to_guid
+  end
+
+  def self.connection
+    Chronologic.connection
   end
 
 end

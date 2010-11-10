@@ -4,8 +4,6 @@ require "fakeweb"
 describe Chronologic::Client do
 
   before do
-    @protocol = Chronologic::Protocol.new
-    @protocol.schema = chronologic_schema
     @client = Chronologic::Client.new('http://localhost:3000')
   end
 

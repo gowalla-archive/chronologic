@@ -3,7 +3,7 @@ require "helper"
 describe Chronologic::Schema do 
 
   before do
-    @schema = chronologic_schema
+    @schema = Chronologic::Schema
   end
 
   it "creates an object" do

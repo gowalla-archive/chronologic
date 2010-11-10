@@ -12,15 +12,11 @@ class MiniTest::Unit::TestCase
   include WebMock::API
 
   def setup
+    Chronologic.connection = Cassandra.new("Chronologic")
+    Chronologic.connection.clear_keyspace!
+
     WebMock.disable_net_connect!
     WebMock.reset_webmock
-  end
-
-  def chronologic_schema
-    schema = Chronologic::Schema.new
-    schema.connection = Cassandra.new("Chronologic")
-    schema.connection.clear_keyspace!
-    schema
   end
 
   def simple_event

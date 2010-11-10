@@ -4,8 +4,8 @@ describe Chronologic::Service do
   include Rack::Test::Methods
 
   before do
-    @protocol = Chronologic::Protocol.new
-    @protocol.schema = chronologic_schema
+    @protocol = Chronologic::Protocol
+    Chronologic.connection = Cassandra.new("Chronologic")
   end
 
   it "writes a new entity record" do
@@ -17,7 +17,7 @@ describe Chronologic::Service do
     post "/object", {:object_key => "spot_1", :data => data}
 
     last_response.status.must_equal 201
-    @protocol.schema.object_for("spot_1").must_equal data
+    Chronologic.schema.object_for("spot_1").must_equal data
   end
 
   it "reads an entity record" do
@@ -43,7 +43,7 @@ describe Chronologic::Service do
     delete "/record/spot_1"
 
     last_response.status.must_equal 204
-    @protocol.schema.object_for("spot_1").must_equal Hash.new
+    Chronologic.schema.object_for("spot_1").must_equal Hash.new
   end
 
   it "subscribes a subscriber to a timeline" do
@@ -55,7 +55,7 @@ describe Chronologic::Service do
     post "/subscription", subscription
 
     last_response.status.must_equal 201
-    @protocol.schema.subscribers_for("user_2").must_include "user_1_home"
+    Chronologic.schema.subscribers_for("user_2").must_include "user_1_home"
   end
 
   it "unsubscribes a subscriber to a timeline" do
@@ -64,7 +64,7 @@ describe Chronologic::Service do
     delete "/subscription/user_2/user_1_home"
 
     last_response.status.must_equal 204
-    @protocol.schema.subscribers_for("user_2").wont_include "user_1_home"
+    Chronologic.schema.subscribers_for("user_2").wont_include "user_1_home"
   end
 
   it "publishes an event" do
@@ -80,7 +80,7 @@ describe Chronologic::Service do
 
     last_response.status.must_equal 201
 
-    result = @protocol.schema.event_for("checkin_1212")
+    result = Chronologic.schema.event_for("checkin_1212")
     result["data"].must_equal event["data"]
     result["objects"].must_equal event["objects"]
 
@@ -99,7 +99,7 @@ describe Chronologic::Service do
     delete "/event/checkin_1111/#{uuid}"
 
     last_response.status.must_equal 204
-    @protocol.schema.event_for("checkin_1111").must_equal Hash.new
+    Chronologic.schema.event_for("checkin_1111").must_equal Hash.new
   end
 
   it "reads a timeline feed" do
@@ -169,7 +169,7 @@ describe Chronologic::Service do
   end
 
   def app
-    Chronologic::Service.new(@protocol)
+    Chronologic::Service.new
   end
 
 end

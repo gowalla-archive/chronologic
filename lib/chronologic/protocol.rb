@@ -1,18 +1,17 @@
 require "time"
 require "hashie/mash"
 
-class Chronologic::Protocol
-  attr_accessor :schema
+module Chronologic::Protocol
 
-  def record(event_key, data)
+  def self.record(event_key, data)
     schema.create_object(event_key, data)
   end
 
-  def unrecord(event_key)
+  def self.unrecord(event_key)
     schema.remove_object(event_key)
   end
 
-  def subscribe(timeline_key, subscriber_key)
+  def self.subscribe(timeline_key, subscriber_key)
     schema.create_subscription(timeline_key, subscriber_key)
 
     event_keys = schema.timeline_for(subscriber_key)
@@ -21,14 +20,14 @@ class Chronologic::Protocol
     end
   end
 
-  def unsubscribe(timeline_key, subscriber_key)
+  def self.unsubscribe(timeline_key, subscriber_key)
     schema.remove_subscription(timeline_key, subscriber_key)
     schema.timeline_for(subscriber_key).each do |guid, event_key|
       schema.remove_timeline_event(timeline_key, guid)
     end
   end
 
-  def publish(event)
+  def self.publish(event)
     schema.create_event(event.key, event.to_columns)
     uuid = schema.new_guid
     all_timelines = [event.timelines, schema.subscribers_for(event.timelines)].flatten
@@ -36,7 +35,7 @@ class Chronologic::Protocol
     uuid
   end
 
-  def unpublish(event, uuid)
+  def self.unpublish(event, uuid)
     schema.remove_event(event.key)
     raw_timelines = event.timelines
     # FIXME: this is a hackish way to handle both event objects and events
@@ -46,7 +45,7 @@ class Chronologic::Protocol
     all_timelines.map { |t| schema.remove_timeline_event(t, uuid) }
   end
 
-  def feed(timeline_key, fetch_subevents=false)
+  def self.feed(timeline_key, fetch_subevents=false)
     event_keys = schema.timeline_events_for(timeline_key)
     events = schema.event_for(event_keys)
 
@@ -98,6 +97,10 @@ class Chronologic::Protocol
       event.subevents = subs
       event
     end
+  end
+  
+  def self.schema
+    Chronologic.schema
   end
 
 end

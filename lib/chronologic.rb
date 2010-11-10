@@ -1,6 +1,13 @@
 require "cassandra"
+require "active_support/core_ext/module"
 
 module Chronologic
+
+  mattr_accessor :connection
+
+  def self.schema
+    Chronologic::Schema
+  end
 
   VERSION = '0.2.0'
 

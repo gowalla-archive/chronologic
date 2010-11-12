@@ -38,13 +38,6 @@ Rake::TestTask.new do |t|
   t.libs << "test"
 end
 
-desc "Generate RCov test coverage and open in your browser"
-task :coverage do
-  sh "rm -fr coverage"
-  sh "rcov test/test_*.rb"
-  sh "open coverage/index.html"
-end
-
 require 'rake/rdoctask'
 Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_dir = 'rdoc'

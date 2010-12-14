@@ -51,6 +51,7 @@ task :console do
   sh "irb -rubygems -Ilib -rchronologic"
 end
 
+desc "Push a new release"
 task :release => :build do
   unless `git branch` =~ /^\* master$/
     puts "You must be on the master branch to release!"
@@ -62,6 +63,7 @@ task :release => :build do
   sh "git push origin v#{version}"
 end
 
+desc "Build the gem"
 task :build => :gemspec do
   sh "mkdir -p pkg"
   sh "gem build #{gemspec_file}"

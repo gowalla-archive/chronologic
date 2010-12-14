@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   ## the sub! line in the Rakefile
   s.name              = 'chronologic'
   s.version           = '0.2.0'
-  s.date              = '2010-11-09'
+  s.date              = '2010-12-14'
   s.rubyforge_project = 'chronologic'
 
   ## Make sure your summary is short. The description may be as long
@@ -56,7 +56,6 @@ Gem::Specification.new do |s|
     LICENSE
     README.md
     Rakefile
-    TODO.txt
     chronologic.gemspec
     config.ru
     examples/config.yml
@@ -74,6 +73,8 @@ Gem::Specification.new do |s|
     lib/chronologic/service.rb
     lib/chronologic/subscriber.rb
     test/helper.rb
+    test/storage-conf.xml
+    test/test_chronologic.rb
     test/test_client.rb
     test/test_event.rb
     test/test_protocol.rb

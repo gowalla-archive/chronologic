@@ -5,7 +5,6 @@ describe Chronologic::Service do
 
   before do
     @protocol = Chronologic::Protocol
-    Chronologic.connection = Cassandra.new("Chronologic")
   end
 
   it "writes a new entity record" do

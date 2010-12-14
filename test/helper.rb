@@ -13,15 +13,15 @@ class MiniTest::Unit::TestCase
   include WebMock::API
 
   def setup
-    if ENV['CASSANDRA']
-      Chronologic.connection = Cassandra.new("Chronologic-Test")
-      Chronologic.connection.clear_keyspace!
+    Chronologic.connection = if ENV['CASSANDRA']
+      Cassandra.new("Chronologic-Test")
     else
-      Chronologic.connection = Cassandra::Mock.new(
+      Cassandra::Mock.new(
         'Chronologic', 
         File.join(File.dirname(__FILE__), 'storage-conf.xml')
       )
     end
+    Chronologic.connection.clear_keyspace!
 
     WebMock.disable_net_connect!
     WebMock.reset_webmock

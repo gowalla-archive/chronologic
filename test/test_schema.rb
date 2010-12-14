@@ -90,7 +90,7 @@ describe Chronologic::Schema do
     uuid = @schema.create_event("gizmo_1111", data)
     timeline_guid = @schema.new_guid
     @schema.create_timeline_event("_global", timeline_guid, "gizmo_1111")
-    @schema.remove_timeline_event("_global", uuid)
+    @schema.remove_timeline_event("_global", timeline_guid)
     @schema.timeline_events_for("_global").must_equal []
   end
 

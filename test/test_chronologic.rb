@@ -3,8 +3,9 @@ require "helper"
 describe Chronologic do
 
   it "holds a Cassandra connection" do
-    Chronologic.connection = Cassandra.new("Chronologic")
-    Chronologic.connection.must_be_kind_of Cassandra
+    fake_connection = Object.new
+    Chronologic.connection = fake_connection
+    Chronologic.connection.must_equal fake_connection
   end
 
   it "has a schema helper" do

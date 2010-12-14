@@ -7,13 +7,21 @@ require "webmock/test_unit"
 MiniTest::Unit.autorun
 
 require "chronologic"
+require "cassandra/mock"
 
 class MiniTest::Unit::TestCase
   include WebMock::API
 
   def setup
-    Chronologic.connection = Cassandra.new("Chronologic")
-    Chronologic.connection.clear_keyspace!
+    if ENV['CASSANDRA']
+      Chronologic.connection = Cassandra.new("Chronologic-Test")
+      Chronologic.connection.clear_keyspace!
+    else
+      Chronologic.connection = Cassandra::Mock.new(
+        'Chronologic', 
+        File.join(File.dirname(__FILE__), 'storage-conf.xml')
+      )
+    end
 
     WebMock.disable_net_connect!
     WebMock.reset_webmock

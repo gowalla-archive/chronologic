@@ -20,7 +20,6 @@ module Chronologic::Schema
   end
 
   def self.create_subscription(timeline_key, subscriber_key)
-    # FIXME: subscriber => '' column is kinda janky
     connection.insert(:Subscription, subscriber_key, {timeline_key => ''})
   end
 

@@ -25,7 +25,7 @@ class Chronologic::Service < Sinatra::Base
   end
 
   delete "/subscription/:subscriber_key/:timeline_key" do
-    protocol.unsubscribe(params["timeline_key"], params["subscriber_key"])
+    protocol.unsubscribe(params["subscriber_key"], params["timeline_key"])
     status 204
   end
 

@@ -6,6 +6,15 @@ class Chronologic::Service < Sinatra::Base
 
   cattr_accessor :logger
 
+  before do
+    @timer = Time.now
+  end
+
+  after do
+    time = "%.3fms" % [Time.now - @timer]
+    logger.info "#{request.request_method} #{request.path}: #{time}"
+  end
+
   post "/object" do
     protocol.record(params["object_key"], params["data"])
     status 201

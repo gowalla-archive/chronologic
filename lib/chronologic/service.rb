@@ -6,15 +6,6 @@ class Chronologic::Service < Sinatra::Base
 
   cattr_accessor :logger
 
-  before do
-    @timer = Time.now
-  end
-
-  after do
-    time = "%.3fms" % [Time.now - @timer]
-    logger.info "#{request.request_method} #{request.path}: #{time}"
-  end
-
   post "/object" do
     protocol.record(params["object_key"], params["data"])
     status 201
@@ -80,18 +71,25 @@ class Chronologic::Service < Sinatra::Base
 
   end
 
-  configure(:production) do
-    disable :dump_errors
-    disable :show_exceptions
+  before do
+    @timer = Time.now
+  end
 
-    error do
-      exception = env["sinatra.error"]
+  after do
+    time = "%.3fms" % [Time.now - @timer]
+    logger.info "#{request.request_method} #{request.path}: #{time}"
+  end
 
-      logger.error "Error: #{exception.message} (#{exception.class})"
-      logger.error exception.backtrace.join("\n  ")
+  disable :dump_errors
+  disable :show_exceptions
 
-      "Chronologic error: #{exception.message}"
-    end
+  error do
+    exception = env["sinatra.error"]
+
+    logger.error "Error: #{exception.message} (#{exception.class})"
+    logger.error exception.backtrace.join("\n  ")
+
+    "Chronologic error: #{exception.message}"
   end
 
 end

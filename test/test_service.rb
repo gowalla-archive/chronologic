@@ -168,6 +168,9 @@ describe Chronologic::Service do
   end
 
   def app
+    logger = Logger.new(STDOUT)
+    logger.level = Logger::WARN
+    Chronologic::Service.logger = logger
     Chronologic::Service.new
   end
 

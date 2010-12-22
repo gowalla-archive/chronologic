@@ -48,6 +48,7 @@ Gem::Specification.new do |s|
   ## those that are only needed during development
   s.add_development_dependency('minitest', ["~> 1.7.2"])
   s.add_development_dependency('rack-test', ["~> 0.5.6"])
+  s.add_development_dependency('webmock', ['~> 1.5.0'])
 
   ## Leave this section as-is. It will be automatically generated from the
   ## contents of your Git repository via the gemspec task. DO NOT REMOVE

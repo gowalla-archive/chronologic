@@ -1,7 +1,10 @@
 require "sinatra/base"
+require "active_support/core_ext/class"
 
 # TODO: caching headers?
 class Chronologic::Service < Sinatra::Base
+
+  cattr_accessor :logger
 
   post "/object" do
     protocol.record(params["object_key"], params["data"])
@@ -68,4 +71,19 @@ class Chronologic::Service < Sinatra::Base
 
   end
 
+  configure(:production) do
+    disable :dump_errors
+    disable :show_exceptions
+
+    error do
+      exception = env["sinatra.error"]
+
+      logger.error "Error: #{exception.message} (#{exception.class})"
+      logger.error exception.backtrace.join("\n  ")
+
+      "Chronologic error: #{exception.message}"
+    end
+  end
+
 end
+

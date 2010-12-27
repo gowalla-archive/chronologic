@@ -65,6 +65,7 @@ Gem::Specification.new do |s|
     examples/gowalla.rb
     examples/gowalla_activerecord.rb
     examples/twitter.rb
+    gem_graph.png
     init.rb
     lib/chronologic.rb
     lib/chronologic/client.rb

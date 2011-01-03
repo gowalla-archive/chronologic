@@ -47,8 +47,13 @@ class Chronologic::Service < Sinatra::Base
   end
 
   get "/timeline/:timeline_key" do
-    subevents = params["subevents"] == "true"
-    feed = protocol.feed(params["timeline_key"], :fetch_subevents => subevents)
+    options = {
+      :fetch_subevents => params["subevents"] == "true",
+      :page => params["page"] || nil,
+      :per_page => Integer(params["per_page"] || "20")
+    }
+
+    feed = protocol.feed(params["timeline_key"], options)
     status 200
     json("feed" => feed)
   end

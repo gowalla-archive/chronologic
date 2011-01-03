@@ -123,6 +123,16 @@ describe Chronologic::Service do
     result["objects"]["spot"].must_equal jp
   end
 
+  it "reads a timeline feed with page and per_page parameters" do
+    uuids = populate_timeline
+    page = uuids[4]
+
+    get "/timeline/user_1_home", :per_page => 5, :page => page
+
+    obj = json_body
+    obj["feed"].length.must_equal 5
+  end
+
   it "reads a timeline with subevents" do
     akk = {"name" => "akk"}
     sco = {"name" => "sco"}

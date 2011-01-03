@@ -140,26 +140,11 @@ describe Chronologic::Protocol do
   end
 
   it "fetches a feed by page" do
-    jp = {"name" => "Juan Pelota's"}
-    @protocol.record("spot_1", jp)
-
-    uuids = []
-    %w{sco jc am pb mt rm ak ad rs bf}.each_with_index do |u, i|
-      record = {"name" => u}
-      key = "user_#{i}"
-      @protocol.record(key, record)
-
-      @protocol.subscribe("user_1_home", "user_#{i}")
-
-      event = simple_event
-      event.key = "checkin_#{i}"
-      event.objects["user"] = key
-      event.timelines = [key, "spot_1"]
-      uuids << @protocol.publish(event)
-    end
+    uuids = populate_timeline
     
     @protocol.feed("user_1_home", :page => uuids[1], :per_page => 5).length.must_equal(5)
   end
+
 
 end
 

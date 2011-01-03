@@ -57,19 +57,22 @@ module Chronologic::Schema
     connection.insert(:Timeline, timeline, {uuid => event_key})
   end
 
-  def self.timeline_for(timeline)
+  def self.timeline_for(timeline, options={})
+    count = options[:per_page] || 20
+    start = options[:page] || nil # Cassandra seems OK with a nil offset
+
     case timeline
     when String
-      connection.get(:Timeline, timeline)
+      connection.get(:Timeline, timeline, :start => start, :count => count)
     when Array
       connection.multi_get(:Timeline, timeline)
     end
   end
 
-  def self.timeline_events_for(timeline)
+  def self.timeline_events_for(timeline, options={})
     case timeline
     when String
-      timeline_for(timeline).values
+      timeline_for(timeline, options).values
     when Array
       timeline_for(timeline).inject({}) do |hsh, (timeline_key, column)| 
         hsh.update(timeline_key => column.values)

@@ -45,8 +45,12 @@ module Chronologic::Protocol
     all_timelines.map { |t| schema.remove_timeline_event(t, uuid) }
   end
 
-  def self.feed(timeline_key, fetch_subevents=false)
-    event_keys = schema.timeline_events_for(timeline_key)
+  def self.feed(timeline_key, options={})
+    fetch_subevents = options[:fetch_subevents]
+    count = options[:per_page] || 20
+    start = options[:page] || nil
+
+    event_keys = schema.timeline_events_for(timeline_key, :per_page => count, :page => start)
     events = schema.event_for(event_keys)
 
     subevents = {}

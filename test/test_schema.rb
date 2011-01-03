@@ -85,6 +85,39 @@ describe Chronologic::Schema do
     @schema.timeline_events_for("_global").must_equal ["gizmo_1111"]
   end
 
+  it "fetches timeline events with a count parameter" do
+    15.times do |i|
+      uuid = @schema.new_guid
+      ref = "gizmo_#{i}"
+
+      @schema.create_timeline_event("_global", uuid, ref)
+    end
+    
+    @schema.timeline_for("_global", :per_page => 10).length.must_equal 10
+  end
+
+  it "fetches timeline events from a page offset" do
+    uuids = 15.times.map { @schema.new_guid }
+    uuids.each_with_index do |uuid, i|
+      ref = "gizmo_#{i}"
+      @schema.create_timeline_event("_global", uuid, ref)
+    end
+
+    offset = uuids[10]
+    @schema.timeline_for("_global", :page => offset).length.must_equal 5
+  end
+
+  it "fetches timeline events with a count and offset parameter" do
+    uuids = 15.times.map { @schema.new_guid }
+    uuids.each_with_index do |uuid, i|
+      ref = "gizmo_#{i}"
+      @schema.create_timeline_event("_global", uuid, ref)
+    end
+
+    offset = uuids[10]
+    @schema.timeline_for("_global", :per_page => 10, :page => offset).length.must_equal 5
+  end
+
   it "removes a timeline event" do
     data = {"gizmo" => {"message" => "I'm here!"}}
     uuid = @schema.create_event("gizmo_1111", data)

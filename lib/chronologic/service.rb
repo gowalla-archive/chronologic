@@ -48,7 +48,7 @@ class Chronologic::Service < Sinatra::Base
 
   get "/timeline/:timeline_key" do
     subevents = params["subevents"] == "true"
-    feed = protocol.feed(params["timeline_key"], subevents)
+    feed = protocol.feed(params["timeline_key"], :fetch_subevents => subevents)
     status 200
     json("feed" => feed)
   end

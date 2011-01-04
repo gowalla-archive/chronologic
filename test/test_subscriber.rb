@@ -19,7 +19,7 @@ describe Chronologic::Subscriber do
   end
 
   it "fetches a timeline" do
-    stub_request(:get, "http://localhost:3000/timeline/sxsw?subevents=false").
+    stub_request(:get, "http://localhost:3000/timeline/sxsw").
       to_return(
         :status => 200, 
         :body => {"feed" => [simple_event]}.to_json, 
@@ -27,21 +27,21 @@ describe Chronologic::Subscriber do
       )
 
     @sxsw.timeline("sxsw").length.must_equal 1
-    assert_requested :get, "http://localhost:3000/timeline/sxsw?subevents=false"
+    assert_requested :get, "http://localhost:3000/timeline/sxsw"
   end
 
   it "fetches a nested timeline" do
     event = simple_event
     event["subevents"] = [nested_event]
-    stub_request(:get, "http://localhost:3000/timeline/sxsw?subevents=true").
+    stub_request(:get, "http://localhost:3000/timeline/sxsw?subevents=true&page=abc-123&per_page=5").
       to_return(
         :status => 200,
         :body => {"feed" => [event]}.to_json,
         :headers => {"Content-Type" => "application/json"}
       )
 
-    result = @sxsw.timeline("sxsw", true)
-    assert_requested :get, "http://localhost:3000/timeline/sxsw?subevents=true"
+    result = @sxsw.timeline("sxsw", :subevents => true, :page => "abc-123", :per_page => 5)
+    assert_requested :get, "http://localhost:3000/timeline/sxsw?subevents=true&page=abc-123&per_page=5"
     result.first["subevents"].length.must_equal 1
   end
 

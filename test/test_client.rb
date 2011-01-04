@@ -82,15 +82,15 @@ describe Chronologic::Client do
   it "fetches a timeline" do
     event = simple_event
 
-    stub_request(:get, "http://localhost:3000/timeline/user_1_home?subevents=false").
+    stub_request(:get, "http://localhost:3000/timeline/user_1_home?subevents=false&page=abc-123&per_page=5").
       to_return(
         :status => 200, 
         :body => {"feed" => [event]}.to_json,
         :headers => {"Content-Type" => "application/json"}
     )
 
-    result = @client.timeline("user_1_home")
-    assert_requested :get, "http://localhost:3000/timeline/user_1_home?subevents=false"
+    result = @client.timeline("user_1_home", :subevents => false, :page => "abc-123", :per_page => "5")
+    assert_requested :get, "http://localhost:3000/timeline/user_1_home?subevents=false&page=abc-123&per_page=5"
     result.length.must_equal 1
     (result.first.keys - ["timestamp"]).each do |k|
       result.first[k].must_equal event[k]
@@ -108,7 +108,7 @@ describe Chronologic::Client do
         :headers => {"Content-Type" => "application/json"}
       )
 
-    result = @client.timeline("user_1_home", true)
+    result = @client.timeline("user_1_home", :subevents => true)
     assert_requested :get, "http://localhost:3000/timeline/user_1_home?subevents=true"
     result.first["subevents"].length.must_equal 1
   end

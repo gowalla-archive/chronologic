@@ -66,9 +66,6 @@ class Chronologic::Service < Sinatra::Base
     end
 
     def event
-      logger.error "Chronologic event:"
-      logger.error "  #{params.inspect}"
-
       timestamp = Time.parse(params["timestamp"])
       Chronologic::Event.new(params.update("timestamp" => timestamp))
     end

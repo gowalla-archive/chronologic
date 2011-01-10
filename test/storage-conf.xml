@@ -4,13 +4,12 @@
   <Keyspace Name="Chronologic">
     <ColumnFamily Name="Object" CompareWith="UTF8Type" />
     <ColumnFamily Name="Subscription" CompareWith="UTF8Type" />
-    <ColumnFamily Name="Event" ColumnType="Super" CompareWith="UTF8Type" Compa
-      reSubcolumnsWith="UTF8Type" />      <ColumnFamily Name="Timeline" CompareWith="UTF8Type" />
+    <ColumnFamily Name="Event" CompareWith="UTF8Type" />
+    <ColumnFamily Name="Timeline" CompareWith="UTF8Type" />
 
     <ReplicaPlacementStrategy>org.apache.cassandra.locator.RackUnawareStrategy </ReplicaPlacementStrategy>      <!-- Trying this on a whim -->
     <ReplicationFactor>3</ReplicationFactor>
-    <EndPointSnitch>org.apache.cassandra.locator.EndPointSnitch</EndPointSnitc
-    h>
+    <EndPointSnitch>org.apache.cassandra.locator.EndPointSnitch</EndPointSnitc h>
   </Keyspace>
 
 </Keyspaces>

@@ -51,14 +51,13 @@ describe Chronologic::Schema do
   end
 
   it "creates an event" do
-    data = {"checkin" => {"message" => "I'm here!"}}
-
+    data = simple_data
     @schema.create_event("checkin_1111", data)
     @schema.event_for("checkin_1111").must_equal data
   end
 
   it "fetches multiple events" do
-    data = {"checkin" => {"message" => "I'm here!"}}
+    data = simple_data
 
     @schema.create_event("checkin_1111", data)
     @schema.create_event("checkin_1112", data)
@@ -67,17 +66,14 @@ describe Chronologic::Schema do
   end
 
   it "removes an event" do
-    @schema.create_event(
-      "checkin_1111", 
-      {"checkin" => {"message" => "I'm here!"}}
-    )
+    @schema.create_event("checkin_1111", simple_data)
     @schema.remove_event("checkin_1111")
     @schema.event_for("checkin_1111").must_equal Hash.new
   end
 
   it "creates a new timeline event" do
     uuid = @schema.new_guid
-    data = {"gizmo" => {"message" => "I'm here!"}}
+    data = {"gizmo" => JSON.dump({"message" => "I'm here!"})}
     @schema.create_event("gizmo_1111", data)
     @schema.create_timeline_event("_global", uuid, "gizmo_1111")
 
@@ -119,7 +115,7 @@ describe Chronologic::Schema do
   end
 
   it "removes a timeline event" do
-    data = {"gizmo" => {"message" => "I'm here!"}}
+    data = simple_data
     uuid = @schema.create_event("gizmo_1111", data)
     timeline_guid = @schema.new_guid
     @schema.create_timeline_event("_global", timeline_guid, "gizmo_1111")
@@ -127,5 +123,8 @@ describe Chronologic::Schema do
     @schema.timeline_events_for("_global").must_equal []
   end
 
+  def simple_data
+    {"checkin" => JSON.dump({"message" => "I'm here!"})}
+  end
 end
 

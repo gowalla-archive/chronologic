@@ -54,8 +54,9 @@ describe Chronologic::Client do
 
     event = simple_event
 
+    body = event.to_transport
     stub_request(:post, "http://localhost:3000/event").
-      with(:body => event.to_hash).
+      with(:body => body).
       to_return(
         :status => 201, 
         :headers => {"Location" => "/event/checkin_1/#{guid}"}
@@ -64,7 +65,7 @@ describe Chronologic::Client do
     @client.publish(event).must_match /[\w\d-]*/
     assert_requested :post, 
       "http://localhost:3000/event", 
-      :body => event.to_hash
+      :body => body
   end
 
   it "unpublishes an event" do

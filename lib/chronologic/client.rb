@@ -41,8 +41,7 @@ class Chronologic::Client
   end
 
   def publish(event)
-    raise Chronologic::Exception.new("Event data cannot contain nested values") if event.data_is_nested?
-    resp = self.class.post("/event", :body => event.to_hash)
+    resp = self.class.post("/event", :body => event.to_transport)
     raise Chronologic::Exception.new("Error publishing event") unless resp.code == 201
     url = resp.headers["Location"]
     url

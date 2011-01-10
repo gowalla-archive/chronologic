@@ -4,23 +4,32 @@ class Chronologic::Event < Hashie::Dash
 
   property :key
   property :timestamp
-  property :data
-  property :objects
-  property :timelines
-  property :subevents
+  property :data, :default => {}
+  property :objects, :default => {}
+  property :timelines, :default => []
+  property :subevents, :default => []
 
   def to_columns
-    raise NestedDataError.new if data_is_nested?
     {
       "timestamp" => timestamp.utc.iso8601,
-      "data" => data,
-      "objects" => objects,
-      "timelines" => timelines
+      "data" => JSON.dump(data),
+      "objects" => JSON.dump(objects),
+      "timelines" => JSON.dump(timelines)
     }
   end
 
-  def data_is_nested?
-    data.values.any? { |v| v.is_a?(Hash) || v.is_a?(Array) || v.is_a?(Set) }
+  def to_transport
+    to_columns.update("key" => key)
+  end
+
+  def self.load_from_columns(columns)
+    to_load = {
+      "data" => JSON.load(columns["data"]), 
+      "objects" => JSON.load(columns["objects"]), 
+      "timelines" => JSON.load(columns["timelines"]), 
+      "timestamp" => Time.parse(columns["timestamp"])
+    }
+    new(to_load)
   end
 
 end

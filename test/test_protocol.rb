@@ -55,8 +55,8 @@ describe Chronologic::Protocol do
     @protocol.subscribe("user_1_home", "user_1")
     @protocol.publish(event)
 
-    fetched = @protocol.schema.event_for(event.key)
-    fetched["timestamp"].keys.must_include(event.timestamp.iso8601)
+    fetched = Chronologic::Event.load_from_columns(@protocol.schema.event_for(event.key))
+    fetched["timestamp"].iso8601.must_equal event.timestamp.iso8601
     fetched["data"].must_equal event.data
     fetched["objects"].must_equal event.objects
     @protocol.schema.timeline_events_for("user_1_home").must_include event.key

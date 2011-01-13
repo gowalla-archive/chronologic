@@ -70,9 +70,9 @@ describe Chronologic::Service do
     event = {
       "key" => "checkin_1212",
       "timestamp" => Time.now.utc.iso8601,
-      "data" => {"type" => "checkin", "message" => "I'm here!"},
-      "objects" => {"user" => "user_1", "spot" => "spot_1"},
-      "timelines" => ["user_1", "spot_1"]
+      "data" => JSON.dump({"type" => "checkin", "message" => "I'm here!"}),
+      "objects" => JSON.dump({"user" => "user_1", "spot" => "spot_1"}),
+      "timelines" => JSON.dump(["user_1", "spot_1"])
     }
 
     post "/event", event
@@ -80,8 +80,8 @@ describe Chronologic::Service do
     last_response.status.must_equal 201
 
     result = Chronologic.schema.event_for("checkin_1212")
-    result["data"].must_equal JSON.dump(event["data"])
-    result["objects"].must_equal JSON.dump(event["objects"])
+    result["data"].must_equal event["data"]
+    result["objects"].must_equal event["objects"]
 
     last_response.headers["Location"].must_match %r!/event/#{event["key"]}/[\d\w-]*!
   end

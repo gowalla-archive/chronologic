@@ -66,8 +66,13 @@ class Chronologic::Service < Sinatra::Base
     end
 
     def event
-      timestamp = Time.parse(params["timestamp"])
-      Chronologic::Event.new(params.update("timestamp" => timestamp))
+      Chronologic::Event.new(
+        "key" => params["key"],
+        "timestamp" => Time.parse(params["timestamp"]),
+        "data" => JSON.load(params["data"]),
+        "objects" => JSON.load(params["objects"]),
+        "timelines" => JSON.load(params["timelines"])
+      )
     end
 
     def protocol
@@ -92,6 +97,7 @@ class Chronologic::Service < Sinatra::Base
     exception = env["sinatra.error"]
 
     logger.error "Error: #{exception.message} (#{exception.class})"
+    logger.error "Params: #{params.inspect}"
     logger.error exception.backtrace.join("\n  ")
 
     "Chronologic error: #{exception.message}"

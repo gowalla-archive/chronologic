@@ -24,7 +24,7 @@ class MiniTest::Unit::TestCase
     Chronologic.connection.clear_keyspace!
 
     WebMock.disable_net_connect!
-    WebMock.reset_webmock
+    WebMock.reset!
   end
 
   def simple_event

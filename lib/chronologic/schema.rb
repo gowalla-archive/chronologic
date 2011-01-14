@@ -1,13 +1,14 @@
 require "cassandra"
 
 module Chronologic::Schema
+  mattr_accessor :write_opts, {:consistency => Cassandra::Consistency::QUORUM}
 
   def self.create_object(key, attrs)
-    connection.insert(:Object, key, attrs)
+    connection.insert(:Object, key, attrs, write_opts)
   end
 
   def self.remove_object(object_key)
-    connection.remove(:Object, object_key)
+    connection.remove(:Object, object_key, write_opts)
   end
 
   def self.object_for(object_key)
@@ -20,7 +21,7 @@ module Chronologic::Schema
   end
 
   def self.create_subscription(timeline_key, subscriber_key)
-    connection.insert(:Subscription, subscriber_key, {timeline_key => ''})
+    connection.insert(:Subscription, subscriber_key, {timeline_key => ''}, write_opts)
   end
 
   def self.remove_subscription(timeline_key, subscriber_key)
@@ -37,7 +38,7 @@ module Chronologic::Schema
   end
 
   def self.create_event(event_key, data)
-    connection.insert(:Event, event_key, data)
+    connection.insert(:Event, event_key, data, write_opts)
   end
 
   def self.remove_event(event_key)
@@ -54,7 +55,7 @@ module Chronologic::Schema
   end
 
   def self.create_timeline_event(timeline, uuid, event_key)
-    connection.insert(:Timeline, timeline, {uuid => event_key})
+    connection.insert(:Timeline, timeline, {uuid => event_key}, write_opts)
   end
 
   def self.timeline_for(timeline, options={})

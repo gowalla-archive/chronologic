@@ -18,6 +18,18 @@ describe Chronologic::Subscriber do
     @sxsw.methods.must_include "unsubscribe"
   end
 
+  it "returns a paginated array" do
+    stub_request(:get, "http://localhost:3000/timeline/sxsw").
+      to_return(
+        :status => 200, 
+        :body => {"feed" => [simple_event], "count" => 20}.to_json, 
+        :headers => {"Content-Type" => "application/json"}
+      )
+
+    @sxsw.timeline("sxsw").total_entries.must_equal 20
+    assert_requested :get, "http://localhost:3000/timeline/sxsw"
+  end
+
   it "fetches a timeline" do
     stub_request(:get, "http://localhost:3000/timeline/sxsw").
       to_return(

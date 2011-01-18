@@ -1,7 +1,8 @@
 require "cassandra"
 
 module Chronologic::Schema
-  mattr_accessor :write_opts, {:consistency => Cassandra::Consistency::QUORUM}
+  mattr_accessor :write_opts 
+  self.write_opts = {:consistency => Cassandra::Consistency::QUORUM}
 
   def self.create_object(key, attrs)
     connection.insert(:Object, key, attrs, write_opts)
@@ -83,6 +84,10 @@ module Chronologic::Schema
 
   def self.remove_timeline_event(timeline, uuid)
     connection.remove(:Timeline, timeline, uuid)
+  end
+
+  def self.timeline_count(timeline)
+    connection.count_columns(:Timeline, timeline)
   end
 
   def self.new_guid

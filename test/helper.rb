@@ -14,6 +14,9 @@ class MiniTest::Unit::TestCase
 
   def setup
     Chronologic.connection = if ENV['CASSANDRA']
+      Chronologic::Schema.write_opts = {
+        :consistency => Cassandra::Consistency::ONE
+      }
       Cassandra.new("Chronologic-Test")
     else
       Cassandra::Mock.new(

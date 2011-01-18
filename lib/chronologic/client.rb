@@ -1,4 +1,5 @@
 require "active_support/core_ext/class"
+require "will_paginate/array"
 require "httparty"
 
 class Chronologic::Client
@@ -60,7 +61,9 @@ class Chronologic::Client
              self.class.get("/timeline/#{timeline_key}")
            end
     raise Chronologic::Exception.new("Error fetching timeline") unless resp.code == 200
-    resp["feed"].map { |v| Chronologic::Event.new(v) }
+    resp["feed"].
+      map { |v| Chronologic::Event.new(v) }.
+      paginate(:total_entries => resp["count"])
   end
 
 end

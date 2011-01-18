@@ -54,8 +54,9 @@ class Chronologic::Service < Sinatra::Base
     }
 
     feed = protocol.feed(params["timeline_key"], options)
+    count = protocol.feed_count(params["timeline_key"])
     status 200
-    json("feed" => feed)
+    json("feed" => feed, "count" => count)
   end
 
   helpers do

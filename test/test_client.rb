@@ -93,6 +93,7 @@ describe Chronologic::Client do
     result = @client.timeline("user_1_home", :subevents => false, :page => "abc-123", :per_page => "5")
     assert_requested :get, "http://localhost:3000/timeline/user_1_home?subevents=false&page=abc-123&per_page=5"
     result.length.must_equal 1
+    result.total_entries.must_equal 1
     (result.first.keys - ["timestamp"]).each do |k|
       result.first[k].must_equal event[k]
     end

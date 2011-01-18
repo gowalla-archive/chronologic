@@ -145,6 +145,10 @@ describe Chronologic::Protocol do
     @protocol.feed("user_1_home", :page => uuids[1], :per_page => 5).length.must_equal(5)
   end
 
+  it "counts item in a feed" do
+    populate_timeline
+    @protocol.feed_count("user_1_home").must_equal 10
+  end
 
 end
 

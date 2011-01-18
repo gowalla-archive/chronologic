@@ -106,6 +106,10 @@ module Chronologic::Protocol
     end
   end
   
+  def self.feed_count(timeline_key)
+    schema.timeline_count(timeline_key)
+  end
+
   def self.schema
     Chronologic.schema
   end

@@ -46,64 +46,7 @@ module Chronologic::Protocol
   end
 
   def self.feed(timeline_key, options={})
-    # AKK: this method really wants to get refactored
-    
-    fetch_subevents = options[:fetch_subevents]
-    count = options[:per_page] || 20
-    start = options[:page] || nil
-
-    event_keys = schema.timeline_events_for(timeline_key, :per_page => count, :page => start)
-    events = schema.event_for(event_keys).inject({}) { |hsh, (k, e)| hsh.update(k => Chronologic::Event.load_from_columns(e)) }
-
-    subevents = {}
-    if fetch_subevents
-      subevent_keys = schema.timeline_events_for(event_keys)
-      result = schema.event_for(subevent_keys.values.flatten).values
-      subevents = result.inject({}) do |hsh, columns|
-        subevent = Chronologic::Event.load_from_columns(columns)
-        parent = subevent.data["parent"]
-        if hsh.has_key?(parent)
-          hsh[parent] << subevent
-        else
-          hsh[parent] = [subevent]
-        end
-        hsh
-      end
-    end
-    
-    object_keys = [events.values, subevents.values].flatten.map do |e|
-      e.objects.values
-    end
-    objects = schema.object_for(object_keys.flatten)
-
-    events.map do |event_key, e|
-      event = Chronologic::Event.new
-      event.key = event_key
-      # FIXME: for some reason, the timestamps column ends up with multiple
-      # values
-      # event.timestamp = Time.parse(e["timestamp"])
-      event.data = Hashie::Mash.new(e["data"])
-      event.timelines = e["timelines"]
-
-      # This is horribly unclear
-      objs = e["objects"].inject({}) do |hsh, (slot, key)|
-        hsh.update(slot => objects[key])
-      end
-
-      subs = {}
-      if fetch_subevents
-        subs = subevents[event_key]
-        subs.each do |sub|
-          sub["objects"] = sub["objects"].clone.inject({}) do |hsh, (slot, key)|
-            hsh.update(slot => objects[key])
-          end
-        end
-      end
-
-      event.objects = objs
-      event.subevents = subs
-      event
-    end
+    Chronologic::Feed.fetch(timeline_key, options)
   end
   
   def self.feed_count(timeline_key)

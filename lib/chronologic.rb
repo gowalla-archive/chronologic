@@ -13,6 +13,7 @@ module Chronologic
 
   autoload :Schema, "chronologic/schema"
   autoload :Protocol, "chronologic/protocol"
+  autoload :Feed, "chronologic/feed"
   autoload :Event, "chronologic/event"
   autoload :Service, "chronologic/service"
   autoload :Client, "chronologic/client"

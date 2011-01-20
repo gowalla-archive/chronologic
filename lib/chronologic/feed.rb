@@ -1,12 +1,11 @@
 class Chronologic::Feed
 
-  def self.fetch(timeline_key, options={})
+  def self.create(timeline_key, options={})
     fetch_subevents = options[:fetch_subevents]
     count = options[:per_page] || 20
     start = options[:page] || nil
 
     feed = new(timeline_key, count, start, fetch_subevents)
-    feed.fetch
   end
 
   attr_accessor :timeline_key, :per_page, :start, :subevents
@@ -19,7 +18,9 @@ class Chronologic::Feed
     self.subevents = subevents
   end
 
-  def fetch
+  def items
+    return @items if @items
+
     event_index = schema.
       timeline_events_for(
         timeline_key, 
@@ -40,7 +41,7 @@ class Chronologic::Feed
       end
     subs = fetch_subevents(event_keys)
     objects = fetch_objects(events.values + subs.values)
-    build_feed(events, subs, objects)
+    @items = build_feed(events, subs, objects)
   end
 
   def fetch_subevents(event_keys)

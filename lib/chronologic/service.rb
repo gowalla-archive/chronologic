@@ -52,11 +52,15 @@ class Chronologic::Service < Sinatra::Base
       :page => params["page"] || nil,
       :per_page => Integer(params["per_page"] || "20")
     }
-
     feed = protocol.feed(params["timeline_key"], options)
-    count = protocol.feed_count(params["timeline_key"])
+
     status 200
-    json("feed" => feed, "count" => count)
+    json(
+      "feed" => feed.items, 
+      "count" => feed.count, 
+      "previous_page" => feed.previous_page,
+      "next_page" => feed.next_page
+    )
   end
 
   helpers do

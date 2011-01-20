@@ -132,6 +132,8 @@ describe Chronologic::Service do
     obj = json_body
     obj["feed"].length.must_equal 5
     obj["count"].must_equal 10
+    obj["previous_page"].must_equal page
+    obj["next_page"].must_equal uuids[8]
   end
 
   it "reads a timeline with subevents" do

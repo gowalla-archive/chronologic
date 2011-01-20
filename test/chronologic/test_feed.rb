@@ -65,7 +65,7 @@ describe Chronologic::Feed do
     event.timelines = ["checkin_1111"]
     @protocol.publish(event)
 
-    @protocol.schema.timeline_events_for("checkin_1111").must_include event.key
+    @protocol.schema.timeline_events_for("checkin_1111").values.must_include event.key
     subevents = Chronologic::Feed.fetch("user_1_home", :fetch_subevents => true).first.subevents
     subevents.last.data.must_equal event.data
     subevents.first.objects["user"].must_equal @protocol.schema.object_for("user_2")
@@ -75,7 +75,35 @@ describe Chronologic::Feed do
   it "fetches a feed by page" do
     uuids = populate_timeline
     
-    Chronologic::Feed.fetch("user_1_home", :page => uuids[1], :per_page => 5).length.must_equal(5)
+    Chronologic::Feed.fetch(
+      "user_1_home", 
+      :page => uuids[1], 
+      :per_page => 5
+    ).length.must_equal(5)
+  end
+
+  it "tracks the event key for the previous page" do
+    uuids = populate_timeline
+    feed = Chronologic::Feed.new("user_1_home")
+    feed.fetch
+
+    feed.previous_page.must_equal uuids.first
+  end
+
+  it "tracks the event key for the next page" do
+    uuids = populate_timeline
+    feed = Chronologic::Feed.new("user_1_home")
+    feed.fetch
+
+    feed.next_page.must_equal uuids.last
+  end
+
+  it "stores the item count for the feed" do
+    uuids = populate_timeline
+    feed = Chronologic::Feed.new("user_1_home")
+    feed.fetch
+
+    feed.count.must_equal uuids.length
   end
 
 end

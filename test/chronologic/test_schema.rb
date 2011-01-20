@@ -78,7 +78,7 @@ describe Chronologic::Schema do
     @schema.create_timeline_event("_global", uuid, "gizmo_1111")
 
     @schema.timeline_for("_global").must_equal({uuid => "gizmo_1111"})
-    @schema.timeline_events_for("_global").must_equal ["gizmo_1111"]
+    @schema.timeline_events_for("_global").values.must_equal ["gizmo_1111"]
   end
 
   it "fetches timeline events with a count parameter" do
@@ -121,7 +121,7 @@ describe Chronologic::Schema do
     @schema.create_timeline_event("_global", timeline_guid, "gizmo_1111")
 
     @schema.remove_timeline_event("_global", timeline_guid)
-    @schema.timeline_events_for("_global").must_equal []
+    @schema.timeline_events_for("_global").values.must_equal []
   end
 
   it "counts items in a timeline" do

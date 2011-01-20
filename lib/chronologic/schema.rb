@@ -74,7 +74,7 @@ module Chronologic::Schema
   def self.timeline_events_for(timeline, options={})
     case timeline
     when String
-      timeline_for(timeline, options).values
+      timeline_for(timeline, options)
     when Array
       timeline_for(timeline).inject({}) do |hsh, (timeline_key, column)| 
         hsh.update(timeline_key => column.values)

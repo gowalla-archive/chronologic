@@ -1,4 +1,5 @@
 require "hashie/dash"
+require "time"
 
 class Chronologic::Event < Hashie::Dash
 

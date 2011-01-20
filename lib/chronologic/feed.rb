@@ -9,22 +9,30 @@ class Chronologic::Feed
     feed.fetch
   end
 
-  attr_accessor :timeline_key, :count, :start, :subevents
+  attr_accessor :timeline_key, :per_page, :start, :subevents
+  attr_accessor :previous_page, :next_page, :count
 
-  def initialize(timeline_key, count, start, subevents)
+  def initialize(timeline_key, per_page=20, start=nil, subevents=false)
     self.timeline_key = timeline_key
-    self.count = count
+    self.per_page = per_page
     self.start = start
     self.subevents = subevents
   end
 
   def fetch
-    event_keys = schema.
+    event_index = schema.
       timeline_events_for(
         timeline_key, 
-        :per_page => count, 
+        :per_page => per_page, 
         :page => start
       )
+    uuids = event_index.keys
+
+    self.previous_page = uuids.first
+    self.next_page = uuids.last
+    self.count = schema.timeline_count(timeline_key)
+
+    event_keys = event_index.values
     events = schema.
       event_for(event_keys).
       inject({}) do |hsh, (k, e)| 
@@ -62,7 +70,7 @@ class Chronologic::Feed
       event = Chronologic::Event.new
       event.key = event_key
       event.timestamp = e["timestamp"]
-      event.data = Hashie::Mash.new(e["data"])
+      event.data = e["data"]
       event.timelines = e["timelines"]
 
       event.objects = bind_objects(e.objects, objects)

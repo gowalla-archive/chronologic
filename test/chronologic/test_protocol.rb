@@ -30,7 +30,7 @@ describe Chronologic::Protocol do
     @protocol.subscribe("user_1_home", "user_1")
 
     @protocol.schema.subscribers_for("user_1").must_equal ["user_1_home"]
-    @protocol.schema.timeline_events_for("user_1_home").must_include event.key
+    @protocol.schema.timeline_events_for("user_1_home").values.must_include event.key
   end
 
   it "unsubscribes a subscriber key from a timeline key" do
@@ -41,7 +41,7 @@ describe Chronologic::Protocol do
     @protocol.unsubscribe("user_1_home", "user_1")
 
     @protocol.schema.subscribers_for("user_1").must_equal []
-    @protocol.schema.timeline_events_for("user_1_home").must_equal []
+    @protocol.schema.timeline_events_for("user_1_home").values.must_equal []
   end
 
   it "publishes an event to one or more timeline keys" do
@@ -59,9 +59,9 @@ describe Chronologic::Protocol do
     fetched["timestamp"].iso8601.must_equal event.timestamp.iso8601
     fetched["data"].must_equal event.data
     fetched["objects"].must_equal event.objects
-    @protocol.schema.timeline_events_for("user_1_home").must_include event.key
+    @protocol.schema.timeline_events_for("user_1_home").values.must_include event.key
     event.timelines.each do |t|
-      @protocol.schema.timeline_events_for(t).must_include event.key
+      @protocol.schema.timeline_events_for(t).values.must_include event.key
     end
   end
 

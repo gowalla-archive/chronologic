@@ -61,9 +61,15 @@ class Chronologic::Client
              self.class.get("/timeline/#{timeline_key}")
            end
     raise Chronologic::Exception.new("Error fetching timeline") unless resp.code == 200
-    resp["feed"].
-      map { |v| Chronologic::Event.new(v) }.
-      paginate(:total_entries => resp["count"])
+    {
+      "feed" => resp["feed"],
+      "count" => resp["count"],
+      "previous_page" => resp["previous_page"],
+      "next_page" => resp["next_page"],
+      "items" => resp["feed"].
+        map { |v| Chronologic::Event.new(v) }.
+        paginate(:total_entries => resp["count"])
+    }
   end
 
 end

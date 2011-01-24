@@ -92,10 +92,10 @@ describe Chronologic::Client do
 
     result = @client.timeline("user_1_home", :subevents => false, :page => "abc-123", :per_page => "5")
     assert_requested :get, "http://localhost:3000/timeline/user_1_home?subevents=false&page=abc-123&per_page=5"
-    result.length.must_equal 1
-    result.total_entries.must_equal 1
-    (result.first.keys - ["timestamp"]).each do |k|
-      result.first[k].must_equal event[k]
+    result["feed"].length.must_equal 1
+    result["items"].total_entries.must_equal 1
+    (result["feed"].first.keys - ["timestamp"]).each do |k|
+      result["feed"].first[k].must_equal event[k]
     end
   end
 
@@ -112,7 +112,7 @@ describe Chronologic::Client do
 
     result = @client.timeline("user_1_home", :subevents => true)
     assert_requested :get, "http://localhost:3000/timeline/user_1_home?subevents=true"
-    result.first["subevents"].length.must_equal 1
+    result["items"].first["subevents"].length.must_equal 1
   end
 
   it "provides an instance of itself" do

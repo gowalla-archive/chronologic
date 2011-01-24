@@ -26,7 +26,7 @@ describe Chronologic::Subscriber do
         :headers => {"Content-Type" => "application/json"}
       )
 
-    @sxsw.timeline("sxsw").total_entries.must_equal 20
+    @sxsw.timeline("sxsw")["items"].total_entries.must_equal 20
     assert_requested :get, "http://localhost:3000/timeline/sxsw"
   end
 
@@ -38,7 +38,7 @@ describe Chronologic::Subscriber do
         :headers => {"Content-Type" => "application/json"}
       )
 
-    @sxsw.timeline("sxsw").length.must_equal 1
+    @sxsw.timeline("sxsw")["feed"].length.must_equal 1
     assert_requested :get, "http://localhost:3000/timeline/sxsw"
   end
 
@@ -54,7 +54,7 @@ describe Chronologic::Subscriber do
 
     result = @sxsw.timeline("sxsw", :subevents => true, :page => "abc-123", :per_page => 5)
     assert_requested :get, "http://localhost:3000/timeline/sxsw?subevents=true&page=abc-123&per_page=5"
-    result.first["subevents"].length.must_equal 1
+    result["items"].first["subevents"].length.must_equal 1
   end
 
   it "subscribes to a timeline" do

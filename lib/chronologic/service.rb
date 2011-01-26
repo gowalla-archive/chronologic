@@ -1,5 +1,6 @@
 require "sinatra/base"
 require "active_support/core_ext/class"
+require "hoptoad_notifier"
 
 # TODO: caching headers?
 class Chronologic::Service < Sinatra::Base
@@ -107,6 +108,9 @@ class Chronologic::Service < Sinatra::Base
 
     "Chronologic error: #{exception.message}"
   end
+
+  use HoptoadNotifier::Rack
+  enable :raise_errors
 
 end
 

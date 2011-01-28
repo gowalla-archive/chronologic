@@ -59,7 +59,6 @@ class Chronologic::Service < Sinatra::Base
     json(
       "feed" => feed.items, 
       "count" => feed.count, 
-      "previous_page" => feed.previous_page,
       "next_page" => feed.next_page
     )
   end
@@ -109,8 +108,10 @@ class Chronologic::Service < Sinatra::Base
     "Chronologic error: #{exception.message}"
   end
 
-  use HoptoadNotifier::Rack
-  enable :raise_errors
+  configure(:production) do
+    use HoptoadNotifier::Rack
+    enable :raise_errors
+  end
 
 end
 

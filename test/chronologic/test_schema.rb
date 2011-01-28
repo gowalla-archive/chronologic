@@ -82,14 +82,17 @@ describe Chronologic::Schema do
   end
 
   it "fetches timeline events with a count parameter" do
-    15.times do |i|
+    uuids = 15.times.inject({}) { |result, i|
       uuid = @schema.new_guid
       ref = "gizmo_#{i}"
 
       @schema.create_timeline_event("_global", uuid, ref)
-    end
-    
-    @schema.timeline_for("_global", :per_page => 10).length.must_equal 10
+      result.update(uuid => ref)
+    }.sort_by { |uuid, ref| uuid }
+
+    events = @schema.timeline_for("_global", :per_page => 10)
+    events.length.must_equal 10
+    events.sort_by { |uuid, ref| uuid }.must_equal uuids.take(10)
   end
 
   it "fetches timeline events from a page offset" do
@@ -110,8 +113,26 @@ describe Chronologic::Schema do
       @schema.create_timeline_event("_global", uuid, ref)
     end
 
-    offset = uuids[10]
-    @schema.timeline_for("_global", :per_page => 10, :page => offset).length.must_equal 5
+    @schema.timeline_for("_global", :per_page => 10, :page => uuids[3]).length.must_equal 10
+    @schema.timeline_for("_global", :per_page => 10, :page => uuids[10]).length.must_equal 5, "doesn't truncate when length(count+offset) > length(results)"
+  end
+
+  it "fetches an extra item when a page parameter is specified and truncates appropriately" do
+    uuids = 15.times.inject({}) { |result, i|
+      uuid = @schema.new_guid
+      ref = "gizmo_#{i}"
+
+      @schema.create_timeline_event("_global", uuid, ref)
+      result.update(uuid => ref)
+    }.sort_by { |uuid, ref| uuid }
+
+    events = @schema.timeline_for(
+      "_global", 
+      :per_page => 5, 
+      :page => uuids[4][0]
+    )
+    events.length.must_equal 5
+    events.sort_by { |uuid, ref| uuid }.must_equal uuids[5, 5]
   end
 
   it "removes a timeline event" do

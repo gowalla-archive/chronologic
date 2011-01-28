@@ -65,7 +65,17 @@ module Chronologic::Schema
 
     case timeline
     when String
-      connection.get(:Timeline, timeline, :start => start, :count => count)
+      if start.nil? # First page
+        connection.get(:Timeline, timeline, :start => start, :count => count)
+      else # nth page, need cleverness
+        results = connection.get(
+          :Timeline,
+          timeline,
+          :start => start,
+          :count => count + 1
+        )
+        count > results.length ? results : Hash[*results.drop(1).flatten]
+      end
     when Array
       connection.multi_get(:Timeline, timeline)
     end

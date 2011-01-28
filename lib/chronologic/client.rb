@@ -64,7 +64,6 @@ class Chronologic::Client
     {
       "feed" => resp["feed"],
       "count" => resp["count"],
-      "previous_page" => resp["previous_page"],
       "next_page" => resp["next_page"],
       "items" => resp["feed"].
         map { |v| Chronologic::Event.new(v) }.

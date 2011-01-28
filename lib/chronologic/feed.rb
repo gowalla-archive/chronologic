@@ -9,7 +9,7 @@ class Chronologic::Feed
   end
 
   attr_accessor :timeline_key, :per_page, :start, :subevents
-  attr_accessor :previous_page, :next_page, :count
+  attr_accessor :next_page, :count
 
   def initialize(timeline_key, per_page=20, start=nil, subevents=false)
     self.timeline_key = timeline_key
@@ -29,7 +29,6 @@ class Chronologic::Feed
       )
     uuids = event_index.keys
 
-    self.previous_page = uuids.first
     self.next_page = uuids.last
     self.count = schema.timeline_count(timeline_key)
 

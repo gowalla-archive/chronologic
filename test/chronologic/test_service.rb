@@ -125,15 +125,13 @@ describe Chronologic::Service do
 
   it "reads a timeline feed with page and per_page parameters" do
     uuids = populate_timeline
-    page = uuids[4]
 
-    get "/timeline/user_1_home", :per_page => 5, :page => page
+    get "/timeline/user_1_home", :per_page => 5, :page => uuids[2]
 
     obj = json_body
     obj["feed"].length.must_equal 5
     obj["count"].must_equal 10
-    obj["previous_page"].must_equal page
-    obj["next_page"].must_equal uuids[8]
+    obj["next_page"].wont_be_nil
   end
 
   it "reads a timeline with subevents" do

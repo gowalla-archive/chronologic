@@ -85,14 +85,6 @@ describe Chronologic::Feed do
   # AKK: it would be great if we didn't have to call feed.items to load
   # the paging bits
 
-  it "tracks the event key for the previous page" do
-    uuids = populate_timeline
-    feed = Chronologic::Feed.new("user_1_home")
-    feed.items
-
-    feed.previous_page.must_equal uuids.first
-  end
-
   it "tracks the event key for the next page" do
     uuids = populate_timeline
     feed = Chronologic::Feed.new("user_1_home")

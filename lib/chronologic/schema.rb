@@ -74,7 +74,7 @@ module Chronologic::Schema
           :start => start,
           :count => count + 1
         )
-        count > results.length ? results : Hash[*results.drop(1).flatten]
+        count >= results.length ? results : Hash[*results.drop(1).flatten]
       end
     when Array
       connection.multi_get(:Timeline, timeline)

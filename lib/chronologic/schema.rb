@@ -5,14 +5,20 @@ module Chronologic::Schema
   self.write_opts = {:consistency => Cassandra::Consistency::QUORUM}
 
   def self.create_object(key, attrs)
+    log "create_object(#{key})"
+
     connection.insert(:Object, key, attrs, write_opts)
   end
 
   def self.remove_object(object_key)
+    log("remove_object(#{object_key})")
+
     connection.remove(:Object, object_key, write_opts)
   end
 
   def self.object_for(object_key)
+    log("object_for(#{object_key})")
+
     case object_key
     when String
       connection.get(:Object, object_key)
@@ -22,14 +28,20 @@ module Chronologic::Schema
   end
 
   def self.create_subscription(timeline_key, subscriber_key)
+    log("create_subscription(#{timeline_key}, #{subscriber_key})")
+
     connection.insert(:Subscription, subscriber_key, {timeline_key => ''}, write_opts)
   end
 
   def self.remove_subscription(timeline_key, subscriber_key)
+    log("remove_subscription(#{timeline_key}, #{subscriber_key}")
+
     connection.remove(:Subscription, subscriber_key, timeline_key)
   end
 
   def self.subscribers_for(timeline_key)
+    log("subscribers_for(#{timeline_key})")
+
     case timeline_key
     when String
       connection.get(:Subscription, timeline_key).keys
@@ -39,14 +51,20 @@ module Chronologic::Schema
   end
 
   def self.create_event(event_key, data)
+    log("create_event(#{event_key})")
+
     connection.insert(:Event, event_key, data, write_opts)
   end
 
   def self.remove_event(event_key)
+    log("remove_event(#{event_key})")
+
     connection.remove(:Event, event_key)
   end
 
   def self.event_for(event_key)
+    log("event_for(#{event_key.inspect})")
+
     case event_key
     when Array
       connection.multi_get(:Event, event_key)
@@ -56,10 +74,14 @@ module Chronologic::Schema
   end
 
   def self.create_timeline_event(timeline, uuid, event_key)
+    log("create_timeline_event(#{timeline}, #{uuid}, #{event_key})")
+
     connection.insert(:Timeline, timeline, {uuid => event_key}, write_opts)
   end
 
   def self.timeline_for(timeline, options={})
+    log("timeline_for(#{timeline}, #{options.inspect})")
+
     count = options[:per_page] || 20
     start = options[:page] || nil # Cassandra seems OK with a nil offset
 
@@ -82,6 +104,8 @@ module Chronologic::Schema
   end
 
   def self.timeline_events_for(timeline, options={})
+    log("timeline_events_for(#{timeline})")
+
     case timeline
     when String
       timeline_for(timeline, options)
@@ -93,6 +117,8 @@ module Chronologic::Schema
   end
 
   def self.remove_timeline_event(timeline, uuid)
+    log("remove_timeline_event(#{timeline}, #{uuid})")
+
     connection.remove(:Timeline, timeline, uuid)
   end
 

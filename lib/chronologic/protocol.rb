@@ -29,7 +29,7 @@ module Chronologic::Protocol
 
   def self.publish(event)
     schema.create_event(event.key, event.to_columns)
-    uuid = schema.new_guid
+    uuid = schema.new_guid(event.timestamp)
     all_timelines = [event.timelines, schema.subscribers_for(event.timelines)].flatten
     all_timelines.map { |t| schema.create_timeline_event(t, uuid, event.key) }
     uuid

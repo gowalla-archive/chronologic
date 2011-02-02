@@ -41,7 +41,7 @@ class Chronologic::Service < Sinatra::Base
 
   delete "/event/:event_key/:uuid" do
     raw_event = protocol.schema.event_for(params["event_key"])
-    event = Chronologic::Event.new(raw_event)
+    event = Chronologic::Event.load_from_columns(raw_event)
     event.key = params["event_key"]
     protocol.unpublish(event, params["uuid"])
     status 204

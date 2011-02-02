@@ -100,13 +100,15 @@ module Chronologic::Schema
     connection.count_columns(:Timeline, timeline)
   end
 
-  def self.new_guid
-    SimpleUUID::UUID.new.to_guid
+  def self.new_guid(timestamp=Time.now)
+    SimpleUUID::UUID.new(timestamp).to_guid
   end
 
   def self.connection
     Chronologic.connection
   end
 
+  def self.log(msg)
+  end
 end
 

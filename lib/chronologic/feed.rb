@@ -77,7 +77,7 @@ class Chronologic::Feed
       event.subevents = bind_subevents(event_key, subevents_, objects)
 
       event
-    end
+    end.sort_by { |e| e.timestamp }
   end
 
   def bind_objects(refs, objects)

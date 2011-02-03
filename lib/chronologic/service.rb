@@ -105,7 +105,12 @@ class Chronologic::Service < Sinatra::Base
     logger.error "Params: #{params.inspect}"
     logger.error exception.backtrace.join("\n  ")
 
-    "Chronologic error: #{exception.message}"
+    status 500
+    json({
+      "message" => exception.message,
+      "backtrace" => exception.backtrace.take(20),
+      "params" => params
+    })
   end
 
   configure(:production) do

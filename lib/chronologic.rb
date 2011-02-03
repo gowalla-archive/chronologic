@@ -1,3 +1,4 @@
+require "hashie/mash"
 require "cassandra"
 require "active_support/core_ext/module"
 
@@ -22,5 +23,14 @@ module Chronologic
   autoload :Subscriber, "chronologic/subscriber"
 
   class Exception < RuntimeError; end
+  class ServiceError < RuntimeError 
+    attr_reader :response
+
+    def initialize(resp)
+      @response = Hashie::Mash.new(resp)
+      super("Chronologic service error: #{response.message}")
+    end
+
+  end
 
 end

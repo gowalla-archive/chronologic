@@ -2,6 +2,8 @@ require "cassandra"
 
 module Chronologic::Schema
   mattr_accessor :write_opts 
+  mattr_accessor :logger
+
   self.write_opts = {:consistency => Cassandra::Consistency::QUORUM}
 
   def self.create_object(key, attrs)
@@ -135,6 +137,9 @@ module Chronologic::Schema
   end
 
   def self.log(msg)
+    return unless logger
+    logger.debug(msg)
   end
+
 end
 

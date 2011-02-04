@@ -16,17 +16,17 @@ class Chronologic::Client
     body = {"object_key" => object_key, "data" => data}
     resp = self.class.post("/object", :body => body)
 
-    raise Chronologic::ServiceError.new(resp) if resp.code == 500
-    raise Chronologic::Exception.new("Error creating new record") unless resp.code == 201
-    true
+    handle(resp, "Error creating new record") do
+      true
+    end
   end
 
   def unrecord(object_key)
     resp = self.class.delete("/object/#{object_key}")
 
-    raise Chronologic::ServiceError.new(resp) if resp.code == 500
-    raise Chronologic::Exception.new("Error removing record") unless resp.code == 204
-    true
+    handle(resp, "Error removing record") do
+      true
+    end
   end
 
   def subscribe(subscriber_key, timeline_key)
@@ -36,34 +36,33 @@ class Chronologic::Client
     }
     resp = self.class.post("/subscription", :body => body)
 
-    raise Chronologic::ServiceError.new(resp) if resp.code == 500
-    raise Chronologic::Exception.new("Error creating subscription") unless resp.code == 201
-    true
+    handle(resp, "Error creating subscription") do
+      true
+    end
   end
 
   def unsubscribe(subscriber_key, timeline_key)
     resp = self.class.delete("/subscription/#{subscriber_key}/#{timeline_key}")
 
-    raise Chronologic::ServiceError.new(resp) if resp.code == 500
-    raise Chronologic::Exception.new("Error removing subscription") unless resp.code == 204
-    true
+    handle(resp, "Error removing subscription") do
+      true
+    end
   end
 
   def publish(event)
     resp = self.class.post("/event", :body => event.to_transport)
 
-    raise Chronologic::ServiceError.new(resp) if resp.code == 500
-    raise Chronologic::Exception.new("Error publishing event") unless resp.code == 201
-    url = resp.headers["Location"]
-    url
+    handle(resp, "Error publishing event") do
+      resp.headers["Location"]
+    end
   end
 
   def unpublish(event_key, uuid)
     resp = self.class.delete("/event/#{event_key}/#{uuid}")
 
-    raise Chronologic::ServiceError.new(resp) if resp.code == 500
-    raise Chronologic::Exception.new("Error unpublishing event") unless resp.code == 204
-    true
+    handle(resp, "Error unpublishing event") do
+      true
+    end
   end
 
   def timeline(timeline_key, options={})
@@ -73,16 +72,26 @@ class Chronologic::Client
              self.class.get("/timeline/#{timeline_key}")
            end
 
-    raise Chronologic::ServiceError.new(resp) if resp.code == 500
-    raise Chronologic::Exception.new("Error fetching timeline") unless resp.code == 200
-    {
-      "feed" => resp["feed"],
-      "count" => resp["count"],
-      "next_page" => resp["next_page"],
-      "items" => resp["feed"].
-        map { |v| Chronologic::Event.new(v) }.
-        paginate(:total_entries => resp["count"])
-    }
+    handle(resp, "Error fetching timeline") do
+      {
+        "feed" => resp["feed"],
+        "count" => resp["count"],
+        "next_page" => resp["next_page"],
+        "items" => resp["feed"].
+          map { |v| Chronologic::Event.new(v) }.
+          paginate(:total_entries => resp["count"])
+      }
+    end
+  end
+
+  def handle(response, message)
+    if response.code == 500 && response.content_type == 'application/json'
+      raise Chronologic::ServiceError.new(response.body)
+    elsif response.code < 200 || response.code > 299
+      raise Chronologic::Exception.new(message)
+    elsif block_given?
+      yield(response)
+    end
   end
 
 end

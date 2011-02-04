@@ -91,7 +91,7 @@ class Chronologic::Service < Sinatra::Base
   end
 
   after do
-    time = "%.3fms" % [Time.now - @timer]
+    time = "%.3fs" % [Time.now - @timer]
     logger.info "#{request.request_method} #{request.path}: #{time}"
   end
 

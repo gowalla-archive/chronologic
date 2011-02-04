@@ -2,6 +2,7 @@ require "time"
 require "hashie/mash"
 
 module Chronologic::Protocol
+  SUBSCRIBE_BACKFILL_COUNT = 20
 
   def self.record(event_key, data)
     schema.create_object(event_key, data)
@@ -14,7 +15,10 @@ module Chronologic::Protocol
   def self.subscribe(timeline_key, subscriber_key)
     schema.create_subscription(timeline_key, subscriber_key)
 
-    event_keys = schema.timeline_for(subscriber_key)
+    event_keys = schema.timeline_for(
+      subscriber_key, 
+      :per_page => SUBSCRIBE_BACKFILL_COUNT
+    )
     event_keys.each do |guid, event_key| 
       schema.create_timeline_event(timeline_key, guid, event_key) 
     end

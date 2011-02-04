@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   ## If your rubyforge_project name is different, then edit it and comment out
   ## the sub! line in the Rakefile
   s.name              = 'chronologic'
-  s.version           = '0.7.2'
+  s.version           = '0.7.3'
   s.date              = '2011-02-04'
   s.rubyforge_project = 'chronologic'
 

@@ -86,6 +86,26 @@ describe Chronologic::Service do
     last_response.headers["Location"].must_match %r!/event/#{event["key"]}/[\d\w-]*!
   end
 
+  it "publishes an event without fanout" do
+    event = {
+      "key" => "checkin_1212",
+      "timestamp" => Time.now.utc.iso8601,
+      "data" => JSON.dump({"type" => "checkin", "message" => "I'm here!"}),
+      "objects" => JSON.dump({"user" => "user_1", "spot" => "spot_1"}),
+      "timelines" => JSON.dump(["user_1", "spot_1"])
+    }
+    Chronologic::Protocol.subscribe("user_1_home", "user_1")
+
+    post "/event?fanout=0", event
+
+    last_response.status.must_equal 201
+
+    result = Chronologic.schema.event_for("checkin_1212")
+    result["data"].must_equal event["data"]
+    result["objects"].must_equal event["objects"]
+    Chronologic.schema.timeline_events_for("user_1_home").values.wont_include event["key"]
+  end
+
   it "unpublishes an event" do
     event = Chronologic::Event.new
     event.key = "checkin_1111"

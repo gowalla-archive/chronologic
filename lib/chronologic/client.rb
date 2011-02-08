@@ -49,8 +49,12 @@ class Chronologic::Client
     end
   end
 
-  def publish(event)
-    resp = self.class.post("/event", :body => event.to_transport)
+  def publish(event, fanout=true)
+    resp = self.class.post(
+      "/event", 
+      :query => {:fanout => fanout ? 1 : 0}, 
+      :body => event.to_transport
+    )
 
     handle(resp, "Error publishing event") do
       resp.headers["Location"]

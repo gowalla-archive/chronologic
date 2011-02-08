@@ -55,16 +55,16 @@ describe Chronologic::Client do
     event = simple_event
 
     body = event.to_transport
-    stub_request(:post, "http://localhost:3000/event").
+    stub_request(:post, "http://localhost:3000/event?fanout=1").
       with(:body => body).
       to_return(
         :status => 201, 
         :headers => {"Location" => "/event/checkin_1/#{guid}"}
       )
 
-    @client.publish(event).must_match /[\w\d-]*/
+    @client.publish(event, true).must_match /[\w\d-]*/
     assert_requested :post, 
-      "http://localhost:3000/event", 
+      "http://localhost:3000/event?fanout=1", 
       :body => body
   end
 

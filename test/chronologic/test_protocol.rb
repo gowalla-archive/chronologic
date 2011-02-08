@@ -65,6 +65,14 @@ describe Chronologic::Protocol do
     end
   end
 
+  it "publishes an event without fanout" do
+    event = simple_event
+    @protocol.subscribe("user_1_home", "user_1")
+    uuid = @protocol.publish(event, false)
+
+    @protocol.schema.timeline_events_for("user_1_home").wont_include event.key
+  end
+
   it "unpublishes an event from one or more timeline keys" do
     event = simple_event
 

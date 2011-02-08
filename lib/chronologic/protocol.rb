@@ -31,11 +31,18 @@ module Chronologic::Protocol
     end
   end
 
-  def self.publish(event)
+  def self.publish(event, fanout=true)
     schema.create_event(event.key, event.to_columns)
     uuid = schema.new_guid(event.timestamp)
-    all_timelines = [event.timelines, schema.subscribers_for(event.timelines)].flatten
-    all_timelines.map { |t| schema.create_timeline_event(t, uuid, event.key) }
+
+    all_timelines = [event.timelines]
+    if fanout
+      all_timelines << schema.subscribers_for(event.timelines)
+    end
+
+    all_timelines.
+      flatten.
+      map { |t| schema.create_timeline_event(t, uuid, event.key) }
     uuid
   end
 

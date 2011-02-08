@@ -34,7 +34,8 @@ class Chronologic::Service < Sinatra::Base
   end
 
   post "/event" do
-    uuid = protocol.publish(event)
+    fanout = params.fetch("fanout", "") == "1"
+    uuid = protocol.publish(event, fanout)
     headers("Location" => "/event/#{params["key"]}/#{uuid}")
     status 201
   end

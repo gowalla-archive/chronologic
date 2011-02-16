@@ -114,10 +114,5 @@ class Chronologic::Service < Sinatra::Base
     })
   end
 
-  configure(:production) do
-    use HoptoadNotifier::Rack
-    enable :raise_errors
-  end
-
 end
 

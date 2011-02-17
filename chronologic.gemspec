@@ -13,8 +13,8 @@ Gem::Specification.new do |s|
   ## If your rubyforge_project name is different, then edit it and comment out
   ## the sub! line in the Rakefile
   s.name              = 'chronologic'
-  s.version           = '0.7.6'
-  s.date              = '2011-02-16'
+  s.version           = '0.8.0'
+  s.date              = '2011-02-17'
   s.rubyforge_project = 'chronologic'
 
   ## Make sure your summary is short. The description may be as long
@@ -76,20 +76,14 @@ Gem::Specification.new do |s|
     lib/chronologic/event.rb
     lib/chronologic/feed.rb
     lib/chronologic/protocol.rb
-    lib/chronologic/publisher.rb
-    lib/chronologic/record.rb
     lib/chronologic/schema.rb
     lib/chronologic/service.rb
-    lib/chronologic/subscriber.rb
     test/chronologic/test_client.rb
     test/chronologic/test_event.rb
     test/chronologic/test_feed.rb
     test/chronologic/test_protocol.rb
-    test/chronologic/test_publisher.rb
-    test/chronologic/test_record.rb
     test/chronologic/test_schema.rb
     test/chronologic/test_service.rb
-    test/chronologic/test_subscriber.rb
     test/helper.rb
     test/storage-conf.xml
     test/test_chronologic.rb

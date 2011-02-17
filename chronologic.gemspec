@@ -44,7 +44,7 @@ Gem::Specification.new do |s|
   s.add_dependency('httparty', ["~> 0.6.1"])
   s.add_dependency('hashie', ["~> 0.4.0"])
   s.add_dependency('will_paginate', ["~> 3.0.pre2"])
-  s.add_dependency('hoptoad_notifier', ["~> 2.3.11"])
+  s.add_dependency('yajl-ruby', ["~> 0.7.7"])
 
   ## List your development dependencies here. Development dependencies are
   ## those that are only needed during development

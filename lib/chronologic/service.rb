@@ -68,7 +68,7 @@ class Chronologic::Service < Sinatra::Base
 
     def json(object)
       content_type("application/json")
-      JSON.dump(object)
+      Yajl.dump(object)
     end
 
     def event

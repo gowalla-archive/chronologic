@@ -81,6 +81,14 @@ describe Chronologic::Schema do
     @schema.timeline_events_for("_global").values.must_equal ["gizmo_1111"]
   end
 
+  it "creates timeline events without duplicates if timestamps match" do
+    now = Time.now
+    @schema.create_timeline_event("_global", @schema.new_guid(now), "gizmo_1111")
+    @schema.create_timeline_event("_global", @schema.new_guid(now), "gizmo_1111")
+
+    @schema.timeline_events_for("_global").length.must_equal 1
+  end
+
   it "fetches timeline events with a count parameter" do
     uuids = 15.times.inject({}) { |result, i|
       uuid = @schema.new_guid
@@ -148,6 +156,15 @@ describe Chronologic::Schema do
   it "counts items in a timeline" do
     10.times { @schema.create_timeline_event("_global", @schema.new_guid, "junk") }
     @schema.timeline_count("_global").must_equal 10
+  end
+
+  it "generates a new guid" do
+    @schema.new_guid.must_be_kind_of String
+  end
+
+  it "generates a guid given a timestamp" do
+    t = Time.now
+    @schema.new_guid(t).must_equal @schema.new_guid(t)
   end
 
   def simple_data

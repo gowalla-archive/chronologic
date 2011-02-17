@@ -73,6 +73,24 @@ describe Chronologic::Protocol do
     @protocol.schema.timeline_events_for("user_1_home").wont_include event.key
   end
 
+  it "publishes an event twice without duplicates" do
+    event = simple_event
+    @protocol.publish(event, false)
+    @protocol.publish(event, false)
+
+    @protocol.schema.timeline_events_for("user_1").length.must_equal 1
+  end
+
+  it "publishes an event with an existing key updates the existing event" do
+    event = simple_event
+    @protocol.publish(event, false)
+    event.timelines << "foo_1"
+    @protocol.publish(event, false)
+
+    @protocol.schema.timeline_events_for("user_1").length.must_equal 1
+    @protocol.schema.event_for(event.key).must_equal event.to_columns
+  end
+
   it "unpublishes an event from one or more timeline keys" do
     event = simple_event
 

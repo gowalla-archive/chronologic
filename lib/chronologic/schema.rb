@@ -129,7 +129,7 @@ module Chronologic::Schema
   end
 
   def self.new_guid(timestamp=Time.now)
-    SimpleUUID::UUID.new(timestamp).to_guid
+    SimpleUUID::UUID.new(timestamp.stamp).to_guid
   end
 
   def self.connection

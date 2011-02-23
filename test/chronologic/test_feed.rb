@@ -31,6 +31,17 @@ describe Chronologic::Feed do
     end
   end
 
+  it "generates a feed and properly handles empty subevents" do
+    event = simple_event
+    @protocol.publish(event)
+
+    feed = Chronologic::Feed.create(
+      event.timelines.first, 
+      :fetch_subevents => true
+    )
+    feed.items.first.subevents.must_equal []
+  end
+
   it "generates a feed for a timeline key, fetching nested timelines" do
     akk = {"name" => "akk"}
     sco = {"name" => "sco"}
@@ -90,7 +101,7 @@ describe Chronologic::Feed do
     feed = Chronologic::Feed.new("user_1_home")
     feed.items
 
-    feed.next_page.must_equal uuids.last
+    feed.next_page.must_equal uuids.first
   end
 
   it "stores the item count for the feed" do

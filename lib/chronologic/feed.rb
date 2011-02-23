@@ -88,6 +88,7 @@ class Chronologic::Feed
 
   def bind_subevents(event_key, refs, objects)
     return [] unless subevents
+    return [] unless refs.has_key?(event_key)
 
     refs[event_key].each do |sub|
       sub["objects"] = sub["objects"].clone.inject({}) do |hsh, (slot, key)|

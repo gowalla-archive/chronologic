@@ -10,7 +10,7 @@ module Chronologic
     Chronologic::Schema
   end
 
-  VERSION = '0.8.0'
+  VERSION = '0.8.1'
 
   autoload :Schema, "chronologic/schema"
   autoload :Protocol, "chronologic/protocol"

@@ -1,6 +1,6 @@
 require "sinatra/base"
 require "active_support/core_ext/class"
-require "hoptoad_notifier"
+require "yajl"
 
 # TODO: caching headers?
 class Chronologic::Service < Sinatra::Base

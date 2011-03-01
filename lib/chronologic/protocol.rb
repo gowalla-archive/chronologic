@@ -12,6 +12,8 @@ module Chronologic::Protocol
     schema.remove_object(event_key)
   end
 
+  # Subscribe timeline_key to events created on subscriber_key and copy events 
+  # from subscriber_key to timeline_key
   def self.subscribe(timeline_key, subscriber_key)
     schema.create_subscription(timeline_key, subscriber_key)
 

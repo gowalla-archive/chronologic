@@ -61,7 +61,7 @@ class Chronologic::Feed
   end
 
   def fetch_objects(events)
-    object_keys = [events].flatten.map { |e| e.objects.values }
+    object_keys = [events].flatten.map { |e| e.objects.values }.flatten
     schema.object_for(object_keys.flatten.uniq)
   end
 
@@ -82,7 +82,12 @@ class Chronologic::Feed
 
   def bind_objects(refs, objects)
     refs.inject({}) do |hsh, (slot, key)|
-      hsh.update(slot => objects[key])
+      if key.is_a?(Array)
+        values = key.map { |k| objects[k] }
+        hsh.update(slot => values)
+      else
+        hsh.update(slot => objects[key])
+      end
     end
   end
 

@@ -112,4 +112,16 @@ describe Chronologic::Feed do
     feed.count.must_equal uuids.length
   end
 
+  it "fetches multiple objects per type" do
+    @protocol.record("user_1", {"name" => "akk"})
+    @protocol.record("user_2", {"name" => "bf"})
+
+    event = simple_event
+    event.objects["test"] = ["user_1", "user_2"]
+
+    @protocol.publish(event)
+    feed = Chronologic::Feed.create(event.timelines.first)
+    feed.items.first.objects["test"].length.must_equal 2
+  end
+
 end

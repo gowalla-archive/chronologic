@@ -124,4 +124,31 @@ describe Chronologic::Feed do
     feed.items.first.objects["test"].length.must_equal 2
   end
 
+  it "fetches two levels of subevents" do
+    grouping = simple_event
+    grouping.key = "grouping_1"
+    grouping['data'] = {"grouping" => "flight"}
+    grouping.timelines = ["subsubevent_test"]
+
+    event = simple_event
+    event['data']['parent'] = grouping.key
+    event.timelines = [grouping.key]
+
+    subevent = simple_event
+    subevent.key = "comment_1"
+    subevent['data']['type'] = "comment"
+    subevent['data']['parent'] = event.key
+    subevent['data']['message'] = "Great!"
+    subevent.timelines = [event.key]
+
+    @protocol.publish(grouping)
+    @protocol.publish(event)
+    @protocol.publish(subevent)
+
+    feed = Chronologic::Feed.new("subsubevent_test", 20, nil, true)
+    feed.items.first.
+      subevents.first.
+      subevents.first.must_equal subevent
+  end
+
 end

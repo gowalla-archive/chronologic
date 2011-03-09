@@ -29,5 +29,11 @@ describe Chronologic::Event do
     @event.to_transport["timelines"].must_equal JSON.dump(@event.timelines)
     @event.to_transport["key"].must_equal @event.key
   end
+
+  it "knows whether it is a subevent"
+
+  it "knows its parent event"
+
+  it "sets its parent event"
 end
 

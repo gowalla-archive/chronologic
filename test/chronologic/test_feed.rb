@@ -36,7 +36,7 @@ describe Chronologic::Feed do
     @protocol.publish(event)
 
     feed = Chronologic::Feed.create(
-      event.timelines.first, 
+      event.timelines.first,
       :fetch_subevents => true
     )
     feed.items.first.subevents.must_equal []
@@ -85,10 +85,10 @@ describe Chronologic::Feed do
 
   it "fetches a feed by page" do
     uuids = populate_timeline
-    
+
     Chronologic::Feed.create(
-      "user_1_home", 
-      :page => uuids[1], 
+      "user_1_home",
+      :page => uuids[1],
       :per_page => 5
     ).items.length.must_equal(5)
   end
@@ -125,6 +125,7 @@ describe Chronologic::Feed do
   end
 
   it "fetches two levels of subevents" do
+    skip("not yet")
     grouping = simple_event
     grouping.key = "grouping_1"
     grouping['data'] = {"grouping" => "flight"}
@@ -149,6 +150,104 @@ describe Chronologic::Feed do
     feed.items.first.
       subevents.first.
       subevents.first.must_equal subevent
+  end
+
+  it "fetches events for one or more timelines" do
+    events = [simple_event]
+    events << simple_event.tap do |e|
+      e.key = "checkin_2"
+      e.data['message'] = "I'm over there!"
+    end
+    events << simple_event.tap do |e|
+      e.key = "checkin_3"
+      e.data['message'] = "I'm way over there!"
+    end
+    events << simple_event.tap do |e|
+      e.key = "checkin_4"
+      e.data['message'] = "I'm over here!"
+      e.timelines = ["user_2"]
+    end
+    events << simple_event.tap do |e|
+      e.key = "checkin_5"
+      e.data['message'] = "I'm nowhere!"
+      e.timelines = ["user_2"]
+    end
+    events.each { |e| @protocol.publish(e) }
+
+    feed = Chronologic::Feed.new(nil, nil)
+    events = feed.fetch_timelines("user_1", "user_2")
+
+    events.length.must_equal 5
+    assert events.all? { |e| e.is_a?(Chronologic::Event) }
+  end
+
+  it "fetches objects associated with an event" do
+    @protocol.record("spot_1", {"name" => "Juan Pelota's"})
+    @protocol.record("user_1", {"name" => "akk"})
+    @protocol.record("user_2", {"name" => "bf"})
+
+    event = simple_event
+    event.objects["test"] = ["user_1", "user_2"]
+
+    feed = Chronologic::Feed.new(nil, nil)
+    populated_event = feed.fetch_objects_(event).first
+
+    populated_event.objects["test"].length.must_equal 2
+    populated_event.objects["user"].must_be_kind_of Hash
+    populated_event.objects["spot"].must_be_kind_of Hash
+  end
+
+  describe "feed reification" do
+
+    it "constructs a feed from multiple events" do
+      events = 5.times.map { simple_event }
+
+      feed = Chronologic::Feed.new(nil, nil)
+      timeline = feed.reify_timeline(events)
+
+      timeline.length.must_equal 5
+    end
+
+    it "constructs a feed from events with subevents" do
+      events = [simple_event, nested_event]
+
+      feed = Chronologic::Feed.new(nil, nil)
+      timeline = feed.reify_timeline(events)
+
+      timeline.length.must_equal 1
+      timeline.first.subevents.must_equal [events.last]
+    end
+
+    it "constructs a feed from events with sub-subevents" do
+      events = [simple_event, nested_event]
+
+      events << simple_event.tap do |e|
+        e.key = "checkin_2"
+        e.data['message'] = "I'm over there"
+      end
+
+      events << simple_event.tap { |e| e.key = "grouping_1" }
+      events << simple_event.tap do |e|
+        e.key = "checkin_3"
+        e.parent = "grouping_1"
+        e.timelines << "grouping_1"
+      end
+      events << simple_event.tap do |e|
+        e.key = "comment_2"
+        e.parent = "checkin_3"
+        e.timelines << "checkin_3"
+      end
+
+      feed = Chronologic::Feed.new(nil, nil)
+      timeline = feed.reify_timeline(events)
+
+      timeline.length.must_equal 3
+      timeline[0].subevents.length.must_equal 1
+      timeline[1].subevents.length.must_equal 0
+      timeline[2].subevents.length.must_equal 1
+      timeline[2].subevents[0].subevents.length.must_equal 1
+    end
+
   end
 
 end

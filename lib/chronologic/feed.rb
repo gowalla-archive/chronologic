@@ -23,8 +23,8 @@ class Chronologic::Feed
 
     event_index = schema.
       timeline_events_for(
-        timeline_key, 
-        :per_page => per_page, 
+        timeline_key,
+        :per_page => per_page,
         :page => start
       )
     uuids = event_index.keys
@@ -35,12 +35,81 @@ class Chronologic::Feed
     event_keys = event_index.values
     events = schema.
       event_for(event_keys).
-      inject({}) do |hsh, (k, e)| 
-        hsh.update(k => Chronologic::Event.load_from_columns(e)) 
+      inject({}) do |hsh, (k, e)|
+        hsh.update(k => Chronologic::Event.load_from_columns(e))
       end
     subs = fetch_subevents(event_keys)
     objects = fetch_objects(events.values + subs.values)
     @items = build_feed(events, subs, objects)
+  end
+
+  # Lookup events on the specified timeline(s) and return all the events
+  # referenced by those timelines.
+  #
+  # timeline_keys - one or more String timeline_keys to fetch events from
+  #
+  # Returns a flat array of events
+  def fetch_timelines(*timeline_keys)
+    event_keys = schema.timeline_events_for(
+      timeline_keys,
+      :per_page => per_page,
+      :page => start
+    ).values.flatten
+
+    # set next_page
+    # set count
+
+    schema.
+      event_for(event_keys).
+      map { |k, e| Chronologic::Event.load_from_columns(e) }
+  end
+
+  # Fetch objects referenced by events and correctly populate the event objects
+  #
+  # events - an array of Chronologic::Event objects to populate
+  #
+  # Returns a flat array of Chronologic::Event objects with their object
+  # references populated.
+  def fetch_objects_(*events)
+    object_keys = events.map { |e| e.objects.values }.flatten.uniq
+    objects = schema.object_for(object_keys)
+    events.map do |e|
+      e.tap do
+        e.objects.each do |type, keys|
+          if keys.is_a?(Array)
+            e.objects[type] = keys.map { |k| objects[k] }
+          else
+            e.objects[type] = objects[keys]
+          end
+        end
+      end
+    end
+  end
+
+  # Convert a flat array of Chronologic::Events into a properly hierarchical
+  # timeline.
+  #
+  # events - an array of Chronologic::Event objects, each possibly referencing
+  # other events
+  #
+  # Returns a flat array of Chronologic::Event objects with their subevent
+  # references correctly populated.
+  def reify_timeline(events)
+    event_index = events.inject({}) { |idx, e| idx.update(e.key => e) }
+    timeline_index = events.inject([]) do |timeline, e|
+      if e.child?
+        # AKK: something is weird about Hashie::Dash or Event in that if you push
+        # objects onto subevents, they are added to an object that is referenced
+        # by all instances of event. So, these dup'ing hijinks are required.
+        subevents = event_index[e.parent].subevents.dup
+        subevents << e
+        event_index[e.parent].subevents = subevents
+      else
+        timeline << e.key
+      end
+      timeline
+    end
+    timeline_index.map { |key| event_index[key] }
   end
 
   def fetch_subevents(event_keys)

@@ -21,26 +21,15 @@ class Chronologic::Feed
   def items
     return @items if @items
 
-    event_index = schema.
-      timeline_events_for(
-        timeline_key,
-        :per_page => per_page,
-        :page => start
-      )
-    uuids = event_index.keys
+    events = fetch_timelines(timeline_key)
+    subevents = fetch_timelines(events.map { |e| e.key })
+    subsubevents = fetch_timelines(subevents.map { |e| e.key })
+    
+    # TODO: Count entries in timeline
+    # TODO: Set next_page
 
-    self.next_page = uuids.last
-    self.count = schema.timeline_count(timeline_key)
-
-    event_keys = event_index.values
-    events = schema.
-      event_for(event_keys).
-      inject({}) do |hsh, (k, e)|
-        hsh.update(k => Chronologic::Event.load_from_columns(e))
-      end
-    subs = fetch_subevents(event_keys)
-    objects = fetch_objects(events.values + subs.values)
-    @items = build_feed(events, subs, objects)
+    all_events = fetch_objects([events, subevents, subsubevents].flatten)
+    @items = reify_timeline(all_events)
   end
 
   # Lookup events on the specified timeline(s) and return all the events
@@ -49,7 +38,7 @@ class Chronologic::Feed
   # timeline_keys - one or more String timeline_keys to fetch events from
   #
   # Returns a flat array of events
-  def fetch_timelines(*timeline_keys)
+  def fetch_timelines(timeline_keys)
     event_keys = schema.timeline_events_for(
       timeline_keys,
       :per_page => per_page,
@@ -61,7 +50,11 @@ class Chronologic::Feed
 
     schema.
       event_for(event_keys).
-      map { |k, e| Chronologic::Event.load_from_columns(e) }
+      map do |k, e|
+        Chronologic::Event.load_from_columns(e).tap do |event|
+          event.key = k
+        end
+      end
   end
 
   # Fetch objects referenced by events and correctly populate the event objects
@@ -70,7 +63,7 @@ class Chronologic::Feed
   #
   # Returns a flat array of Chronologic::Event objects with their object
   # references populated.
-  def fetch_objects_(*events)
+  def fetch_objects(events)
     object_keys = events.map { |e| e.objects.values }.flatten.uniq
     objects = schema.object_for(object_keys)
     events.map do |e|
@@ -98,9 +91,10 @@ class Chronologic::Feed
     event_index = events.inject({}) { |idx, e| idx.update(e.key => e) }
     timeline_index = events.inject([]) do |timeline, e|
       if e.child?
-        # AKK: something is weird about Hashie::Dash or Event in that if you push
-        # objects onto subevents, they are added to an object that is referenced
-        # by all instances of event. So, these dup'ing hijinks are required.
+        # AKK: something is weird about Hashie::Dash or Event in that if you 
+        # push objects onto subevents, they are added to an object that is 
+        # referenced by all instances of event. So, these dup'ing hijinks are 
+        # required.
         subevents = event_index[e.parent].subevents.dup
         subevents << e
         event_index[e.parent].subevents = subevents
@@ -112,65 +106,7 @@ class Chronologic::Feed
     timeline_index.map { |key| event_index[key] }
   end
 
-  def fetch_subevents(event_keys)
-    return {} unless subevents
-
-    subevent_keys = schema.timeline_events_for(event_keys).values.flatten
-    events = schema.event_for(subevent_keys).values
-    events.inject({}) do |hsh, columns|
-      subevent = Chronologic::Event.load_from_columns(columns)
-      parent = subevent.data["parent"]
-      if hsh.has_key?(parent)
-        hsh[parent] << subevent
-      else
-        hsh[parent] = [subevent]
-      end
-      hsh
-    end
-  end
-
-  def fetch_objects(events)
-    object_keys = [events].flatten.map { |e| e.objects.values }.flatten
-    schema.object_for(object_keys.flatten.uniq)
-  end
-
-  def build_feed(events, subevents_, objects)
-    events.map do |event_key, e|
-      event = Chronologic::Event.new
-      event.key = event_key
-      event.timestamp = e["timestamp"]
-      event.data = e["data"]
-      event.timelines = e["timelines"]
-
-      event.objects = bind_objects(e.objects, objects)
-      event.subevents = bind_subevents(event_key, subevents_, objects)
-
-      event
-    end.sort_by { |e| e.timestamp }
-  end
-
-  def bind_objects(refs, objects)
-    refs.inject({}) do |hsh, (slot, key)|
-      if key.is_a?(Array)
-        values = key.map { |k| objects[k] }
-        hsh.update(slot => values)
-      else
-        hsh.update(slot => objects[key])
-      end
-    end
-  end
-
-  def bind_subevents(event_key, refs, objects)
-    return [] unless subevents
-    return [] unless refs.has_key?(event_key)
-
-    refs[event_key].each do |sub|
-      sub["objects"] = sub["objects"].clone.inject({}) do |hsh, (slot, key)|
-        hsh.update(slot => objects[key])
-      end
-    end
-  end
-
+  # Private: easier access to the Chronologic schema
   def schema
     Chronologic::Schema
   end

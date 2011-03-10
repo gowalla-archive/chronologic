@@ -33,7 +33,7 @@ class Chronologic::Event < Hashie::Dash
     new(to_load)
   end
 
-  def child?
+  def subevent?
     data.has_key?("parent")
   end
 

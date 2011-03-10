@@ -90,7 +90,7 @@ class Chronologic::Feed
   def reify_timeline(events)
     event_index = events.inject({}) { |idx, e| idx.update(e.key => e) }
     timeline_index = events.inject([]) do |timeline, e|
-      if e.child?
+      if e.subevent?
         # AKK: something is weird about Hashie::Dash or Event in that if you 
         # push objects onto subevents, they are added to an object that is 
         # referenced by all instances of event. So, these dup'ing hijinks are 

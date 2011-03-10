@@ -30,10 +30,18 @@ describe Chronologic::Event do
     @event.to_transport["key"].must_equal @event.key
   end
 
-  it "knows whether it is a subevent"
+  it "knows whether it is a subevent" do
+    nested_event.subevent?.must_equal true
+  end
 
-  it "knows its parent event"
+  it "knows its parent event" do
+    nested_event.parent.must_equal "checkin_1"
+  end
 
-  it "sets its parent event"
+  it "sets its parent event" do
+    event = simple_event
+    event.parent = "highlight_1"
+    event.parent.must_equal "highlight_1"
+  end
 end
 

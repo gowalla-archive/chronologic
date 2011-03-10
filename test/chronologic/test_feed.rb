@@ -97,7 +97,6 @@ describe Chronologic::Feed do
   # the paging bits
 
   it "tracks the event key for the next page" do
-    skip("TODO")
     uuids = populate_timeline
     feed = Chronologic::Feed.new("user_1_home")
     feed.items

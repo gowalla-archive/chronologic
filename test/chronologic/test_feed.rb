@@ -106,7 +106,6 @@ describe Chronologic::Feed do
   end
 
   it "stores the item count for the feed" do
-    skip("TODO")
     uuids = populate_timeline
     feed = Chronologic::Feed.new("user_1_home")
     feed.items

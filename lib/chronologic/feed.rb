@@ -25,8 +25,8 @@ class Chronologic::Feed
     subevents = fetch_timelines(events.map { |e| e.key })
     subsubevents = fetch_timelines(subevents.map { |e| e.key })
     
-    # TODO: Count entries in timeline
     # TODO: Set next_page
+    self.count = schema.timeline_count(timeline_key)
 
     all_events = fetch_objects([events, subevents, subsubevents].flatten)
     @items = reify_timeline(all_events)

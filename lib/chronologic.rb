@@ -1,5 +1,5 @@
 require "hashie/mash"
-require "cassandra"
+require "cassandra/0.6"
 require "active_support/core_ext/module"
 
 module Chronologic

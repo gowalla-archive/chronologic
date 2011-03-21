@@ -10,6 +10,11 @@ class Chronologic::Event < Hashie::Dash
   property :timelines, :default => []
   property :subevents, :default => []
 
+  def initialize(*args)
+    @published = false
+    super(*args)
+  end
+
   def to_columns
     {
       "timestamp" => timestamp.utc.iso8601,
@@ -43,6 +48,14 @@ class Chronologic::Event < Hashie::Dash
 
   def parent=(parent)
     data["parent"] = parent
+  end
+
+  def published?
+    @published
+  end
+
+  def published!
+    @published = true
   end
 
 end

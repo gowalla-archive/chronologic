@@ -89,6 +89,7 @@ describe Chronologic::Protocol do
 
     @protocol.schema.timeline_events_for("user_1").length.must_equal 1
     @protocol.schema.event_for(event.key).must_equal event.to_columns
+    event.published?.must_equal true
   end
 
   it "unpublishes an event from one or more timeline keys" do

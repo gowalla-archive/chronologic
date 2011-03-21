@@ -43,5 +43,15 @@ describe Chronologic::Event do
     event.parent = "highlight_1"
     event.parent.must_equal "highlight_1"
   end
+
+  it "is unpublished by default" do
+    @event.published?.must_equal false
+  end
+
+  it "toggles published state" do
+    @event.published!
+    @event.published?.must_equal true
+  end
+
 end
 

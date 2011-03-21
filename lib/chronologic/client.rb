@@ -55,6 +55,7 @@ class Chronologic::Client
       :query => {:fanout => fanout ? 1 : 0}, 
       :body => event.to_transport
     )
+    event.published!
 
     handle(resp, "Error publishing event") do
       resp.headers["Location"]

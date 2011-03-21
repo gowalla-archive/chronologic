@@ -63,6 +63,7 @@ describe Chronologic::Client do
       )
 
     @client.publish(event, true).must_match /[\w\d-]*/
+    event.published?.must_equal true
     assert_requested :post, 
       "http://localhost:3000/event?fanout=1", 
       :body => body

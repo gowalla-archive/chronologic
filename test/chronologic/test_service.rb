@@ -115,7 +115,7 @@ describe Chronologic::Service do
     event.timelines = ["user_1", "spot_1"]
     uuid = @protocol.publish(event)
 
-    delete "/event/checkin_1111/#{uuid}"
+    delete "/event/checkin_1111"
 
     last_response.status.must_equal 204
     Chronologic.schema.event_for("checkin_1111").must_equal Hash.new

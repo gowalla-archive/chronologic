@@ -48,7 +48,8 @@ module Chronologic::Protocol
     uuid
   end
 
-  def self.unpublish(event, uuid)
+  def self.unpublish(event)
+    uuid = schema.new_guid(event.timestamp)
     schema.remove_event(event.key)
     raw_timelines = event.timelines
     # FIXME: this is a hackish way to handle both event objects and events

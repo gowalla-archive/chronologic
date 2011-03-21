@@ -1,6 +1,6 @@
 # $ ruby -rubygems -Ilib benchmark/publish.rb
 
-require "ruby-prof"
+require "perftools"
 require "benchmark"
 require "chronologic"
 
@@ -16,9 +16,7 @@ def create_event(key, timeline)
   ev.objects = {}
   ev.timelines = [timeline]
 
-  RubyProf.resume do
-    Chronologic::Protocol.publish(ev)
-  end
+  Chronologic::Protocol.publish(ev)
 end
 
 def dump_results(data)
@@ -41,11 +39,9 @@ if __FILE__ == $PROGRAM_NAME
   puts "%.5fms/subscribe" % [friends/result.total]
 
   result = Benchmark.measure do
-    events.times { |i| create_event("cl_event_#{i}", timeline) }
+    PerfTools::CpuProfiler.start("tmp/publish_profile") do
+      events.times { |i| create_event("cl_event_#{i}", timeline) }
+    end
   end
   puts "%.5fms/publish" % [events/result.total]
-
-  data = RubyProf.stop
-  dump_results(data)
-
 end

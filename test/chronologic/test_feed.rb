@@ -88,7 +88,7 @@ describe Chronologic::Feed do
 
     Chronologic::Feed.create(
       "user_1_home",
-      :page => uuids[1],
+      :page => uuids[4],
       :per_page => 5
     ).items.length.must_equal(5)
   end

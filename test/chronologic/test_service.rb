@@ -146,7 +146,7 @@ describe Chronologic::Service do
   it "reads a timeline feed with page and per_page parameters" do
     uuids = populate_timeline
 
-    get "/timeline/user_1_home", :per_page => 5, :page => uuids[2]
+    get "/timeline/user_1_home", :per_page => 5, :page => uuids[4]
 
     obj = json_body
     obj["feed"].length.must_equal 5

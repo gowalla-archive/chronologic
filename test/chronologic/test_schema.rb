@@ -104,7 +104,6 @@ describe Chronologic::Schema do
   end
 
   it "fetches timeline events from a page offset" do
-    skip("wtf")
     uuids = 15.times.map { @schema.new_guid }.reverse
     uuids.each_with_index do |uuid, i|
       ref = "gizmo_#{i}"
@@ -116,15 +115,14 @@ describe Chronologic::Schema do
   end
 
   it "fetches timeline events with a count and offset parameter" do
-    skip('wtf')
     uuids = 15.times.map { @schema.new_guid }
     uuids.each_with_index do |uuid, i|
       ref = "gizmo_#{i}"
       @schema.create_timeline_event("_global", uuid, ref)
     end
 
-    @schema.timeline_for("_global", :per_page => 10, :page => uuids[3]).length.must_equal 10
-    @schema.timeline_for("_global", :per_page => 10, :page => uuids[5]).length.must_equal 5, "doesn't truncate when length(count+offset) > length(results)"
+    @schema.timeline_for("_global", :per_page => 10, :page => uuids[11]).length.must_equal 10
+    @schema.timeline_for("_global", :per_page => 10, :page => uuids[4]).length.must_equal 5, "doesn't truncate when length(count+offset) > length(results)"
   end
 
   it "fetches an extra item when a page parameter is specified and truncates appropriately" do
@@ -136,13 +134,14 @@ describe Chronologic::Schema do
       result.update(uuid => ref)
     }.sort_by { |uuid, ref| uuid }
 
+    start = uuids[10][0]
     events = @schema.timeline_for(
       "_global", 
       :per_page => 5, 
-      :page => uuids[4][0]
+      :page => start
     )
     events.length.must_equal 5
-    events.sort_by { |uuid, ref| uuid }.must_equal uuids.slice(9, 5)
+    events.sort_by { |uuid, ref| uuid }.must_equal uuids.slice(5, 5)
   end
 
   it "removes a timeline event" do

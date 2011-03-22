@@ -97,7 +97,6 @@ describe Chronologic::Protocol do
 
     @protocol.subscribe("user_1_home", "user_1")
     uuid = @protocol.publish(event)
-    # @protocol.unpublish(event, uuid)
     @protocol.unpublish(event)
 
     @protocol.schema.event_for(event.key).must_equal Hash.new

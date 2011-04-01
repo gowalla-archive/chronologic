@@ -1,5 +1,4 @@
 require "helper"
-require "fakeweb"
 
 describe Chronologic::Client do
 

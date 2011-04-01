@@ -1,4 +1,4 @@
-require "hashie/mash"
+require "hashie"
 require "cassandra/0.6"
 require "active_support/core_ext/module"
 

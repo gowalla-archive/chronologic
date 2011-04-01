@@ -45,12 +45,10 @@ Gem::Specification.new do |s|
   s.add_dependency('hashie', ["~> 0.4.0"])
   s.add_dependency('will_paginate', ["~> 3.0.pre2"])
   s.add_dependency('yajl-ruby', ["~> 0.7.7"])
+  s.add_dependency('activesupport', ["~> 3.0.0"])
+  s.add_dependency('i18n', ["~> 0.5.0"])
+  s.add_dependency('sinatra', ["~> 1.0.0"])
 
-  ## List your development dependencies here. Development dependencies are
-  ## those that are only needed during development
-  s.add_development_dependency('minitest', ["~> 1.7.2"])
-  s.add_development_dependency('rack-test', ["~> 0.5.6"])
-  s.add_development_dependency('webmock', ['~> 1.5.0'])
 
   ## Leave this section as-is. It will be automatically generated from the
   ## contents of your Git repository via the gemspec task. DO NOT REMOVE

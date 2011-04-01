@@ -1,5 +1,4 @@
-require "pp"
-require "rubygems"
+require "bundler/setup"
 require "minitest/spec"
 require "rack/test"
 require "webmock/test_unit"

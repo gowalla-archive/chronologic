@@ -42,6 +42,10 @@ class Chronologic::Service < Sinatra::Base
 
   delete "/event/:event_key" do
     raw_event = protocol.schema.event_for(params["event_key"])
+    if raw_event.empty?
+      status 204
+      return
+    end
     event = Chronologic::Event.load_from_columns(raw_event)
     event.key = params["event_key"]
     protocol.unpublish(event)

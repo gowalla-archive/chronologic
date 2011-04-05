@@ -21,8 +21,8 @@ events = 10.times.map do |i|
 end
 
 # Now we're going to create an outing from event[4] and event[5].
-cl.unpublish(events[4].first.key, events[4].last)
-cl.unpublish(events[5].first.key, events[5].last)
+cl.unpublish(events[4].first.key)
+cl.unpublish(events[5].first.key)
 
 outing = Chronologic::Event.new.tap do |e|
   e.key = "outing_1"

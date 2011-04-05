@@ -70,14 +70,13 @@ describe Chronologic::Client do
 
   it "unpublishes an event" do
     event_key = "checkin_1"
-    uuid = "A6047FBA-045C-4649-8525-984C5C1266AF"
     stub_request(
       :delete,
-      "http://localhost:3000/event/#{event_key}/#{uuid}"
+      "http://localhost:3000/event/#{event_key}"
     ).to_return(:status => 204)
 
-    @client.unpublish(event_key, uuid).must_equal true
-    assert_requested :delete, "http://localhost:3000/event/#{event_key}/#{uuid}"
+    @client.unpublish(event_key).must_equal true
+    assert_requested :delete, "http://localhost:3000/event/#{event_key}"
   end
 
   it "fetches a timeline" do

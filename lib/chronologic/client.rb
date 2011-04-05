@@ -62,8 +62,8 @@ class Chronologic::Client
     end
   end
 
-  def unpublish(event_key, uuid)
-    resp = self.class.delete("/event/#{event_key}/#{uuid}")
+  def unpublish(event_key)
+    resp = self.class.delete("/event/#{event_key}")
 
     handle(resp, "Error unpublishing event") do
       true

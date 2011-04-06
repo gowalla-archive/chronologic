@@ -13,8 +13,8 @@ Gem::Specification.new do |s|
   ## If your rubyforge_project name is different, then edit it and comment out
   ## the sub! line in the Rakefile
   s.name              = 'chronologic'
-  s.version           = '0.8.2'
-  s.date              = '2011-03-23'
+  s.version           = '0.8.3'
+  s.date              = '2011-04-06'
   s.rubyforge_project = 'chronologic'
 
   ## Make sure your summary is short. The description may be as long
@@ -66,6 +66,7 @@ Gem::Specification.new do |s|
     examples/config.yml
     examples/gowalla.rb
     examples/gowalla_activerecord.rb
+    examples/groupings.rb
     examples/outings.rb
     examples/paginate.rb
     examples/twitter.rb

@@ -45,11 +45,8 @@ class Chronologic::Feed
       :page => start
     ).values.flatten
 
-    # set next_page
-    # set count
-
     schema.
-      event_for(event_keys).
+      event_for(event_keys.uniq).
       map do |k, e|
         Chronologic::Event.load_from_columns(e).tap do |event|
           event.key = k
@@ -90,11 +87,10 @@ class Chronologic::Feed
   def reify_timeline(events)
     event_index = events.inject({}) { |idx, e| idx.update(e.key => e) }
     timeline_index = events.inject([]) do |timeline, e|
-      if e.subevent?
+      if e.subevent? && event_index.has_key?(e.parent)
         # AKK: something is weird about Hashie::Dash or Event in that if you 
         # push objects onto subevents, they are added to an object that is 
         # referenced by all instances of event. So, these dup'ing hijinks are 
-        # required.
         subevents = event_index[e.parent].subevents.dup
         subevents << e
         event_index[e.parent].subevents = subevents

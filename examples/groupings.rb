@@ -45,6 +45,6 @@ events.each do |e|
   cl.publish(e)
 end
 
-pp cl.timeline(user)["feed"]
+pp cl.timeline('grouping')["feed"]
 
 [grouping, events, subevents].flatten.each { |e| cl.unpublish(e.key) }

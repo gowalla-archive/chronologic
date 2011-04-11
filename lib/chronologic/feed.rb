@@ -113,6 +113,7 @@ class Chronologic::Feed
       :page => start
     ).keys.last
   end
+
   # Private: easier access to the Chronologic schema
   def schema
     Chronologic::Schema

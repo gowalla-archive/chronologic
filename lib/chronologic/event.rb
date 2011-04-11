@@ -58,5 +58,11 @@ class Chronologic::Event < Hashie::Dash
     @published = true
   end
 
-end
+  # Public: converts the event's subevents to Chronologic::Event objects
+  #
+  # Returns an array of Chronologic::Event objects.
+  def children
+    @children ||= subevents.map { |s| Chronologic::Event.new(s) }
+  end
 
+end

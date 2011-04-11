@@ -53,5 +53,20 @@ describe Chronologic::Event do
     @event.published?.must_equal true
   end
 
+  it "returns children as CL::Event objects" do
+    subevent = {
+      "key" => "bar_1",
+      "timestamp" => Time.now.utc,
+      "data" => {"bar" => "herp"}
+    }
+
+    event = Chronologic::Event.new(
+      :key => "foo_1", 
+      :timestamp => Time.now.utc, 
+      :data => {"foo" => "derp"}, 
+      :subevents => [subevent]
+    )
+    event.children.must_equal [Chronologic::Event.new(subevent)]
+  end
 end
 

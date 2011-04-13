@@ -17,17 +17,27 @@ class MiniTest::Unit::TestCase
       Chronologic::Schema.write_opts = {
         :consistency => Cassandra::Consistency::ONE
       }
-      Cassandra.new("Chronologic-Test")
+      Cassandra.new("ChronologicTest").tap { |c| clean_up_keyspace!(c) }
     else
       Cassandra::Mock.new(
-        'Chronologic', 
+        'Chronologic',
         File.join(File.dirname(__FILE__), 'storage-conf.xml')
       )
     end
-    Chronologic.connection.clear_keyspace!
 
     WebMock.disable_net_connect!
     WebMock.reset!
+  end
+
+  # Cassandra#truncate isn't reliable against cassandra-0.7.4, but
+  # this gets the job done. It's a hack, so look for a better way to do this
+  # every now and then
+  def clean_up_keyspace!(conn)
+    conn.schema.cf_defs.each do |cf|
+      conn.send(:each_key, cf.name) do |k|
+        conn.remove(cf.name, k)
+      end
+    end
   end
 
   def simple_event
@@ -71,4 +81,5 @@ class MiniTest::Unit::TestCase
 
     return uuids
   end
+
 end

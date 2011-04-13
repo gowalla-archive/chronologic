@@ -1,6 +1,7 @@
 require "hashie"
-require "cassandra/0.6"
+require "cassandra/0.7"
 require "active_support/core_ext/module"
+require "cassandra_ext.rb"
 
 module Chronologic
 

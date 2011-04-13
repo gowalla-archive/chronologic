@@ -40,7 +40,7 @@ Gem::Specification.new do |s|
 
   ## List your runtime dependencies here. Runtime dependencies are those
   ## that are needed for an end user to actually USE your code.
-  s.add_dependency('cassandra', ["~> 0.9.0"])
+  s.add_dependency('cassandra', ["~> 0.9.1"])
   s.add_dependency('httparty', ["~> 0.6.1"])
   s.add_dependency('hashie', ["~> 0.4.0"])
   s.add_dependency('will_paginate', ["~> 3.0.pre2"])

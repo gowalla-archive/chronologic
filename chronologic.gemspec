@@ -60,6 +60,8 @@ Gem::Specification.new do |s|
     README.md
     Rakefile
     benchmark/publish.rb
+    benchmark/timeline.rb
+    benchmark/timeline_client.rb
     chronologic.gemspec
     config.ru
     doc/intro.md

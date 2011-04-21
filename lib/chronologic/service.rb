@@ -18,7 +18,7 @@ class Chronologic::Service < Sinatra::Base
     json protocol.schema.object_for(params["object_key"])
   end
 
-  delete "/record/:object_key" do
+  delete "/object/:object_key" do
     protocol.unrecord(params["object_key"])
     status 204
   end

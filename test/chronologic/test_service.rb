@@ -39,7 +39,7 @@ describe Chronologic::Service do
     }
     @protocol.record("spot_1", data)
 
-    delete "/record/spot_1"
+    delete "/object/spot_1"
 
     last_response.status.must_equal 204
     Chronologic.schema.object_for("spot_1").must_equal Hash.new

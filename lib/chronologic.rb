@@ -1,7 +1,7 @@
 require "hashie"
 require "cassandra/0.7"
 require "active_support/core_ext/module"
-require "cassandra_ext.rb"
+require "chronologic/cassandra_ext.rb"
 
 module Chronologic
 
@@ -11,7 +11,7 @@ module Chronologic
     Chronologic::Schema
   end
 
-  VERSION = '0.8.4'
+  VERSION = '0.9.0'
 
   autoload :Schema, "chronologic/schema"
   autoload :Protocol, "chronologic/protocol"

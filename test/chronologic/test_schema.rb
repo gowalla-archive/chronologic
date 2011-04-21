@@ -23,6 +23,12 @@ describe Chronologic::Schema do
     @schema.object_for(["user_1", "user_2"]).must_equal hsh
   end
 
+  it "doesn't fetch an empty array of objects" do
+    raise_on_multiget
+
+    @schema.object_for([]).must_equal Hash.new
+  end
+
   it "removes an object" do
     @schema.create_object("user_1", {"name" => "akk"})
     @schema.remove_object("user_1")
@@ -41,6 +47,12 @@ describe Chronologic::Schema do
 
     @schema.subscribers_for(["user_1", "user_2"]).must_include "user_1_home"
     @schema.subscribers_for(["user_1", "user_2"]).must_include "user_2_home"
+  end
+
+  it "doesn't fetch an empty array of subscriptions" do
+    raise_on_multiget
+
+    @schema.subscribers_for([]).must_equal Array.new
   end
 
   it "removes a subscription" do
@@ -63,6 +75,12 @@ describe Chronologic::Schema do
     @schema.create_event("checkin_1112", data)
 
     @schema.event_for(["checkin_1111", "checkin_1112"]).must_equal("checkin_1111" => data, "checkin_1112" => data)
+  end
+
+  it "does not fetch an empty array of events" do
+    raise_on_multiget
+
+    @schema.event_for([]).must_equal Hash.new
   end
 
   it "removes an event" do
@@ -125,6 +143,12 @@ describe Chronologic::Schema do
     @schema.timeline_for("_global", :per_page => 10, :page => uuids[4]).length.must_equal 5, "doesn't truncate when length(count+offset) > length(results)"
   end
 
+  it "does not fetch an empty array of timelines" do
+    raise_on_multiget
+
+    @schema.timeline_for([]).must_equal Hash.new
+  end
+
   it "fetches an extra item when a page parameter is specified and truncates appropriately" do
     uuids = 15.times.inject({}) { |result, i|
       uuid = @schema.new_guid
@@ -170,6 +194,17 @@ describe Chronologic::Schema do
 
   def simple_data
     {"checkin" => JSON.dump({"message" => "I'm here!"})}
+  end
+
+  def raise_on_multiget
+    double = Object.new
+    class <<double
+      def multi_get(*args)
+        raise "multi_get should not get called"
+      end
+    end
+
+    Chronologic.connection = double
   end
 end
 

@@ -23,6 +23,13 @@ describe Chronologic::Event do
     new_event.timelines.must_equal @event.timelines
   end
 
+  it "loads an empty event" do
+    empty_event = Chronologic::Event.load_from_columns({})
+    empty_event.data.must_equal Hash.new
+    empty_event.objects.must_equal Hash.new
+    empty_event.timelines.must_equal Array.new
+  end
+
   it "serializes for HTTP transport" do
     @event.to_transport["data"].must_equal JSON.dump(@event.data)
     @event.to_transport["objects"].must_equal JSON.dump(@event.objects)

@@ -30,11 +30,12 @@ class Chronologic::Event < Hashie::Dash
 
   def self.load_from_columns(columns)
     to_load = {
-      "data" => JSON.load(columns["data"]), 
-      "objects" => JSON.load(columns["objects"]), 
-      "timelines" => JSON.load(columns["timelines"]), 
-      "timestamp" => Time.parse(columns["timestamp"])
+      "data" => JSON.load(columns.fetch("data", '{}')), 
+      "objects" => JSON.load(columns.fetch("objects", '{}')), 
+      "timelines" => JSON.load(columns.fetch("timelines", '[]')), 
+      "timestamp" => (Time.parse(columns["timestamp"]) rescue nil)
     }
+
     new(to_load)
   end
 

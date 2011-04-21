@@ -25,6 +25,7 @@ module Chronologic::Schema
     when String
       connection.get(:Object, object_key)
     when Array
+      return {} if object_key.empty?
       connection.multi_get(:Object, object_key)
     end
   end
@@ -48,6 +49,7 @@ module Chronologic::Schema
     when String
       connection.get(:Subscription, timeline_key).keys
     when Array
+      return [] if timeline_key.empty?
       connection.multi_get(:Subscription, timeline_key).map { |k, v| v.keys }.flatten
     end
   end
@@ -69,6 +71,7 @@ module Chronologic::Schema
 
     case event_key
     when Array
+      return {} if event_key.empty?
       connection.multi_get(:Event, event_key)
     when String
       connection.get(:Event, event_key)
@@ -114,6 +117,7 @@ module Chronologic::Schema
         count >= results.length ? results : Hash[*results.drop(1).flatten]
       end
     when Array
+      return {} if timeline.empty?
       connection.multi_get(:Timeline, timeline)
     end
   end

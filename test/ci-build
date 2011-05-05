@@ -16,7 +16,7 @@ rvm list | grep $desired_ruby > /dev/null || rvm install $desired_ruby || exit 1
 rvm use ${desired_ruby}@${gemset_name} --create
 
 # install bundler if necessary
-#gem list --local bundler | grep bundler || gem install bundler || exit 1
+gem list --local bundler | grep bundler || gem install bundler || exit 1
 
 # debugging info
 echo USER=$USER && ruby --version && which ruby && which bundle

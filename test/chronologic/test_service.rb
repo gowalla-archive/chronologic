@@ -49,12 +49,14 @@ describe Chronologic::Service do
     subscription = {
       "timeline_key" => "user_1_home",
       "subscriber_key" => "user_2",
+      "backlink_key" => "user_1"
     }
 
     post "/subscription", subscription
 
     last_response.status.must_equal 201
     Chronologic.schema.subscribers_for("user_2").must_include "user_1_home"
+    Chronologic.schema.followers_for("user_2").must_include "user_1"
   end
 
   it "unsubscribes a subscriber to a timeline" do
@@ -64,6 +66,22 @@ describe Chronologic::Service do
 
     last_response.status.must_equal 204
     Chronologic.schema.subscribers_for("user_2").wont_include "user_1_home"
+  end
+
+  it 'checks social connection for a timeline backlink and a subscriber key' do
+    # Set up connections
+    @protocol.subscribe('user_bo_feed', 'user_ak', 'user_bo') # w/ backlink
+    @protocol.subscribe('user_ak_feed', 'user_bo', 'user_ak')
+    @protocol.subscribe('user_bs_feed', 'user_bo', 'user_bs') # No recip.
+
+    get '/subscription/is_connected', {
+      'timeline_backlink' => 'user_ak',
+      'subscriber_key' => 'user_bo'
+    }
+
+    last_response.status.must_equal 200
+    obj = JSON.load(last_response.body)
+    obj['user_bo'].must_equal true
   end
 
   it "publishes an event" do

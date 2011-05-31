@@ -14,8 +14,8 @@ module Chronologic::Protocol
 
   # Subscribe timeline_key to events created on subscriber_key and copy events 
   # from subscriber_key to timeline_key
-  def self.subscribe(timeline_key, subscriber_key)
-    schema.create_subscription(timeline_key, subscriber_key)
+  def self.subscribe(timeline_key, subscriber_key, backlink_key='')
+    schema.create_subscription(timeline_key, subscriber_key, backlink_key)
 
     event_keys = schema.timeline_for(
       subscriber_key, 
@@ -31,6 +31,10 @@ module Chronologic::Protocol
     schema.timeline_for(subscriber_key).each do |guid, event_key|
       schema.remove_timeline_event(timeline_key, guid)
     end
+  end
+
+  def self.connected?(timeline_key, backlink_key)
+    schema.followers_for(timeline_key).include?(backlink_key)
   end
 
   def self.publish(event, fanout=true)

@@ -24,13 +24,27 @@ class Chronologic::Service < Sinatra::Base
   end
 
   post "/subscription" do
-    protocol.subscribe(params["timeline_key"], params["subscriber_key"])
+    protocol.subscribe(
+      params["timeline_key"], 
+      params["subscriber_key"], 
+      params.fetch("backlink_key") { '' }
+    )
     status 201
   end
 
   delete "/subscription/:subscriber_key/:timeline_key" do
     protocol.unsubscribe(params["subscriber_key"], params["timeline_key"])
     status 204
+  end
+
+  get '/subscription/is_connected' do
+    connection = protocol.connected?(
+      params['subscriber_key'],
+      params['timeline_backlink']
+    )
+    
+    status(200)
+    json(params['subscriber_key'] => connection)
   end
 
   post "/event" do

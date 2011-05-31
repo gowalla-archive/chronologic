@@ -44,6 +44,14 @@ describe Chronologic::Protocol do
     @protocol.schema.timeline_events_for("user_1_home").values.must_equal []
   end
 
+  it 'checks whether a feed and a user are connected' do
+    @protocol.subscribe('user_1_home', 'user_2', 'user_1')
+    @protocol.subscribe('user_3_home', 'user_2') # No backlink, no connection
+
+    @protocol.connected?('user_2', 'user_1').must_equal true
+    @protocol.connected?('user_2', 'user_3').must_equal false
+  end
+
   it "publishes an event to one or more timeline keys" do
     event = Chronologic::Event.new
     event.key = "checkin_1111"

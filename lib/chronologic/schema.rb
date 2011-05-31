@@ -30,10 +30,10 @@ module Chronologic::Schema
     end
   end
 
-  def self.create_subscription(timeline_key, subscriber_key)
-    log("create_subscription(#{timeline_key}, #{subscriber_key})")
+  def self.create_subscription(timeline_key, subscriber_key, backlink_key='')
+    log("create_subscription(#{timeline_key}, #{subscriber_key}, #{backlink_key})")
 
-    connection.insert(:Subscription, subscriber_key, {timeline_key => ''}, write_opts)
+    connection.insert(:Subscription, subscriber_key, {timeline_key => backlink_key}, write_opts)
   end
 
   def self.remove_subscription(timeline_key, subscriber_key)
@@ -52,6 +52,10 @@ module Chronologic::Schema
       return [] if timeline_key.empty?
       connection.multi_get(:Subscription, timeline_key).map { |k, v| v.keys }.flatten
     end
+  end
+
+  def self.followers_for(timeline_key)
+    connection.get(:Subscription, timeline_key).values
   end
 
   def self.create_event(event_key, data)

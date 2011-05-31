@@ -41,6 +41,12 @@ describe Chronologic::Schema do
     @schema.subscribers_for("user_2").must_equal ["user_1_home"]
   end
 
+  it 'creates a subscription with backlinks' do
+    @schema.create_subscription('user_1_home', 'user_2', 'user_1')
+
+    @schema.followers_for('user_2').must_equal ['user_1']
+  end
+
   it "fetches multiple subscriptions" do
     @schema.create_subscription("user_1_home", "user_2")
     @schema.create_subscription("user_2_home", "user_1")
@@ -60,6 +66,19 @@ describe Chronologic::Schema do
     @schema.remove_subscription("user_1", "user_2")
 
     @schema.subscribers_for("user_1").must_equal []
+  end
+
+  it 'checks whether a feed is connected to a timeline' do
+    @schema.create_subscription('user_1_home', 'user_2', 'user_1')
+    @schema.create_subscription('user_3_home', 'user_2', 'user_3')
+
+    @schema.followers_for('user_2').must_equal ['user_1', 'user_3']
+  end
+
+  it 'checks whether a feed is not connected to a timeline' do
+    @schema.create_subscription('user_1_home', 'user_2', 'user_1')
+
+    @schema.followers_for('user_1').must_equal []
   end
 
   it "creates an event" do

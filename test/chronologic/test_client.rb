@@ -28,12 +28,13 @@ describe Chronologic::Client do
     stub_request(:post, "http://localhost:3000/subscription").
       to_return(:status => 201)
 
-    @client.subscribe("user_1_home", "user_2").must_equal true
+    @client.subscribe("user_1_home", "user_2", "user_1").must_equal true
     assert_requested :post,
       "http://localhost:3000/subscription",
       :body => {
         "subscriber_key" => "user_1_home", 
-        "timeline_key" => "user_2"
+        "timeline_key" => "user_2",
+        "backlink_key" => "user_1"
       }
   end
 

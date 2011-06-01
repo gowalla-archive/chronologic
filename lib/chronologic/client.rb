@@ -29,11 +29,13 @@ class Chronologic::Client
     end
   end
 
-  def subscribe(subscriber_key, timeline_key)
+  def subscribe(subscriber_key, timeline_key, backlink_key=nil)
     body = {
       "subscriber_key" => subscriber_key,
       "timeline_key" => timeline_key
     }
+    body['backlink_key'] = backlink_key unless backlink_key.nil?
+
     resp = self.class.post("/subscription", :body => body)
 
     handle(resp, "Error creating subscription") do

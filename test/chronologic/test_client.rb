@@ -49,6 +49,26 @@ describe Chronologic::Client do
       "http://localhost:3000/subscription/user_1_home/user_2"
   end
 
+  it "checks whether a feed is connected to another feed" do
+    query = {
+      'subscriber_key' => 'user_ak',
+      'timeline_backlink' => 'user_bf'
+    }.map { |pair| pair.join('=') }.join('&')
+
+    resp = {
+      'subscriber_key' => true
+    }
+    stub_request(:get, "http://localhost:3000/subscription/is_connected?#{query}").
+      to_return(
+        :status => 200,
+        :body => resp
+      )
+
+    @client.connected?('user_ak', 'user_bf').must_equal true
+    assert_requested :get, 
+      "http://localhost:3000/subscription/is_connected?#{query}" 
+  end
+
   it "publishes an event" do
     guid = SimpleUUID::UUID.new.to_guid
 

@@ -51,6 +51,18 @@ class Chronologic::Client
     end
   end
 
+  def connected?(subscriber_key, backlink_key)
+    body = {
+      'subscriber_key' => subscriber_key,
+      'timeline_backlink' => backlink_key
+    }
+    resp = self.class.get('/subscription/is_connected', :query => body)
+
+    handle(resp, "Error checking connectedness") do
+      resp.body.fetch('subscriber_key', false)
+    end
+  end
+
   def publish(event, fanout=true)
     resp = self.class.post(
       "/event", 

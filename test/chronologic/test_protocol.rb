@@ -33,6 +33,16 @@ describe Chronologic::Protocol do
     @protocol.schema.timeline_events_for("user_1_home").values.must_include event.key
   end
 
+  it "subscribes a subscriber key to a timeline key with no backfill" do
+    event = simple_event
+
+    @protocol.publish(event)
+    @protocol.subscribe("user_1_home", "user_2", 'user_1', false)
+
+    @protocol.schema.subscribers_for("user_2").must_equal ["user_1_home"]
+    @protocol.schema.timeline_events_for("user_1_home").length.must_equal 0
+  end
+
   it "unsubscribes a subscriber key from a timeline key" do
     event = simple_event
 

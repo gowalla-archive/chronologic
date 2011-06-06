@@ -38,6 +38,21 @@ describe Chronologic::Client do
       }
   end
 
+  it 'subscribes a user to a timline without performing backfill' do
+    stub_request(:post, "http://localhost:3000/subscription").
+      to_return(:status => 201)
+
+    @client.subscribe("user_1_home", "user_2", "user_1", false).must_equal true
+    assert_requested :post,
+      "http://localhost:3000/subscription",
+      :body => {
+        "subscriber_key" => "user_1_home", 
+        "timeline_key" => "user_2",
+        "backlink_key" => "user_1",
+        "backfill" => "false"
+      }
+  end
+
   it "unsubscribes a user to a timeline" do
     stub_request(
       :delete, 

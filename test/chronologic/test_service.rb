@@ -59,6 +59,24 @@ describe Chronologic::Service do
     Chronologic.schema.followers_for("user_2").must_include "user_1"
   end
 
+  it "subscribes a subscriber to a timeline without backfill" do
+    Chronologic.schema.create_timeline_event('user_2', 'abc123', 'event_1')
+
+    subscription = {
+      "timeline_key" => "user_1_home",
+      "subscriber_key" => "user_2",
+      "backlink_key" => "user_1",
+      "backfill" => "false"
+    }
+
+    post "/subscription", subscription
+
+    last_response.status.must_equal 201
+    Chronologic.schema.subscribers_for("user_2").must_include "user_1_home"
+    Chronologic.schema.followers_for("user_2").must_include "user_1"
+    Chronologic.schema.timeline_for("user_1_home").length.must_equal 0
+  end
+
   it "unsubscribes a subscriber to a timeline" do
     @protocol.subscribe("user_2", "user_1_home")
 

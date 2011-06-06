@@ -25,9 +25,10 @@ class Chronologic::Service < Sinatra::Base
 
   post "/subscription" do
     protocol.subscribe(
-      params["timeline_key"], 
-      params["subscriber_key"], 
-      params.fetch("backlink_key") { '' }
+      params["timeline_key"],
+      params["subscriber_key"],
+      params.fetch("backlink_key") { '' },
+      params["backfill"] == "true"
     )
     status 201
   end
@@ -42,7 +43,7 @@ class Chronologic::Service < Sinatra::Base
       params['subscriber_key'],
       params['timeline_backlink']
     )
-    
+
     status(200)
     json(params['subscriber_key'] => connection)
   end
@@ -76,8 +77,8 @@ class Chronologic::Service < Sinatra::Base
 
     status 200
     json(
-      "feed" => feed.items, 
-      "count" => feed.count, 
+      "feed" => feed.items,
+      "count" => feed.count,
       "next_page" => feed.next_page
     )
   end

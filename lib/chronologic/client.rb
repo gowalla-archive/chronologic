@@ -29,12 +29,13 @@ class Chronologic::Client
     end
   end
 
-  def subscribe(subscriber_key, timeline_key, backlink_key=nil)
+  def subscribe(subscriber_key, timeline_key, backlink_key=nil, backfill=true)
     body = {
       "subscriber_key" => subscriber_key,
       "timeline_key" => timeline_key
     }
     body['backlink_key'] = backlink_key unless backlink_key.nil?
+    body['backfill'] = false unless backfill
 
     resp = self.class.post("/subscription", :body => body)
 

@@ -13,8 +13,8 @@ Gem::Specification.new do |s|
   ## If your rubyforge_project name is different, then edit it and comment out
   ## the sub! line in the Rakefile
   s.name              = 'chronologic'
-  s.version           = '0.9.0'
-  s.date              = '2011-04-21'
+  s.version           = '0.9.1'
+  s.date              = '2011-06-07'
   s.rubyforge_project = 'chronologic'
 
   ## Make sure your summary is short. The description may be as long
@@ -57,6 +57,7 @@ Gem::Specification.new do |s|
   s.files = %w[
     Gemfile
     LICENSE
+    Procfile
     README.md
     Rakefile
     benchmark/publish.rb
@@ -71,6 +72,7 @@ Gem::Specification.new do |s|
     examples/groupings.rb
     examples/outings.rb
     examples/paginate.rb
+    examples/privacy.rb
     examples/twitter.rb
     init.rb
     lib/chronologic.rb
@@ -87,6 +89,8 @@ Gem::Specification.new do |s|
     test/chronologic/test_protocol.rb
     test/chronologic/test_schema.rb
     test/chronologic/test_service.rb
+    test/ci-build
+    test/functional/test_privacy.rb
     test/helper.rb
     test/storage-conf.xml
     test/test_chronologic.rb

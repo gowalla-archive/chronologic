@@ -1,4 +1,5 @@
-require "helper"
+require 'spec_helper'
+require 'rack/test'
 
 describe Chronologic::Service do
   include Rack::Test::Methods
@@ -15,8 +16,8 @@ describe Chronologic::Service do
 
     post "/object", {:object_key => "spot_1", :data => data}
 
-    last_response.status.must_equal 201
-    Chronologic.schema.object_for("spot_1").must_equal data
+    last_response.status.should == 201
+    Chronologic.schema.object_for("spot_1").should == data
   end
 
   it "reads an entity record" do
@@ -28,8 +29,8 @@ describe Chronologic::Service do
 
     get "/object/spot_1"
 
-    last_response.status.must_equal 200
-    json_body.must_equal data
+    last_response.status.should == 200
+    json_body.should == data
   end
 
   it "deletes an entity record" do
@@ -41,8 +42,8 @@ describe Chronologic::Service do
 
     delete "/object/spot_1"
 
-    last_response.status.must_equal 204
-    Chronologic.schema.object_for("spot_1").must_equal Hash.new
+    last_response.status.should == 204
+    Chronologic.schema.object_for("spot_1").should == Hash.new
   end
 
   it "subscribes a subscriber to a timeline" do
@@ -54,9 +55,9 @@ describe Chronologic::Service do
 
     post "/subscription", subscription
 
-    last_response.status.must_equal 201
-    Chronologic.schema.subscribers_for("user_2").must_include "user_1_home"
-    Chronologic.schema.followers_for("user_2").must_include "user_1"
+    last_response.status.should == 201
+    Chronologic.schema.subscribers_for("user_2").should include("user_1_home")
+    Chronologic.schema.followers_for("user_2").should include("user_1")
   end
 
   it "subscribes a subscriber to a timeline without backfill" do
@@ -71,10 +72,10 @@ describe Chronologic::Service do
 
     post "/subscription", subscription
 
-    last_response.status.must_equal 201
-    Chronologic.schema.subscribers_for("user_2").must_include "user_1_home"
-    Chronologic.schema.followers_for("user_2").must_include "user_1"
-    Chronologic.schema.timeline_for("user_1_home").length.must_equal 0
+    last_response.status.should == 201
+    Chronologic.schema.subscribers_for("user_2").should include("user_1_home")
+    Chronologic.schema.followers_for("user_2").should include("user_1")
+    Chronologic.schema.timeline_for("user_1_home").length.should == 0
   end
 
   it "unsubscribes a subscriber to a timeline" do
@@ -82,8 +83,8 @@ describe Chronologic::Service do
 
     delete "/subscription/user_2/user_1_home"
 
-    last_response.status.must_equal 204
-    Chronologic.schema.subscribers_for("user_2").wont_include "user_1_home"
+    last_response.status.should == 204
+    Chronologic.schema.subscribers_for("user_2").should_not include("user_1_home")
   end
 
   it 'checks social connection for a timeline backlink and a subscriber key' do
@@ -97,9 +98,9 @@ describe Chronologic::Service do
       'subscriber_key' => 'user_bo'
     }
 
-    last_response.status.must_equal 200
+    last_response.status.should == 200
     obj = JSON.load(last_response.body)
-    obj['user_bo'].must_equal true
+    obj['user_bo'].should == true
   end
 
   it "publishes an event" do
@@ -113,13 +114,13 @@ describe Chronologic::Service do
 
     post "/event", event
 
-    last_response.status.must_equal 201
+    last_response.status.should == 201
 
     result = Chronologic.schema.event_for("checkin_1212")
-    result["data"].must_equal event["data"]
-    result["objects"].must_equal event["objects"]
+    result["data"].should == event["data"]
+    result["objects"].should == event["objects"]
 
-    last_response.headers["Location"].must_match %r!/event/#{event["key"]}/[\d\w-]*!
+    last_response.headers["Location"].should match(%r!/event/#{event["key"]}/[\d\w-]*!)
   end
 
   it "publishes an event without fanout" do
@@ -134,12 +135,12 @@ describe Chronologic::Service do
 
     post "/event?fanout=0", event
 
-    last_response.status.must_equal 201
+    last_response.status.should == 201
 
     result = Chronologic.schema.event_for("checkin_1212")
-    result["data"].must_equal event["data"]
-    result["objects"].must_equal event["objects"]
-    Chronologic.schema.timeline_events_for("user_1_home").values.wont_include event["key"]
+    result["data"].should == event["data"]
+    result["objects"].should == event["objects"]
+    Chronologic.schema.timeline_events_for("user_1_home").values.should_not include(event["key"])
   end
 
   it "unpublishes an event" do
@@ -153,8 +154,8 @@ describe Chronologic::Service do
 
     delete "/event/checkin_1111"
 
-    last_response.status.must_equal 204
-    Chronologic.schema.event_for("checkin_1111").must_equal Hash.new
+    last_response.status.should == 204
+    Chronologic.schema.event_for("checkin_1111").should == Hash.new
   end
 
   it "reads a timeline feed" do
@@ -169,14 +170,14 @@ describe Chronologic::Service do
 
     get "/timeline/user_1_home"
 
-    last_response.status.must_equal 200
+    last_response.status.should == 200
     obj = json_body
-    obj["feed"].length.must_equal 1
+    obj["feed"].length.should == 1
 
     result = obj["feed"].first
-    result["data"].must_equal event.data
-    result["objects"]["user"].must_equal keeg
-    result["objects"]["spot"].must_equal jp
+    result["data"].should == event.data
+    result["objects"]["user"].should == keeg
+    result["objects"]["spot"].should == jp
   end
 
   it "reads a timeline feed with page and per_page parameters" do
@@ -185,9 +186,9 @@ describe Chronologic::Service do
     get "/timeline/user_1_home", :per_page => 5, :page => uuids[4]
 
     obj = json_body
-    obj["feed"].length.must_equal 5
-    obj["count"].must_equal 10
-    obj["next_page"].wont_be_nil
+    obj["feed"].length.should == 5
+    obj["count"].should == 10
+    obj["next_page"].should_not be_nil
   end
 
   it "reads a timeline with subevents" do
@@ -227,7 +228,7 @@ describe Chronologic::Service do
     get "/timeline/user_1_home", :subevents => true
     obj = json_body
     result = obj["feed"].first
-    result["subevents"].length.must_equal 2
+    result["subevents"].length.should == 2
   end
 
   def json_body

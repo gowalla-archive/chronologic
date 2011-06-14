@@ -1,15 +1,15 @@
-require "helper"
+require 'spec_helper'
 
 describe Chronologic do
 
   it "holds a Cassandra connection" do
     fake_connection = Object.new
     Chronologic.connection = fake_connection
-    Chronologic.connection.must_equal fake_connection
+    Chronologic.connection.should eq(fake_connection)
   end
 
   it "has a schema helper" do
-    Chronologic.schema.must_equal Chronologic::Schema
+    Chronologic.schema.should eq(Chronologic::Schema)
   end
 
 end

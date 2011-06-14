@@ -63,11 +63,17 @@ RSpec.configure do |config|
   config.include(WebMock::API)
 
   config.before do
+    # TODO: switch back to Cassandra::Mock
     Chronologic::Schema.write_opts = {
       :consistency => Cassandra::Consistency::ONE
     }
     Chronologic.connection = Cassandra.new('ChronologicTest')
     clean_up_keyspace!(Chronologic.connection)
+  end
+
+  config.before do
+    WebMock.disable_net_connect!
+    WebMock.reset!
   end
 
 end

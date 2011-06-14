@@ -4,9 +4,7 @@ require 'rack/test'
 describe Chronologic::Service do
   include Rack::Test::Methods
 
-  before do
-    @protocol = Chronologic::Protocol
-  end
+  let(:protocol) { Chronologic::Protocol }
 
   it "writes a new entity record" do
     data = {
@@ -25,7 +23,7 @@ describe Chronologic::Service do
       "name" => "Juan Pelota's", 
       "awesome_factor" => "100"
     }
-    @protocol.record("spot_1", data)
+    protocol.record("spot_1", data)
 
     get "/object/spot_1"
 
@@ -38,7 +36,7 @@ describe Chronologic::Service do
       "name" => "Juan Pelota's", 
       "awesome_factor" => "100"
     }
-    @protocol.record("spot_1", data)
+    protocol.record("spot_1", data)
 
     delete "/object/spot_1"
 
@@ -79,7 +77,7 @@ describe Chronologic::Service do
   end
 
   it "unsubscribes a subscriber to a timeline" do
-    @protocol.subscribe("user_2", "user_1_home")
+    protocol.subscribe("user_2", "user_1_home")
 
     delete "/subscription/user_2/user_1_home"
 
@@ -89,9 +87,9 @@ describe Chronologic::Service do
 
   it 'checks social connection for a timeline backlink and a subscriber key' do
     # Set up connections
-    @protocol.subscribe('user_bo_feed', 'user_ak', 'user_bo') # w/ backlink
-    @protocol.subscribe('user_ak_feed', 'user_bo', 'user_ak')
-    @protocol.subscribe('user_bs_feed', 'user_bo', 'user_bs') # No recip.
+    protocol.subscribe('user_bo_feed', 'user_ak', 'user_bo') # w/ backlink
+    protocol.subscribe('user_ak_feed', 'user_bo', 'user_ak')
+    protocol.subscribe('user_bs_feed', 'user_bo', 'user_bs') # No recip.
 
     get '/subscription/is_connected', {
       'timeline_backlink' => 'user_ak',
@@ -150,7 +148,7 @@ describe Chronologic::Service do
     event.data = {"type" => "checkin", "message" => "I'm here!"}
     event.objects = {"user" => "user_1", "spot" => "spot_1"}
     event.timelines = ["user_1", "spot_1"]
-    uuid = @protocol.publish(event)
+    uuid = protocol.publish(event)
 
     delete "/event/checkin_1111"
 
@@ -161,12 +159,12 @@ describe Chronologic::Service do
   it "reads a timeline feed" do
     jp = {"name" => "Juan Pelota's", "awesome_factor" => "100"}
     keeg = {"name" => "Keegan", "awesome_factor" => "109"}
-    @protocol.record("spot_1", jp)
-    @protocol.record("user_1", keeg)
+    protocol.record("spot_1", jp)
+    protocol.record("user_1", keeg)
 
-    @protocol.subscribe("user_1_home", "user_1")
+    protocol.subscribe("user_1_home", "user_1")
     event = simple_event
-    uuid = @protocol.publish(event)
+    uuid = protocol.publish(event)
 
     get "/timeline/user_1_home"
 
@@ -195,9 +193,9 @@ describe Chronologic::Service do
     akk = {"name" => "akk"}
     sco = {"name" => "sco"}
     jp = {"name" => "Juan Pelota's"}
-    @protocol.record("user_1", akk)
-    @protocol.record("user_2", sco)
-    @protocol.record("spot_1", jp)
+    protocol.record("user_1", akk)
+    protocol.record("user_2", sco)
+    protocol.record("spot_1", jp)
 
     event = Chronologic::Event.new
     event.key = "checkin_1111"
@@ -206,8 +204,8 @@ describe Chronologic::Service do
     event.objects = {"user" => "user_1", "spot" => "spot_1"}
     event.timelines = ["user_1", "spot_1"]
 
-    @protocol.subscribe("user_1_home", "user_1")
-    event = @protocol.publish(event)
+    protocol.subscribe("user_1_home", "user_1")
+    event = protocol.publish(event)
 
     event = Chronologic::Event.new
     event.key = "comment_1111"
@@ -215,7 +213,7 @@ describe Chronologic::Service do
     event.data = {"type" => "comment", "message" => "Me too!", "parent" => "checkin_1111"}
     event.objects = {"user" => "user_2"}
     event.timelines = ["checkin_1111"]
-    @protocol.publish(event)
+    protocol.publish(event)
 
     event = Chronologic::Event.new
     event.key = "comment_2222"
@@ -223,7 +221,7 @@ describe Chronologic::Service do
     event.data = {"type" => "comment", "message" => "Great!", "parent" => "checkin_1111"}
     event.objects = {"user" => "user_1"}
     event.timelines = ["checkin_1111"]
-    @protocol.publish(event)
+    protocol.publish(event)
 
     get "/timeline/user_1_home", :subevents => true
     obj = json_body

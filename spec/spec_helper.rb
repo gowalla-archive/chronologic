@@ -1,4 +1,5 @@
 require 'chronologic'
+require 'webmock/rspec'
 
 module ChronologicHelpers
 
@@ -59,6 +60,7 @@ end
 
 RSpec.configure do |config|
   config.include(ChronologicHelpers)
+  config.include(WebMock::API)
 
   config.before do
     Chronologic::Schema.write_opts = {

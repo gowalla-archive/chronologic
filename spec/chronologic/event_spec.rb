@@ -11,14 +11,6 @@ describe Chronologic::Event do
     end
   end
 
-  # before do
-  #   event = Chronologic::Event.new
-  #   event.timestamp = Time.now
-  #   event.data = {"foo" => {"one" => "two"}}
-  #   event.objects = {"user" => "user_1", "spot" => "spot_1"}
-  #   event.timelines = ["user_1", "sxsw"]
-  # end
-
   it "serializes structured data columns" do
     event.to_columns["data"].should == JSON.dump(event.data)
     event.to_columns["objects"].should == JSON.dump(event.objects)

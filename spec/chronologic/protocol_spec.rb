@@ -1,4 +1,4 @@
-require "helper"
+require 'spec_helper'
 
 describe Chronologic::Protocol do
 
@@ -13,14 +13,14 @@ describe Chronologic::Protocol do
     @protocol.record("spot_1", jp)
 
     hsh = {"user_1" => akk, "spot_1" => jp}
-    @protocol.schema.object_for(["user_1", "spot_1"]).must_equal hsh
+    @protocol.schema.object_for(["user_1", "spot_1"]).should == hsh
   end
 
   it "unrecords an entity" do
     @protocol.record("user_1", {"name" => "akk"})
     @protocol.unrecord("user_1")
 
-    @protocol.schema.object_for("user_1").must_equal Hash.new
+    @protocol.schema.object_for("user_1").should == Hash.new
   end
 
   it "subscribes a subscriber key to a timeline key and populates a timeline" do
@@ -29,8 +29,8 @@ describe Chronologic::Protocol do
     @protocol.publish(event)
     @protocol.subscribe("user_1_home", "user_1")
 
-    @protocol.schema.subscribers_for("user_1").must_equal ["user_1_home"]
-    @protocol.schema.timeline_events_for("user_1_home").values.must_include event.key
+    @protocol.schema.subscribers_for("user_1").should == ["user_1_home"]
+    @protocol.schema.timeline_events_for("user_1_home").values.should include(event.key)
   end
 
   it "subscribes a subscriber key to a timeline key with no backfill" do
@@ -39,8 +39,8 @@ describe Chronologic::Protocol do
     @protocol.publish(event)
     @protocol.subscribe("user_1_home", "user_2", 'user_1', false)
 
-    @protocol.schema.subscribers_for("user_2").must_equal ["user_1_home"]
-    @protocol.schema.timeline_events_for("user_1_home").length.must_equal 0
+    @protocol.schema.subscribers_for("user_2").should == ["user_1_home"]
+    @protocol.schema.timeline_events_for("user_1_home").length.should == 0
   end
 
   it "unsubscribes a subscriber key from a timeline key" do
@@ -50,16 +50,16 @@ describe Chronologic::Protocol do
     @protocol.subscribe("user_1_home", "user_1")
     @protocol.unsubscribe("user_1_home", "user_1")
 
-    @protocol.schema.subscribers_for("user_1").must_equal []
-    @protocol.schema.timeline_events_for("user_1_home").values.must_equal []
+    @protocol.schema.subscribers_for("user_1").should == []
+    @protocol.schema.timeline_events_for("user_1_home").values.should == []
   end
 
   it 'checks whether a feed and a user are connected' do
     @protocol.subscribe('user_1_home', 'user_2', 'user_1')
     @protocol.subscribe('user_3_home', 'user_2') # No backlink, no connection
 
-    @protocol.connected?('user_2', 'user_1').must_equal true
-    @protocol.connected?('user_2', 'user_3').must_equal false
+    @protocol.connected?('user_2', 'user_1').should == true
+    @protocol.connected?('user_2', 'user_3').should == false
   end
 
   it "publishes an event to one or more timeline keys" do
@@ -74,12 +74,12 @@ describe Chronologic::Protocol do
     @protocol.publish(event)
 
     fetched = Chronologic::Event.load_from_columns(@protocol.schema.event_for(event.key))
-    fetched["timestamp"].iso8601.must_equal event.timestamp.iso8601
-    fetched["data"].must_equal event.data
-    fetched["objects"].must_equal event.objects
-    @protocol.schema.timeline_events_for("user_1_home").values.must_include event.key
+    fetched["timestamp"].iso8601.should == event.timestamp.iso8601
+    fetched["data"].should == event.data
+    fetched["objects"].should == event.objects
+    @protocol.schema.timeline_events_for("user_1_home").values.should include(event.key)
     event.timelines.each do |t|
-      @protocol.schema.timeline_events_for(t).values.must_include event.key
+      @protocol.schema.timeline_events_for(t).values.should include(event.key)
     end
   end
 
@@ -88,7 +88,7 @@ describe Chronologic::Protocol do
     @protocol.subscribe("user_1_home", "user_1")
     uuid = @protocol.publish(event, false)
 
-    @protocol.schema.timeline_events_for("user_1_home").wont_include event.key
+    @protocol.schema.timeline_events_for("user_1_home").should_not include(event.key)
   end
 
   it "publishes an event twice without duplicates" do
@@ -96,7 +96,7 @@ describe Chronologic::Protocol do
     @protocol.publish(event, false)
     @protocol.publish(event, false)
 
-    @protocol.schema.timeline_events_for("user_1").length.must_equal 1
+    @protocol.schema.timeline_events_for("user_1").length.should == 1
   end
 
   it "publishes an event with an existing key updates the existing event" do
@@ -105,9 +105,9 @@ describe Chronologic::Protocol do
     event.timelines << "foo_1"
     @protocol.publish(event, false)
 
-    @protocol.schema.timeline_events_for("user_1").length.must_equal 1
-    @protocol.schema.event_for(event.key).must_equal event.to_columns
-    event.published?.must_equal true
+    @protocol.schema.timeline_events_for("user_1").length.should == 1
+    @protocol.schema.event_for(event.key).should == event.to_columns
+    event.published?.should == true
   end
 
   it "unpublishes an event from one or more timeline keys" do
@@ -117,10 +117,10 @@ describe Chronologic::Protocol do
     uuid = @protocol.publish(event)
     @protocol.unpublish(event)
 
-    @protocol.schema.event_for(event.key).must_equal Hash.new
-    @protocol.schema.timeline_events_for("user_1_home").wont_include event.key
+    @protocol.schema.event_for(event.key).should == Hash.new
+    @protocol.schema.timeline_events_for("user_1_home").should_not include(event.key)
     event.timelines.each do |t|
-      @protocol.schema.timeline_events_for(t).wont_include event.key
+      @protocol.schema.timeline_events_for(t).should_not include(event.key)
     end
   end
 
@@ -128,7 +128,7 @@ describe Chronologic::Protocol do
 
   it "counts item in a feed" do
     populate_timeline
-    @protocol.feed_count("user_1_home").must_equal 10
+    @protocol.feed_count("user_1_home").should == 10
   end
 
 end

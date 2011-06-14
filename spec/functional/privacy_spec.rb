@@ -1,4 +1,4 @@
-require 'helper'
+require 'spec_helper'
 
 describe "Privacy controls in Chronologic" do
 
@@ -6,7 +6,7 @@ describe "Privacy controls in Chronologic" do
 
   # Rewrite this from a chronologic client
   it "checks whether a user can see events for another user" do
-    skip("Come back to this when you're good and sure about it")
+    pending("Come back to this when you're good and sure about it")
     post '/subscription', {
       'timeline_key' => 'user_ak_feed', 
       'subscriber_key' => 'user_bo', 

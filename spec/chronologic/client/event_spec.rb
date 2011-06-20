@@ -56,54 +56,68 @@ describe Chronologic::Client::Event do
 
   it 'instantiates a new event object' do
     story.title.should be_nil
-  end
-
-  context '.fetch'
-
-  context '#save'
-
-  context '#update'
-
-  context '#destroy'
-
-  # ---- BLEH ----
-
-  it 'tracks unsaved events' do
-    pending('remove this?')
-    story.title = 'Honkity honk'
     story.should be_new_record
   end
 
-  it 'updates existing events' do
-    pending
-    story = Story.from('title' => 'Honkity honk')
-    story.should_not be_new_record
+  context '#from' do
+
+    before { story.from({'title' => 'Some awesome story is awesome.'}) }
+
+    it 'initializes an event from a hash' do
+      story.title.should eq('Some awesome story is awesome.')
+    end
+
+    it 'clears the new_record? flag' do
+      story.should_not be_new_record
+    end
+
   end
 
-  # ??? Write an example for #save
-  
+  context '.fetch' do
 
-  it 'updates an existing event'
+    it 'loads an existing event' do
+      title = 'This is a great story!'
 
-  it 'deletes an existing event'
+      story.client = double
+      story.client.should_receive(:fetch).and_return({'title' => title})
 
-  it 'adds an record references'
+      story = Story.fetch('story_123')
+      story.title.should == title
+    end
 
-  it 'removes a record reference'
+  end
 
-  it 'fetches record references'
+  context '#save' do
 
-  it 'adds a subevent'
+    before { story.client = stub }
+    before { story.title = 'This is a great thing.' }
 
-  it 'removes a subevent'
+    it 'publishes new events' do
+      story.client.should_receive(:publish)
+      story.save
+    end
 
-  it 'fetches all subevents'
+    it 'updates existing events' do
+      story.client.should_receive(:update)
+      story.new_record = false
+      story.save
+    end
 
-  it 'sets its parent event'
+  end
 
-  it 'adds a timeline'
+  context '#destroy' do
 
-  it 'removes a timeline'
+    it 'does not attempt to unpublish a new record' do
+      expect { story.destroy }.to raise_exception
+    end
+
+    it 'unpublishes an event' do
+      story.new_record = false
+      story.client.should_receive(:unpublish)
+      story.destroy
+    end
+
+  end
 
 end
 

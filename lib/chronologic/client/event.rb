@@ -7,6 +7,8 @@ class Chronologic::Client
     extend ActiveSupport::Concern
 
     included do
+      cattr_accessor :client
+
       # ??? Protect this?
       attr_accessor :new_record
 
@@ -29,20 +31,16 @@ class Chronologic::Client
         }, __FILE__, __LINE__
       end
 
-      # HAX spec this
-      # def from(attrs)
-      #   new.tap do |event|
-      #     event.new_record = false
-      #     attrs.each { |name, value| event.send("#{name}=", value) }
-      #   end
-      # end
+      def fetch(event_key)
+        new.from(client.fetch(event_key))
+      end
     end
 
     module InstanceMethods
 
       def initialize
         @attributes = {}
-        # self.new_record = true
+        @new_record = true
         super
       end
 
@@ -51,11 +49,26 @@ class Chronologic::Client
       end
 
       def new_record?
-        new_record
+        @new_record
       end
 
       def publish
-        # SLIME
+        client.publish # SLIME
+      end
+
+      def update
+        client.update # SLIME
+      end
+
+      def destroy
+        raise %q{Won't destroy a new record} if new_record?
+        client.unpublish # SLIME
+      end
+
+      def from(attrs)
+        attrs.each { |name, value| send("#{name}=", value) }
+        @new_record = false
+        self
       end
 
     end

@@ -23,6 +23,13 @@ module Chronologic
   autoload :Record, "chronologic/record"
   autoload :Subscriber, "chronologic/subscriber"
 
+  class Client
+
+    autoload :Object, 'chronologic/client/object'
+    autoload :Event, 'chronologic/client/event'
+
+  end
+
   class Exception < RuntimeError; end
   class ServiceError < RuntimeError 
     attr_reader :response

@@ -9,11 +9,18 @@ describe Chronologic::Client::Event do
       end
     end
 
+    class Photo
+      def to_cl_key
+        'photo_1'
+      end
+    end
+
     include Chronologic::Client::Event
 
     attribute :title
 
     objects :users, User
+    events :activities
   end
 
   let(:story) { Story.new }
@@ -59,15 +66,30 @@ describe Chronologic::Client::Event do
       story.users.should eq([])
     end
 
+    it 'converts loaded objects to the proper class'
+
   end
 
   context '.events' do
 
-    it 'defines a collection append method'
+    it 'defines a collection append method' do
+      event = Story::Photo.new
+      story.add_activity(event)
+      story.activities.should include(event)
+    end
 
-    it 'defines a collection remove method'
+    it 'defines a collection remove method' do
+      event = Story::Photo.new
+      story.add_activity(event)
+      story.remove_activity(event)
+      story.activities.should be_empty
+    end
 
-    it 'defines a collection accessor'
+    it 'defines a collection accessor' do
+      story.activities.should eq([])
+    end
+
+    it 'converts loaded events to the appropriate class'
 
   end
 
@@ -87,6 +109,9 @@ describe Chronologic::Client::Event do
         },
         'objects' => {
           'user_1' => {'username' => 'akk', 'age' => '31'}
+        },
+        'subevents' => {
+          'photo_1' => {'message' => 'Look at this!', 'url' => '/p/123.jpg'}
         }
       }
     end
@@ -103,6 +128,10 @@ describe Chronologic::Client::Event do
 
     it 'loads objects' do
       story.objects['user_1'].should eq(event['objects']['user_1'])
+    end
+
+    it 'loads events' do
+      story.events['photo_1'].should eq(event['subevents']['photo_1'])
     end
 
   end

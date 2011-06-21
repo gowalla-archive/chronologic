@@ -14,6 +14,7 @@ class Chronologic::Client
       attr_accessor :new_record
 
       attr_accessor :objects
+      attr_accessor :events
 
       include ActiveModel::Dirty
     end
@@ -50,6 +51,23 @@ class Chronologic::Client
         }, __FILE__, __LINE__
       end
 
+      def events(name)
+        self.class_eval %Q{
+          def #{name}
+            events.values
+          end
+
+          def add_#{name.to_s.singularize}(obj)
+            events[obj.to_cl_key] = obj
+          end
+
+          def remove_#{name.to_s.singularize}(obj)
+            events.delete(obj.to_cl_key)
+          end
+        }, __FILE__, __LINE__
+
+      end
+
       def fetch(event_key)
         new.from(client.fetch(event_key))
       end
@@ -61,6 +79,7 @@ class Chronologic::Client
         @attributes = {}
         @new_record = true
         @objects = Hash.new { |h, k| h[k] = {} }
+        @events = Hash.new { |h, k| h[k] = {} }
         super
       end
 
@@ -88,6 +107,7 @@ class Chronologic::Client
       def from(attrs)
         load_attributes(attrs.fetch('data', []))
         load_objects(attrs.fetch('objects', {}))
+        load_events(attrs.fetch('subevents', {}))
         clear_new_record
 
         self
@@ -96,9 +116,13 @@ class Chronologic::Client
       def load_attributes(attrs)
         attrs.each { |name, value| send("#{name}=", value) }
       end
-      
+
       def load_objects(objs)
         self.objects = objs
+      end
+
+      def load_events(objs)
+        self.events = objs
       end
 
       def clear_new_record

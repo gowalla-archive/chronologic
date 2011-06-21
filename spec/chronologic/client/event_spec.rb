@@ -3,9 +3,17 @@ require 'spec_helper'
 describe Chronologic::Client::Event do
 
   class Story
+    class User
+      def to_cl_key
+        'user_1'
+      end
+    end
+
     include Chronologic::Client::Event
 
     attribute :title
+
+    objects :users, User
   end
 
   let(:story) { Story.new }
@@ -34,11 +42,22 @@ describe Chronologic::Client::Event do
 
   context '.objects' do
     
-    it 'defines a collection append method'
+    it 'defines a collection append method' do
+      user = Story::User.new
+      story.add_user(user)
+      story.users.should include(user)
+    end
 
-    it 'defines a collection remove method'
+    it 'defines a collection remove method' do
+      user = Story::User.new
+      story.add_user(user)
+      story.remove_user(user)
+      story.users.should be_empty
+    end
 
-    it 'defines a collection accessor'
+    it 'defines a collection accessor' do
+      story.users.should eq([])
+    end
 
   end
 
@@ -61,7 +80,18 @@ describe Chronologic::Client::Event do
 
   context '#from' do
 
-    before { story.from({'title' => 'Some awesome story is awesome.'}) }
+    let(:event) do
+      {
+        'data' => {
+          'title' => 'Some awesome story is awesome.'
+        },
+        'objects' => {
+          'user_1' => {'username' => 'akk', 'age' => '31'}
+        }
+      }
+    end
+
+    before { story.from(event) }
 
     it 'initializes an event from a hash' do
       story.title.should eq('Some awesome story is awesome.')
@@ -69,6 +99,10 @@ describe Chronologic::Client::Event do
 
     it 'clears the new_record? flag' do
       story.should_not be_new_record
+    end
+
+    it 'loads objects' do
+      story.objects['user_1'].should eq(event['objects']['user_1'])
     end
 
   end
@@ -79,7 +113,7 @@ describe Chronologic::Client::Event do
       title = 'This is a great story!'
 
       story.client = double
-      story.client.should_receive(:fetch).and_return({'title' => title})
+      story.client.should_receive(:fetch).and_return('data' => {'title' => title})
 
       story = Story.fetch('story_123')
       story.title.should == title

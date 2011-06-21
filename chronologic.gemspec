@@ -50,6 +50,10 @@ Gem::Specification.new do |s|
   s.add_dependency('sinatra', ["~> 1.0.0"])
   s.add_dependency('activemodel', ['~> 3.0.0'])
 
+  # HAX
+  s.add_dependency('thrift', ['~> 0.5.0'])
+  s.add_dependency('thrift_client', ['~> 0.6.0'])
+
 
   ## Leave this section as-is. It will be automatically generated from the
   ## contents of your Git repository via the gemspec task. DO NOT REMOVE

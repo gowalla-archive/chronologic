@@ -1,4 +1,4 @@
-require "cassandra"
+require "cassandra/0.7"
 
 module Chronologic::Schema
   mattr_accessor :write_opts 

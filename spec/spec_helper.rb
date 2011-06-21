@@ -1,5 +1,6 @@
 require 'chronologic'
 require 'webmock/rspec'
+require 'cassandra/mock'
 
 module ChronologicHelpers
 
@@ -63,12 +64,23 @@ RSpec.configure do |config|
   config.include(WebMock::API)
 
   config.before do
-    # TODO: switch back to Cassandra::Mock
-    Chronologic::Schema.write_opts = {
-      :consistency => Cassandra::Consistency::ONE
-    }
-    Chronologic.connection = Cassandra.new('ChronologicTest')
-    clean_up_keyspace!(Chronologic.connection)
+    if ENV['CASSANDRA']
+      Chronologic::Schema.write_opts = {
+        :consistency => Cassandra::Consistency::ONE
+      }
+      Chronologic.connection = Cassandra.new('ChronologicTest')
+      clean_up_keyspace!(Chronologic.connection)
+    else
+      schema = {
+        'Chronologic' => {
+          'Object' => {},
+          'Subscription' => {},
+          'Event' => {},
+          'Timeline' => {}
+        }
+      }
+      Chronologic.connection = Cassandra::Mock.new('Chronologic', schema)
+    end
   end
 
   config.before do

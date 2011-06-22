@@ -37,8 +37,14 @@ class Chronologic::Client
 
       def objects(name, klass)
         self.class_eval %Q{
+          # SLOW this potentially converts hashes to the klass every time.
+          # Could memoize this sometime in the future.
           def #{name}
-            objects.fetch('#{name}', {}).values
+            objects.
+              fetch('#{name}', {}).
+              values.map { |obj| 
+                obj.is_a?(#{klass}) ? obj : #{klass}.new.from_cl(obj) 
+              }.sort
           end
 
           def add_#{name.to_s.singularize}(obj)

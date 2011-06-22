@@ -4,8 +4,20 @@ describe Chronologic::Client::Event do
 
   class Story
     class User
+      attr_accessor :username, :age
+
       def to_cl_key
         'user_1'
+      end
+
+      def from_cl(attrs)
+        self.username = attrs['username']
+        self.age = attrs['age']
+        self
+      end
+
+      def <=>(other)
+        self.age <=> other.age
       end
     end
 
@@ -24,6 +36,23 @@ describe Chronologic::Client::Event do
   end
 
   let(:story) { Story.new }
+  let(:event) do
+    {
+      'data' => {
+        'title' => 'Some awesome story is awesome.'
+      },
+      'objects' => {
+        'users' => {
+          'user_1' => {'username' => 'akk', 'age' => '31'},
+          'user_2' => {'username' => 'cmk', 'age' => '30'}
+        }
+      },
+      'subevents' => {
+        'photo_1' => {'message' => 'Look at this!', 'url' => '/p/123.jpg'}
+      }
+    }
+  end
+
 
   # ---- SUGAR ----
 
@@ -66,7 +95,16 @@ describe Chronologic::Client::Event do
       story.users.should eq([])
     end
 
-    it 'converts loaded objects to the proper class'
+    it 'converts loaded objects to the proper class' do
+      story = Story.new.from(event)
+      story.users.first.should be_kind_of(Story::User)
+    end
+
+    it 'fetches objects in order defined by the class' do
+      story = Story.new.from(event)
+      story.users.first.username.should eq('cmk')
+      story.users.last.username.should eq('akk')
+    end
 
   end
 
@@ -101,20 +139,6 @@ describe Chronologic::Client::Event do
   end
 
   context '#from' do
-
-    let(:event) do
-      {
-        'data' => {
-          'title' => 'Some awesome story is awesome.'
-        },
-        'objects' => {
-          'user_1' => {'username' => 'akk', 'age' => '31'}
-        },
-        'subevents' => {
-          'photo_1' => {'message' => 'Look at this!', 'url' => '/p/123.jpg'}
-        }
-      }
-    end
 
     before { story.from(event) }
 

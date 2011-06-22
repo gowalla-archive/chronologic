@@ -66,7 +66,7 @@ module Chronologic::Service::Protocol
   end
 
   def self.feed(timeline_key, options={})
-    Chronologic::Feed.create(timeline_key, options)
+    Chronologic::Service::Feed.create(timeline_key, options)
   end
   
   def self.feed_count(timeline_key)

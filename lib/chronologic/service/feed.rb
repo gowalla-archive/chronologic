@@ -1,4 +1,4 @@
-class Chronologic::Feed
+class Chronologic::Service::Feed
 
   def self.create(timeline_key, options={})
     fetch_subevents = options[:fetch_subevents]

@@ -13,7 +13,6 @@ module Chronologic
 
   VERSION = '0.9.1'
 
-  autoload :Feed, "chronologic/feed"
   autoload :Event, "chronologic/event"
   autoload :Publisher, "chronologic/publisher"
   autoload :Record, "chronologic/record"
@@ -21,6 +20,7 @@ module Chronologic
 
   module Service
     autoload :App, "chronologic/service/app"
+    autoload :Feed, "chronologic/service/feed"
     autoload :Protocol, "chronologic/service/protocol"
     autoload :Schema, "chronologic/service/schema"
   end

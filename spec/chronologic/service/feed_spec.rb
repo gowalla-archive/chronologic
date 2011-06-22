@@ -1,13 +1,14 @@
 require 'spec_helper'
 
-describe Chronologic::Feed do
+describe Chronologic::Service::Feed do
 
   let(:protocol) { Chronologic::Service::Protocol }
+  subject { Chronologic::Service::Feed }
 
   it "fetches a timeline" do
     length = populate_timeline.length
 
-    Chronologic::Feed.create("user_1_home").items.length.should == length
+    subject.create("user_1_home").items.length.should == length
   end
 
   it "generates a feed for a timeline key" do
@@ -22,7 +23,7 @@ describe Chronologic::Feed do
     protocol.publish(event)
 
     ["user_1", "spot_1", "user_1_home"].each do |t|
-      feed = Chronologic::Feed.create(t).items
+      feed = subject.create(t).items
       feed[0].data.should == event.data
       feed[0].objects["user"].should == protocol.schema.object_for("user_1")
       feed[0].objects["spot"].should == protocol.schema.object_for("spot_1")
@@ -33,7 +34,7 @@ describe Chronologic::Feed do
     event = simple_event
     protocol.publish(event)
 
-    feed = Chronologic::Feed.create(
+    feed = subject.create(
       event.timelines.first,
       :fetch_subevents => true
     )
@@ -75,7 +76,7 @@ describe Chronologic::Feed do
     protocol.publish(event)
 
     protocol.schema.timeline_events_for("checkin_1111").values.should include(event.key)
-    subevents = Chronologic::Feed.create("user_1_home", :fetch_subevents => true).items.first.subevents
+    subevents = subject.create("user_1_home", :fetch_subevents => true).items.first.subevents
     subevents.last.data.should == event.data
     subevents.first.objects["user"].should == protocol.schema.object_for("user_2")
     subevents.last.objects["user"].should == protocol.schema.object_for("user_1")
@@ -84,7 +85,7 @@ describe Chronologic::Feed do
   it "fetches a feed by page" do
     uuids = populate_timeline
 
-    Chronologic::Feed.create(
+    subject.create(
       "user_1_home",
       :page => uuids[4],
       :per_page => 5
@@ -96,7 +97,7 @@ describe Chronologic::Feed do
 
   it "tracks the event key for the next page" do
     uuids = populate_timeline
-    feed = Chronologic::Feed.new("user_1_home")
+    feed = subject.new("user_1_home")
     feed.items
 
     feed.next_page.should == uuids.first
@@ -104,7 +105,7 @@ describe Chronologic::Feed do
 
   it "stores the item count for the feed" do
     uuids = populate_timeline
-    feed = Chronologic::Feed.new("user_1_home")
+    feed = subject.new("user_1_home")
     feed.items
 
     feed.count.should == uuids.length
@@ -118,7 +119,7 @@ describe Chronologic::Feed do
     event.objects["test"] = ["user_1", "user_2"]
 
     protocol.publish(event)
-    feed = Chronologic::Feed.create(event.timelines.first)
+    feed = subject.create(event.timelines.first)
     feed.items.first.objects["test"].length.should == 2
   end
 
@@ -143,7 +144,7 @@ describe Chronologic::Feed do
     protocol.publish(event)
     protocol.publish(subevent)
 
-    feed = Chronologic::Feed.new("subsubevent_test", 20, nil, true)
+    feed = subject.new("subsubevent_test", 20, nil, true)
     feed.items.first.
       subevents.first.
       subevents.first.key.should == subevent.key
@@ -171,7 +172,7 @@ describe Chronologic::Feed do
     end
     events.each { |e| protocol.publish(e) }
 
-    feed = Chronologic::Feed.new(nil, nil)
+    feed = subject.new(nil, nil)
     events = feed.fetch_timelines(["user_1", "user_2"])
 
     events.length.should == 5
@@ -186,7 +187,7 @@ describe Chronologic::Feed do
     event = simple_event
     event.objects["test"] = ["user_1", "user_2"]
 
-    feed = Chronologic::Feed.new(nil, nil)
+    feed = subject.new(nil, nil)
     populated_event = feed.fetch_objects([event]).first
 
     populated_event.objects["test"].length.should == 2
@@ -199,7 +200,7 @@ describe Chronologic::Feed do
     it "constructs a feed from multiple events" do
       events = 5.times.map { simple_event }
 
-      feed = Chronologic::Feed.new(nil, nil)
+      feed = subject.new(nil, nil)
       timeline = feed.reify_timeline(events)
 
       timeline.length.should == 5
@@ -208,7 +209,7 @@ describe Chronologic::Feed do
     it "constructs a feed from events with subevents" do
       events = [simple_event, nested_event]
 
-      feed = Chronologic::Feed.new(nil, nil)
+      feed = subject.new(nil, nil)
       timeline = feed.reify_timeline(events)
 
       timeline.length.should == 1
@@ -235,7 +236,7 @@ describe Chronologic::Feed do
         e.timelines << "checkin_3"
       end
 
-      feed = Chronologic::Feed.new(nil, nil)
+      feed = subject.new(nil, nil)
       timeline = feed.reify_timeline(events)
 
       timeline.length.should == 3

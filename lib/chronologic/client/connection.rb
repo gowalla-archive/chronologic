@@ -1,12 +1,12 @@
-require "active_support/core_ext/class"
+require "active_support/core_ext/module"
 require "will_paginate/array"
 require "httparty"
 
-class Chronologic::Client
+class Chronologic::Client::Connection
 
   include HTTParty
 
-  cattr_accessor :instance
+  mattr_accessor :instance
 
   def initialize(host)
     self.class.default_options[:base_uri] = host

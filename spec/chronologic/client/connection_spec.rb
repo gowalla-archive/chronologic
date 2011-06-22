@@ -1,8 +1,8 @@
 require 'spec_helper'
 
-describe Chronologic::Client do
+describe Chronologic::Client::Connection do
 
-  let(:client) { Chronologic::Client.new('http://localhost:3000') }
+  let(:client) { Chronologic::Client::Connection.new('http://localhost:3000') }
 
   it "records an entity" do
     stub_request(:post, "http://localhost:3000/object").
@@ -147,8 +147,8 @@ describe Chronologic::Client do
   end
 
   it "provides an instance of itself" do
-    Chronologic::Client.instance = client
-    Chronologic::Client.instance.should == client
+    Chronologic::Client::Connection.instance = client
+    Chronologic::Client::Connection.instance.should == client
   end
 end
 

@@ -1,7 +1,7 @@
 require "hashie"
 require "cassandra/0.7"
 require "active_support/core_ext/module"
-require "chronologic/cassandra_ext.rb"
+require "chronologic/cassandra_ext"
 
 module Chronologic
 
@@ -18,15 +18,15 @@ module Chronologic
   autoload :Feed, "chronologic/feed"
   autoload :Event, "chronologic/event"
   autoload :Service, "chronologic/service"
-  autoload :Client, "chronologic/client"
   autoload :Publisher, "chronologic/publisher"
   autoload :Record, "chronologic/record"
   autoload :Subscriber, "chronologic/subscriber"
 
-  class Client
+  module Client
 
-    autoload :Object, 'chronologic/client/object'
+    autoload :Connection, "chronologic/client/connection"
     autoload :Event, 'chronologic/client/event'
+    autoload :Object, 'chronologic/client/object'
 
   end
 

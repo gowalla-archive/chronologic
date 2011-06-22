@@ -21,9 +21,33 @@ describe Chronologic::Client::Event do
       end
     end
 
-    class Photo
+    class Activity
+      def from_cl(attrs)
+        case attrs['type']
+        when 'photo'
+          Photo.new.from_cl(attrs)
+        when 'comment'
+          Comment.new.from_cl(attrs)
+        end
+      end
+    end
+
+    class Photo < Activity
+      attr_accessor :message, :url, :timestamp
+
       def to_cl_key
         'photo_1'
+      end
+
+      def from_cl(attrs)
+        self.message = attrs['message']
+        self.url = attrs['url']
+        self.timestamp = attrs['timestamp']
+        self
+      end
+
+      def <=>(other)
+        self.timestamp <=> other.timestamp
       end
     end
 
@@ -32,7 +56,7 @@ describe Chronologic::Client::Event do
     attribute :title
 
     objects :users, User
-    events :activities
+    events :activities, Activity
   end
 
   let(:story) { Story.new }
@@ -48,7 +72,8 @@ describe Chronologic::Client::Event do
         }
       },
       'subevents' => {
-        'photo_1' => {'message' => 'Look at this!', 'url' => '/p/123.jpg'}
+        'photo_1' => {'type' => 'photo', 'message' => 'Look at this!', 'url' => '/p/123.jpg', 'timestamp' => Time.now - 60},
+        'photo_2' => {'type' => 'photo', 'message' => 'Look at that!', 'url' => '/p/456.jpg', 'timestamp' => Time.now - 120}
       }
     }
   end
@@ -127,7 +152,16 @@ describe Chronologic::Client::Event do
       story.activities.should eq([])
     end
 
-    it 'converts loaded events to the appropriate class'
+    it 'converts loaded events to the appropriate class' do
+      story = Story.new.from(event)
+      story.activities.first.should be_kind_of(Story::Photo)
+    end
+
+    it 'fetches events in order defined by the class' do
+      story = Story.new.from(event)
+      story.activities.first.url.should match(/456\.jpg/)
+      story.activities.last.url.should match(/123\.jpg/)
+    end
 
   end
 

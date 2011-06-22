@@ -57,10 +57,12 @@ class Chronologic::Client
         }, __FILE__, __LINE__
       end
 
-      def events(name)
+      def events(name, klass)
         self.class_eval %Q{
           def #{name}
-            events.values
+            events.values.map { |obj|
+              obj.is_a?(#{klass}) ? obj : #{klass}.new.from_cl(obj)
+            }.sort
           end
 
           def add_#{name.to_s.singularize}(obj)

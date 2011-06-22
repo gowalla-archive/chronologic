@@ -17,10 +17,13 @@ module Chronologic
   autoload :Protocol, "chronologic/protocol"
   autoload :Feed, "chronologic/feed"
   autoload :Event, "chronologic/event"
-  autoload :Service, "chronologic/service"
   autoload :Publisher, "chronologic/publisher"
   autoload :Record, "chronologic/record"
   autoload :Subscriber, "chronologic/subscriber"
+
+  module Service
+    autoload :App, "chronologic/service/app"
+  end
 
   module Client
 

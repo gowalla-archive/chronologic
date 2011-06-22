@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'rack/test'
 
-describe Chronologic::Service do
+describe Chronologic::Service::App do
   include Rack::Test::Methods
 
   let(:protocol) { Chronologic::Protocol }
@@ -236,8 +236,8 @@ describe Chronologic::Service do
   def app
     logger = Logger.new(STDOUT)
     logger.level = Logger::WARN
-    Chronologic::Service.logger = logger
-    Chronologic::Service.new
+    Chronologic::Service::App.logger = logger
+    Chronologic::Service::App.new
   end
 
 end

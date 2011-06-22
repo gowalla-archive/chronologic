@@ -3,7 +3,7 @@ require "active_support/core_ext/class"
 require "yajl"
 
 # TODO: caching headers?
-class Chronologic::Service < Sinatra::Base
+class Chronologic::Service::App < Sinatra::Base
 
   cattr_accessor :logger
 

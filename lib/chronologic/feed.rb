@@ -116,7 +116,7 @@ class Chronologic::Feed
 
   # Private: easier access to the Chronologic schema
   def schema
-    Chronologic::Schema
+    Chronologic.schema
   end
 
 end

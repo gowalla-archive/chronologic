@@ -1,9 +1,9 @@
 require 'spec_helper'
 
-describe Chronologic::Schema do 
+describe Chronologic::Service::Schema do 
 
   before do
-    @schema = Chronologic::Schema
+    @schema = Chronologic::Service::Schema
   end
 
   it "creates an object" do

@@ -8,12 +8,11 @@ module Chronologic
   mattr_accessor :connection
 
   def self.schema
-    Chronologic::Schema
+    Chronologic::Service::Schema
   end
 
   VERSION = '0.9.1'
 
-  autoload :Schema, "chronologic/schema"
   autoload :Feed, "chronologic/feed"
   autoload :Event, "chronologic/event"
   autoload :Publisher, "chronologic/publisher"
@@ -23,6 +22,7 @@ module Chronologic
   module Service
     autoload :App, "chronologic/service/app"
     autoload :Protocol, "chronologic/service/protocol"
+    autoload :Schema, "chronologic/service/schema"
   end
 
   module Client

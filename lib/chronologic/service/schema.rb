@@ -1,6 +1,6 @@
 require "cassandra/0.7"
 
-module Chronologic::Schema
+module Chronologic::Service::Schema
   mattr_accessor :write_opts 
   mattr_accessor :logger
 

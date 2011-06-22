@@ -1,7 +1,7 @@
 require "time"
 require "hashie/mash"
 
-module Chronologic::Protocol
+module Chronologic::Service::Protocol
   SUBSCRIBE_BACKFILL_COUNT = 20
 
   def self.record(event_key, data)

@@ -101,7 +101,7 @@ class Chronologic::Service::App < Sinatra::Base
     end
 
     def protocol
-      Chronologic::Protocol
+      Chronologic::Service::Protocol
     end
 
   end

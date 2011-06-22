@@ -4,7 +4,7 @@ require 'rack/test'
 describe Chronologic::Service::App do
   include Rack::Test::Methods
 
-  let(:protocol) { Chronologic::Protocol }
+  let(:protocol) { Chronologic::Service::Protocol }
 
   it "writes a new entity record" do
     data = {
@@ -129,7 +129,7 @@ describe Chronologic::Service::App do
       "objects" => JSON.dump({"user" => "user_1", "spot" => "spot_1"}),
       "timelines" => JSON.dump(["user_1", "spot_1"])
     }
-    Chronologic::Protocol.subscribe("user_1_home", "user_1")
+    protocol.subscribe("user_1_home", "user_1")
 
     post "/event?fanout=0", event
 

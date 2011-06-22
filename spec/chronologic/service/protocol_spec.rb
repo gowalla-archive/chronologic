@@ -1,8 +1,8 @@
 require 'spec_helper'
 
-describe Chronologic::Protocol do
+describe Chronologic::Service::Protocol do
 
-  let(:protocol) { Chronologic::Protocol }
+  let(:protocol) { Chronologic::Service::Protocol }
 
   it "records an entity" do
     akk = {"name" => "akk"}

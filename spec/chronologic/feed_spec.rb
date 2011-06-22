@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Chronologic::Feed do
 
-  let(:protocol) { Chronologic::Protocol }
+  let(:protocol) { Chronologic::Service::Protocol }
 
   it "fetches a timeline" do
     length = populate_timeline.length

@@ -16,62 +16,77 @@ module Chronologic::Client::Event
     attr_accessor :objects
     attr_accessor :events
 
+    attr_accessor :cl_key
+    attr_accessor :timelines
+
     include ActiveModel::Dirty
   end
 
   module ClassMethods
     def attribute(name)
       self.class_eval %Q{
-          define_attribute_methods [:#{name}]
+        define_attribute_methods [:#{name}]
 
-          def #{name}
-            @attributes[:#{name}]
-          end
+        def #{name}
+          @attributes[:#{name}]
+        end
 
-          def #{name}=(val)
-          #{name}_will_change! unless val == @attributes[:#{name}]
-            @attributes[:#{name}] = val
-          end
+        def #{name}=(val)
+        #{name}_will_change! unless val == @attributes[:#{name}]
+          @attributes[:#{name}] = val
+        end
+
+        def cl_attributes
+          @attributes
+        end
       }, __FILE__, __LINE__
     end
 
     def objects(name, klass)
       self.class_eval %Q{
-          # SLOW this potentially converts hashes to the klass every time.
-          # Could memoize this sometime in the future.
-          def #{name}
-            objects.
-              fetch('#{name}', {}).
-              values.map { |obj| 
-                obj.is_a?(#{klass}) ? obj : #{klass}.new.from_cl(obj) 
-              }.sort
-          end
+        # SLOW this potentially converts hashes to the klass every time.
+        # Could memoize this sometime in the future.
+        def #{name}
+          objects.
+            fetch('#{name}', {}).
+            values.map { |obj| 
+              obj.is_a?(#{klass}) ? obj : #{klass}.new.from_cl(obj) 
+            }.sort
+        end
 
-          def add_#{name.to_s.singularize}(obj)
-            objects['#{name}'][obj.to_cl_key] = obj
-          end
+        def add_#{name.to_s.singularize}(obj)
+          objects['#{name}'][obj.to_cl_key] = obj
+        end
 
-          def remove_#{name.to_s.singularize}(obj)
-            objects['#{name}'].delete(obj.to_cl_key)
-          end
+        def remove_#{name.to_s.singularize}(obj)
+          objects['#{name}'].delete(obj.to_cl_key)
+        end
+
+        def cl_objects
+          objects.inject({}) { |hsh, (key, objs)| hsh.update(key => objs.keys) }
+        end
       }, __FILE__, __LINE__
     end
 
     def events(name, klass)
       self.class_eval %Q{
-          def #{name}
-            events.values.map { |obj|
-              obj.is_a?(#{klass}) ? obj : #{klass}.new.from_cl(obj)
-            }.sort
-          end
+        def #{name}
+          events.values.map { |obj|
+            obj.is_a?(#{klass}) ? obj : #{klass}.new.from_cl(obj)
+          }.sort
+        end
 
-          def add_#{name.to_s.singularize}(obj)
-            events[obj.to_cl_key] = obj
-          end
+        def add_#{name.to_s.singularize}(obj)
+          events[obj.to_cl_key] = obj
+        end
 
-          def remove_#{name.to_s.singularize}(obj)
-            events.delete(obj.to_cl_key)
-          end
+        def remove_#{name.to_s.singularize}(obj)
+          events.delete(obj.to_cl_key)
+        end
+
+        def cl_subevents
+          events.keys
+        end
       }, __FILE__, __LINE__
 
     end
@@ -88,7 +103,12 @@ module Chronologic::Client::Event
       @new_record = true
       @objects = Hash.new { |h, k| h[k] = {} }
       @events = Hash.new { |h, k| h[k] = {} }
+      @timelines = []
       super
+    end
+
+    def cl_timelines
+      timelines
     end
 
     def save
@@ -100,7 +120,14 @@ module Chronologic::Client::Event
     end
 
     def publish
-      client.publish # SLIME
+      event = Chronologic::Event.new(
+        :key       => cl_key,
+        :data      => cl_attributes,
+        :objects   => cl_objects,
+        :timelines => cl_timelines,
+        :subevents => cl_subevents
+      )
+      client.publish(event)
     end
 
     def update
@@ -116,7 +143,7 @@ module Chronologic::Client::Event
       load_attributes(attrs.fetch('data', []))
       load_objects(attrs.fetch('objects', {}))
       load_events(attrs.fetch('subevents', {}))
-      clear_new_record
+      clear_new_record_flag
 
       self
     end
@@ -133,7 +160,7 @@ module Chronologic::Client::Event
       self.events = objs
     end
 
-    def clear_new_record
+    def clear_new_record_flag
       @new_record = false
     end
 

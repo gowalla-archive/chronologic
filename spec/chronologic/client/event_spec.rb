@@ -7,18 +7,18 @@ describe Chronologic::Client::Event do
   let(:event) do
     {
       'data' => {
-        'title' => 'Some awesome story is awesome.'
-      },
+      'title' => 'Some awesome story is awesome.'
+    },
       'objects' => {
-        'users' => {
-          'user_1' => {'username' => 'akk', 'age' => '31'},
-          'user_2' => {'username' => 'cmk', 'age' => '30'}
-        }
-      },
+      'users' => {
+      'user_1' => {'username' => 'akk', 'age' => '31'},
+      'user_2' => {'username' => 'cmk', 'age' => '30'}
+    }
+    },
       'subevents' => {
-        'photo_1' => {'type' => 'photo', 'message' => 'Look at this!', 'url' => '/p/123.jpg', 'timestamp' => Time.now - 60},
-        'photo_2' => {'type' => 'photo', 'message' => 'Look at that!', 'url' => '/p/456.jpg', 'timestamp' => Time.now - 120}
-      }
+      'photo_1' => {'type' => 'photo', 'message' => 'Look at this!', 'url' => '/p/123.jpg', 'timestamp' => Time.now - 60},
+      'photo_2' => {'type' => 'photo', 'message' => 'Look at that!', 'url' => '/p/456.jpg', 'timestamp' => Time.now - 120}
+    }
     }
   end
 
@@ -43,10 +43,14 @@ describe Chronologic::Client::Event do
       story.should be_changed
     end
 
+    it 'generates an attributes hash' do
+      story.title = "It's a story!"
+      story.cl_attributes.should eq(:title => "It's a story!")
+    end
   end
 
   context '.objects' do
-    
+
     it 'defines a collection append method' do
       user = Story::User.new
       story.add_user(user)
@@ -73,6 +77,12 @@ describe Chronologic::Client::Event do
       story = Story.new.from(event)
       story.users.first.username.should eq('cmk')
       story.users.last.username.should eq('akk')
+    end
+
+    it 'generates a hash for saving to Chronologic' do
+      user = Story::User.new
+      story.add_user(user)
+      story.cl_objects.should eq({"users" => ["user_1"]})
     end
 
   end
@@ -107,6 +117,11 @@ describe Chronologic::Client::Event do
       story.activities.last.url.should match(/123\.jpg/)
     end
 
+    it 'generates an array for saving to Chronologic' do
+      event = Story::Photo.new
+      story.add_activity(event)
+      story.cl_subevents.should eq(['photo_1'])
+    end
   end
 
   # ---- CRUD ----
@@ -114,6 +129,11 @@ describe Chronologic::Client::Event do
   it 'instantiates a new event object' do
     story.title.should be_nil
     story.should be_new_record
+  end
+
+  it 'tracks timelines' do
+    story.timelines = ['user_1', 'spot_1']
+    story.timelines.should eq(['user_1', 'spot_1'])
   end
 
   context '#from' do
@@ -182,6 +202,13 @@ describe Chronologic::Client::Event do
       story.destroy
     end
 
+  end
+
+  # ---- INTERNALS ----
+
+  it 'has a Chronologic key' do
+    story.cl_key = 'story_1' # SLIME
+    story.cl_key.should eq('story_1')
   end
 
 end

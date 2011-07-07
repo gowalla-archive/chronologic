@@ -18,6 +18,7 @@ module Chronologic::Client::Event
 
     attr_accessor :cl_key
     attr_accessor :timelines
+    attr_accessor :timestamp
 
     include ActiveModel::Dirty
   end
@@ -107,6 +108,10 @@ module Chronologic::Client::Event
       super
     end
 
+    def cl_timestamp
+      timestamp
+    end
+
     def cl_timelines
       timelines
     end
@@ -122,6 +127,7 @@ module Chronologic::Client::Event
     def publish
       event = Chronologic::Event.new(
         :key       => cl_key,
+        :timestamp => cl_timestamp,
         :data      => cl_attributes,
         :objects   => cl_objects,
         :timelines => cl_timelines,

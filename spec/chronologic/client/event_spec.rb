@@ -124,7 +124,11 @@ describe Chronologic::Client::Event do
     end
   end
 
-  # ---- CRUD ----
+  it "has a timestamp" do
+    t = Time.now
+    story.timestamp = t
+    story.timestamp.should eq(t)
+  end
 
   it 'instantiates a new event object' do
     story.title.should be_nil
@@ -157,6 +161,8 @@ describe Chronologic::Client::Event do
     end
 
   end
+
+  # ---- CRUD ----
 
   context '.fetch' do
 

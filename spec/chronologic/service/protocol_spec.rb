@@ -124,6 +124,12 @@ describe Chronologic::Service::Protocol do
 
   # AKK: no test for Protocol.feed since it delegates everything to Feed
 
+  it "fetches one event" do
+    event = simple_event
+    protocol.publish(event, false)
+    protocol.fetch_event(event.key).key.should eq(event.key)
+  end
+
   it "counts item in a feed" do
     populate_timeline
     protocol.feed_count("user_1_home").should == 10

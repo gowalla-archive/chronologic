@@ -65,10 +65,16 @@ module Chronologic::Service::Protocol
     all_timelines.map { |t| schema.remove_timeline_event(t, uuid) }
   end
 
+  def self.fetch_event(event_key)
+    Chronologic::Event.load_from_columns(schema.event_for(event_key)).tap do |ev|
+      ev.key = event_key
+    end
+  end
+
   def self.feed(timeline_key, options={})
     Chronologic::Service::Feed.create(timeline_key, options)
   end
-  
+
   def self.feed_count(timeline_key)
     schema.timeline_count(timeline_key)
   end

@@ -6,9 +6,11 @@ describe Chronologic::Client::Event do
   let(:story) { Story.new }
   let(:event) do
     {
+      'key' => 'story_1',
       'data' => {
-      'title' => 'Some awesome story is awesome.'
-    },
+        'title' => 'Some awesome story is awesome.'
+      },
+      'timestamp' => Time.now,
       'objects' => {
       'users' => {
       'user_1' => {'username' => 'akk', 'age' => '31'},
@@ -158,6 +160,14 @@ describe Chronologic::Client::Event do
 
     it 'loads events' do
       story.events['photo_1'].should eq(event['subevents']['photo_1'])
+    end
+
+    it "loads the event key" do
+      story.cl_key.should eq(event['key'])
+    end
+
+    it "loads the timestamp" do
+      story.timestamp.to_s.should eq(event['timestamp'].to_s)
     end
 
   end

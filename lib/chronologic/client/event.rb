@@ -92,8 +92,8 @@ module Chronologic::Client::Event
 
     end
 
-    def fetch(event_key)
-      new.from(client.fetch(event_key))
+    def fetch(event_url)
+      new.from(client.fetch(event_url))
     end
   end
 
@@ -146,12 +146,22 @@ module Chronologic::Client::Event
     end
 
     def from(attrs)
-      load_attributes(attrs.fetch('data', []))
+      load_key(attrs.fetch('key', ''))
+      load_timestamp(attrs.fetch('timestamp', 'blurg'))
+      load_attributes(attrs.fetch('data', {}))
       load_objects(attrs.fetch('objects', {}))
       load_events(attrs.fetch('subevents', {}))
       clear_new_record_flag
 
       self
+    end
+
+    def load_key(key)
+      self.cl_key = key
+    end
+
+    def load_timestamp(timestamp)
+      self.timestamp = timestamp
     end
 
     def load_attributes(attrs)

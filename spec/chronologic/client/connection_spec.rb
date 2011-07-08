@@ -111,6 +111,28 @@ describe Chronologic::Client::Connection do
     WebMock.should have_requested(:delete, "http://localhost:3000/event/#{event_key}")
   end
 
+  it "fetches an event" do
+    event = simple_event
+    # XXX don't reach into schema to generate a token here
+    token = Chronologic.schema.new_guid(event.timestamp)
+
+    stub_request(
+      :get,
+      "http://localhost:3000/events/#{event.key}/#{token}"
+    ).to_return(
+      :status => 200,
+      :body => {'event' => simple_event}.to_json,
+      :headers => {'Content-Type' => 'application/json'}
+    )
+
+    result = client.fetch("/events/#{event.key}/#{token}")
+    WebMock.should have_requested(
+      :get,
+      "http://localhost:3000/events/#{event.key}/#{token}"
+    )
+    result.should be_a(Chronologic::Event)
+  end
+
   it "fetches a timeline" do
     event = simple_event
 

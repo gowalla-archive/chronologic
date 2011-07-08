@@ -85,6 +85,14 @@ class Chronologic::Client::Connection
     end
   end
 
+  def fetch(event_url)
+    resp = self.class.get(event_url)
+
+    handle(resp, "Error fetching event") do
+      Chronologic::Event.new(resp['event'])
+    end
+  end
+
   def timeline(timeline_key, options={})
     resp = if options.length > 0
              self.class.get("/timeline/#{timeline_key}", :query => options)

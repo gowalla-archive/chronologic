@@ -4,6 +4,7 @@ describe Chronologic::Event do
 
   let(:event) do
     Chronologic::Event.new.tap do |e|
+      e.key = 'event_1'
       e.timestamp = Time.now
       e.data = {"foo" => {"one" => "two"}}
       e.objects = {"user" => "user_1", "spot" => "spot_1"}
@@ -19,6 +20,7 @@ describe Chronologic::Event do
 
   it "loads an event fetched from Cassandra" do
     new_event = Chronologic::Event.load_from_columns(event.to_columns)
+    new_event.timestamp.to_s.should == event.timestamp.to_s
     new_event.data.should == event.data
     new_event.objects.should == event.objects
     new_event.timelines.should == event.timelines
@@ -26,6 +28,7 @@ describe Chronologic::Event do
 
   it "loads an empty event" do
     empty_event = Chronologic::Event.load_from_columns({})
+    empty_event.timestamp.should be_nil
     empty_event.data.should == Hash.new
     empty_event.objects.should == Hash.new
     empty_event.timelines.should == Array.new

@@ -29,11 +29,15 @@ class Chronologic::Event < Hashie::Dash
   end
 
   def self.load_from_columns(columns)
+    # XXX this is so janky
+    raw_time = columns['timestamp']
+    timestamp = raw_time.is_a?(DateTime) ? raw_time : (Time.parse(raw_time) rescue nil)
+
     to_load = {
-      "data" => JSON.load(columns.fetch("data", '{}')), 
-      "objects" => JSON.load(columns.fetch("objects", '{}')), 
-      "timelines" => JSON.load(columns.fetch("timelines", '[]')), 
-      "timestamp" => (Time.parse(columns["timestamp"]) rescue nil)
+      "data" => JSON.load(columns.fetch("data", '{}')),
+      "objects" => JSON.load(columns.fetch("objects", '{}')),
+      "timelines" => JSON.load(columns.fetch("timelines", '[]')),
+      "timestamp" => timestamp
     }
 
     new(to_load)

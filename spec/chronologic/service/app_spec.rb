@@ -156,6 +156,16 @@ describe Chronologic::Service::App do
     Chronologic.schema.event_for("checkin_1111").should == Hash.new
   end
 
+  it 'fetches a single event' do
+    event = simple_event
+    uuid = protocol.publish(event)
+
+    get "/event/#{event.key}/#{uuid}"
+    last_response.status.should == 200
+    json_body.should include('event')
+    json_body['event'].should include('key', 'timestamp', 'data', 'timelines', 'objects')
+  end
+
   it "reads a timeline feed" do
     jp = {"name" => "Juan Pelota's", "awesome_factor" => "100"}
     keeg = {"name" => "Keegan", "awesome_factor" => "109"}

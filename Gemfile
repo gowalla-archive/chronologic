@@ -6,6 +6,7 @@ group :development do
   gem 'perftools.rb'
   gem 'unicorn'
   gem 'foreman'
+  gem 'shotgun'
 end
 
 group :test do

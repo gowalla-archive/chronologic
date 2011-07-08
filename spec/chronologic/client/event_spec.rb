@@ -227,5 +227,19 @@ describe Chronologic::Client::Event do
     story.cl_key.should eq('story_1')
   end
 
-end
+  it 'compares to other objects' do
+    left = story.from(event)
+    right = 'not a story'
+    left.should_not eq(right)
+  end
 
+  it 'compares to another event object' do
+    left = story.from(event)
+    right = Story.new.from(event)
+    left.should eq(right)
+
+    left.title = 'Something else...'
+    left.should_not eq(right)
+  end
+
+end

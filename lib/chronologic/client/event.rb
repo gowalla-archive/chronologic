@@ -180,6 +180,14 @@ module Chronologic::Client::Event
       @new_record = false
     end
 
-  end
+    def ==(other)
+      return false unless other.is_a?(self.class)
 
+      cl_key == other.cl_key &&
+        cl_timestamp == other.cl_timestamp &&
+        cl_attributes == other.cl_attributes &&
+        cl_objects == other.cl_objects &&
+        cl_subevents == other.cl_subevents
+    end
+  end
 end

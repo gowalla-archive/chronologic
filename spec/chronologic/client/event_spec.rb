@@ -12,15 +12,15 @@ describe Chronologic::Client::Event do
       },
       'timestamp' => Time.now,
       'objects' => {
-      'users' => {
-      'user_1' => {'username' => 'akk', 'age' => '31'},
-      'user_2' => {'username' => 'cmk', 'age' => '30'}
-    }
-    },
+        'users' => {
+          'user_1' => {'username' => 'akk', 'age' => '31'},
+          'user_2' => {'username' => 'cmk', 'age' => '30'}
+        }
+      },
       'subevents' => {
-      'photo_1' => {'type' => 'photo', 'message' => 'Look at this!', 'url' => '/p/123.jpg', 'timestamp' => Time.now - 60},
-      'photo_2' => {'type' => 'photo', 'message' => 'Look at that!', 'url' => '/p/456.jpg', 'timestamp' => Time.now - 120}
-    }
+        'photo_1' => {'type' => 'photo', 'message' => 'Look at this!', 'url' => '/p/123.jpg', 'timestamp' => Time.now - 60},
+        'photo_2' => {'type' => 'photo', 'message' => 'Look at that!', 'url' => '/p/456.jpg', 'timestamp' => Time.now - 120}
+      }
     }
   end
 

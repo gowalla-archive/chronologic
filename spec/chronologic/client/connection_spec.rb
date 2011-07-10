@@ -121,7 +121,7 @@ describe Chronologic::Client::Connection do
       "http://localhost:3000/events/#{event.key}/#{token}"
     ).to_return(
       :status => 200,
-      :body => {'event' => simple_event}.to_json,
+      :body => {'event' => simple_event.to_transport}.to_json,
       :headers => {'Content-Type' => 'application/json'}
     )
 

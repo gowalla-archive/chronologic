@@ -173,7 +173,7 @@ module Chronologic::Client::Event
     end
 
     def load_events(objs)
-      self.events = objs
+      self.events = objs.inject({}) { |events, (key, obj)| events.update(key => obj) }
     end
 
     def clear_new_record_flag
@@ -184,7 +184,7 @@ module Chronologic::Client::Event
       return false unless other.is_a?(self.class)
 
       cl_key == other.cl_key &&
-        cl_timestamp == other.cl_timestamp &&
+        cl_timestamp.to_s == other.cl_timestamp.to_s &&
         cl_attributes == other.cl_attributes &&
         cl_objects == other.cl_objects &&
         cl_subevents == other.cl_subevents

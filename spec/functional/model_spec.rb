@@ -15,7 +15,7 @@ describe 'Client-side models' do
   end
   let(:schema) { Chronologic::Service::Schema }
 
-  it 'create a new record' do
+  it 'create a new event' do
     url = story.save
     event = schema.event_for(story.cl_key)
     event.should_not be_nil
@@ -23,15 +23,18 @@ describe 'Client-side models' do
     event['timestamp'].should eq(story.timestamp.iso8601)
   end
 
-  it 'fetch a new record'
+  it 'fetch a new event' do
+    url = story.save
+    Story.fetch(url).should eq(story)
+  end
 
-  it 'update a story'
+  it 'update attributes on an event'
 
-  it 'delete a story'
+  it 'update objects on an event'
 
-  it' change objects on a story'
+  it 'update events on an event'
 
-  it 'change events on a story'
+  it 'delete an event'
 
   it 'create an object'
 

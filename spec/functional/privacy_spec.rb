@@ -1,4 +1,4 @@
-require 'spec_helper'
+require 'functional_helper'
 
 describe "Privacy controls in Chronologic" do
 

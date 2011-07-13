@@ -90,7 +90,7 @@ describe Chronologic::Client::Connection do
     stub_request(:post, "http://localhost:3000/event?fanout=1").
       with(:body => body).
       to_return(
-        :status => 201, 
+        :status => 201,
         :headers => {"Location" => "/event/checkin_1/#{guid}"}
       )
 
@@ -111,24 +111,38 @@ describe Chronologic::Client::Connection do
     WebMock.should have_requested(:delete, "http://localhost:3000/event/#{event_key}")
   end
 
+  it 'updates an event' do
+    event = simple_event
+
+    url = "http://localhost:3000/event/#{event.key}/#{event.token}"
+    body = event.to_transport
+    stub_request(:put, url).
+      with(:body => body).
+      to_return(
+        :status => 201
+      )
+
+    client.update(event).should be_true
+    WebMock.should have_requested(:put, url).
+      with(:body => body)
+  end
+
   it "fetches an event" do
     event = simple_event
-    # XXX don't reach into schema to generate a token here
-    token = Chronologic.schema.new_guid(event.timestamp)
 
     stub_request(
       :get,
-      "http://localhost:3000/events/#{event.key}/#{token}"
+      "http://localhost:3000/events/#{event.key}/#{event.token}"
     ).to_return(
       :status => 200,
       :body => {'event' => simple_event.to_transport}.to_json,
       :headers => {'Content-Type' => 'application/json'}
     )
 
-    result = client.fetch("/events/#{event.key}/#{token}")
+    result = client.fetch("/events/#{event.key}/#{event.token}")
     WebMock.should have_requested(
       :get,
-      "http://localhost:3000/events/#{event.key}/#{token}"
+      "http://localhost:3000/events/#{event.key}/#{event.token}"
     )
     result.should be_a(Chronologic::Event)
   end

@@ -117,7 +117,15 @@ module Chronologic::Client::Event
     end
 
     def save
-      new_record? ? publish : update
+      return false unless cl_changed?
+
+      result = new_record? ? publish : update
+      @new_record = false
+      result
+    end
+
+    def cl_changed?
+      changed?
     end
 
     def new_record?
@@ -137,7 +145,19 @@ module Chronologic::Client::Event
     end
 
     def update
-      client.update # SLIME
+      # Extract changed objects
+      # Extract changed subevents
+      # Changed timelines (?)
+      # How to prevent timestamp changes (?)
+
+      cl_dirty_attributes = cl_attributes
+
+      event = Chronologic::Event.new(
+        :key => cl_key,
+        :timestamp => cl_timestamp,
+        :data => cl_dirty_attributes
+      )
+      client.update(event)
     end
 
     def destroy

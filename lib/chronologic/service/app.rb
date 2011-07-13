@@ -74,6 +74,11 @@ class Chronologic::Service::App < Sinatra::Base
     )
   end
 
+  put '/event/:event_key/:token' do
+    protocol.update_event(event)
+    status 204
+  end
+
   get "/timeline/:timeline_key" do
     options = {
       :fetch_subevents => params["subevents"] == "true",

@@ -70,4 +70,10 @@ class Chronologic::Event < Hashie::Dash
     @children ||= subevents.map { |s| Chronologic::Event.new(s) }
   end
 
+  def token
+    # XXX janky jank-sauce
+    Chronologic.schema.new_guid(timestamp)
+  end
+
 end
+

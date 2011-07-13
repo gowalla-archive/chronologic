@@ -71,6 +71,10 @@ module Chronologic::Service::Protocol
     end
   end
 
+  def self.update_event(event)
+    schema.update_event(event.key, event.to_columns)
+  end
+
   def self.feed(timeline_key, options={})
     Chronologic::Service::Feed.create(timeline_key, options)
   end

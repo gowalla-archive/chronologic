@@ -79,5 +79,10 @@ describe Chronologic::Event do
     )
     event.children.should == [Chronologic::Event.new(subevent)]
   end
+
+  it "generates a timestamp token" do
+    event.token.should eq(Chronologic.schema.new_guid(event.timestamp))
+  end
+
 end
 

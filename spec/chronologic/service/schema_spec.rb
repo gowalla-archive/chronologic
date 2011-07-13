@@ -108,6 +108,16 @@ describe Chronologic::Service::Schema do
     @schema.event_for("checkin_1111").should == Hash.new
   end
 
+  it "updates an event" do
+    data = simple_data
+    @schema.create_event("checkin_1111", data)
+
+    data["hotness"] = "So new!"
+    @schema.update_event("checkin_1111", data)
+
+    @schema.event_for("checkin_1111").should eq(data)
+  end
+
   it "creates a new timeline event" do
     uuid = @schema.new_guid
     data = {"gizmo" => JSON.dump({"message" => "I'm here!"})}

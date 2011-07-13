@@ -156,6 +156,15 @@ describe Chronologic::Service::App do
     Chronologic.schema.event_for("checkin_1111").should == Hash.new
   end
 
+  it "updates an event" do
+    event = simple_event
+    protocol.publish(event)
+
+    put "/event/#{event.key}/#{event.token}", event.to_transport
+
+    last_response.status.should eq(204)
+  end
+
   it 'fetches a single event' do
     event = simple_event
     uuid = protocol.publish(event)

@@ -64,6 +64,12 @@ module Chronologic::Service::Schema
     connection.insert(:Event, event_key, data, write_opts)
   end
 
+  def self.update_event(event_key, data)
+    log("update_event(#{event_key})")
+
+    connection.insert(:Event, event_key, data, write_opts)
+  end
+
   def self.remove_event(event_key)
     log("remove_event(#{event_key})")
 

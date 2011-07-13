@@ -98,6 +98,18 @@ class Chronologic::Client::Connection
     end
   end
 
+  def update(event)
+    resp = self.class.put(
+      "/event/#{event.key}/#{event.token}",
+      :body => event.to_transport
+    )
+    event.published!
+
+    handle(resp, "Error updating event") do
+      true
+    end
+  end
+
   def timeline(timeline_key, options={})
     resp = if options.length > 0
              self.class.get("/timeline/#{timeline_key}", :query => options)

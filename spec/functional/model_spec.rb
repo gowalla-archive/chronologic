@@ -28,7 +28,13 @@ describe 'Client-side models' do
     Story.fetch(url).should eq(story)
   end
 
-  it 'update attributes on an event'
+  it 'update attributes on an event' do
+    url = story.save
+    story.title = "BRASKY ONCE ATE AN OX IN ONE BITE"
+    story.save
+
+    Story.fetch(url).should eq(story)
+  end
 
   it 'update objects on an event'
 

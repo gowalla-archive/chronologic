@@ -204,6 +204,26 @@ describe Chronologic::Client::Event do
       story.save
     end
 
+    it 'clears the new_record? flag' do
+      story.client.stub(:publish)
+      story.save
+      story.should_not be_new_record
+    end
+
+    it "doesn't save if the event hasn't changed" do
+      story = Story.new
+      story.save.should be_false
+    end
+
+  end
+
+  context '#update' do
+
+    it "delegates updates to the connection" do
+      story.client.should_receive(:update)
+      story.update
+    end
+
   end
 
   context '#destroy' do

@@ -165,6 +165,17 @@ describe Chronologic::Service::App do
     last_response.status.should eq(204)
   end
 
+  it "updates an event and its timelines" do
+    event = simple_event
+    protocol.publish(event)
+    event.timelines << 'foo_1'
+
+    put "/event/#{event.key}/#{event.token}?update_timelines=true", event.to_transport
+
+    last_response.status.should eq(204)
+    Chronologic.schema.timeline_events_for('foo_1').values.should include(event['key'])
+  end
+
   it 'fetches a single event' do
     event = simple_event
     uuid = protocol.publish(event)

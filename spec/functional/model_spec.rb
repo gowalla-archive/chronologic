@@ -45,13 +45,38 @@ describe 'Client-side models' do
     story.add_user(user)
     story.save
 
-    fetched = Story.fetch(url)
     Story.fetch(url).objects['users'].should include(user.to_cl_key)
   end
 
-  it 'update events on an event'
+  it 'update subevents on an event' do
+    pending('Save the photo, not the story')
+    photo = Story::Photo.new
+    photo.message = "Look at this great square-cropped pic!"
+    photo.url = '/photos/1'
+    photo.timestamp = Time.now.utc
+
+    url = story.save
+    story.add_activity(photo)
+    story.save
+
+    Photo.fetch(photo.url).parent.should eq(story)
+  end
+
+  it 'update timelines on an event' do
+    story.add_timeline('user_1')
+    url = story.save
+
+    story.add_timeline('spot_1')
+    story.save
+
+    Story.fetch(url).timelines.should eq(['user_1', 'spot_1'])
+    schema.timeline_events_for('user_1').values.should include(story.cl_key)
+    # Make sure that the event was written to the new timeline?
+  end
 
   it 'delete an event'
+
+  it 'properly loads events and objects'
 
   it 'create an object'
 

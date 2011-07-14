@@ -17,6 +17,7 @@ describe Chronologic::Client::Event do
           'user_2' => {'username' => 'cmk', 'age' => '30'}
         }
       },
+      'timelines' => ['user_1', 'spot_1'],
       'subevents' => {
         'photo_1' => {'type' => 'photo', 'message' => 'Look at this!', 'url' => '/p/123.jpg', 'timestamp' => Time.now - 60},
         'photo_2' => {'type' => 'photo', 'message' => 'Look at that!', 'url' => '/p/456.jpg', 'timestamp' => Time.now - 120}
@@ -137,9 +138,34 @@ describe Chronologic::Client::Event do
     story.should be_new_record
   end
 
-  it 'tracks timelines' do
-    story.timelines = ['user_1', 'spot_1']
-    story.timelines.should eq(['user_1', 'spot_1'])
+  context '#add_timeline' do
+
+    before { story.add_timeline('user_1') }
+
+    it 'adds a timeline to the event' do
+      story.timelines.should eq(['user_1'])
+    end
+
+    it 'sets the dirty timelines flag' do
+      story.should be_dirty_timelines
+    end
+
+  end
+
+  context '#remove_timeline' do
+
+    before { story.from('timelines' => ['user_1']) }
+
+    it 'removes a timeline from the event' do
+      story.remove_timeline('user_1')
+      story.timelines.should eq([])
+    end
+
+    it 'sets the dirty timelines flag' do
+      story.remove_timeline('user_1')
+      story.should be_dirty_timelines
+    end
+
   end
 
   context '#from' do
@@ -168,6 +194,10 @@ describe Chronologic::Client::Event do
 
     it "loads the timestamp" do
       story.timestamp.to_s.should eq(event['timestamp'].to_s)
+    end
+
+    it "loads the timelines" do
+      story.timelines.should eq(['user_1', 'spot_1'])
     end
 
   end

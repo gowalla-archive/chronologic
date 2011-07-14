@@ -10,15 +10,12 @@ module Chronologic::Client::Event
   included do
     cattr_accessor :client
 
-    # ??? Protect this?
+    # XXX Protect this?
     attr_accessor :new_record
+    attr_accessor :objects, :events
+    attr_accessor :cl_key, :timestamp
 
-    attr_accessor :objects
-    attr_accessor :events
-
-    attr_accessor :cl_key
-    attr_accessor :timelines
-    attr_accessor :timestamp
+    attr_reader :timelines
 
     include ActiveModel::Dirty
   end
@@ -102,6 +99,7 @@ module Chronologic::Client::Event
     def initialize
       @attributes = {}
       @new_record = true
+      @dirty_timelines = false
       @objects = Hash.new { |h, k| h[k] = {} }
       @events = Hash.new { |h, k| h[k] = {} }
       @timelines = []
@@ -110,6 +108,20 @@ module Chronologic::Client::Event
 
     def cl_timestamp
       timestamp
+    end
+
+    def add_timeline(timeline)
+      @dirty_timelines = true
+      @timelines << timeline
+    end
+
+    def remove_timeline(timeline)
+      @dirty_timelines = true
+      @timelines.delete(timeline)
+    end
+
+    def dirty_timelines?
+      @dirty_timelines
     end
 
     def cl_timelines
@@ -121,6 +133,8 @@ module Chronologic::Client::Event
 
       result = new_record? ? publish : update
       @new_record = false
+      @dirty_timelines = false
+      # XXX: clear dirty attributes?
       result
     end
 
@@ -138,15 +152,13 @@ module Chronologic::Client::Event
         :timestamp => cl_timestamp,
         :data      => cl_attributes,
         :objects   => cl_objects,
-        :timelines => cl_timelines,
-        :subevents => cl_subevents
+        :timelines => cl_timelines
       )
       client.publish(event)
     end
 
     def update
       # Extract changed subevents
-      # Changed timelines - requires flag
       # How to prevent timestamp changes (?)
       # Properly materlize objects and subevents
 
@@ -154,9 +166,10 @@ module Chronologic::Client::Event
         :key => cl_key,
         :timestamp => cl_timestamp,
         :data => cl_attributes,
-        :objects => cl_objects
+        :objects => cl_objects,
+        :timelines => cl_timelines
       )
-      client.update(event)
+      client.update(event, dirty_timelines?)
     end
 
     def destroy
@@ -169,6 +182,7 @@ module Chronologic::Client::Event
       load_timestamp(attrs.fetch('timestamp', 'blurg'))
       load_attributes(attrs.fetch('data', {}))
       load_objects(attrs.fetch('objects', {}))
+      load_timelines(attrs.fetch('timelines', []))
       load_events(attrs.fetch('subevents', {}))
       clear_new_record_flag
 
@@ -189,6 +203,10 @@ module Chronologic::Client::Event
 
     def load_objects(objs)
       self.objects = objs
+    end
+
+    def load_timelines(timelines)
+      @timelines = timelines
     end
 
     def load_events(objs)

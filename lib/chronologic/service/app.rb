@@ -75,7 +75,12 @@ class Chronologic::Service::App < Sinatra::Base
   end
 
   put '/event/:event_key/:token' do
-    protocol.update_event(event)
+    update_timelines = if params.fetch('update_timelines', '') == "true"
+      true
+    else
+      false
+    end
+    protocol.update_event(event, update_timelines)
     status 204
   end
 

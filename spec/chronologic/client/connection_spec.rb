@@ -114,7 +114,7 @@ describe Chronologic::Client::Connection do
   it 'updates an event' do
     event = simple_event
 
-    url = "http://localhost:3000/event/#{event.key}/#{event.token}"
+    url = "http://localhost:3000/event/#{event.key}/#{event.token}?update_timelines=false"
     body = event.to_transport
     stub_request(:put, url).
       with(:body => body).
@@ -123,6 +123,22 @@ describe Chronologic::Client::Connection do
       )
 
     client.update(event).should be_true
+    WebMock.should have_requested(:put, url).
+      with(:body => body)
+  end
+
+  it 'updates an event with timeline changes' do
+    event = simple_event
+
+    url = "http://localhost:3000/event/#{event.key}/#{event.token}?update_timelines=true"
+    body = event.to_transport
+    stub_request(:put, url).
+      with(:body => body).
+      to_return(
+        :status => 201
+      )
+
+    client.update(event, true).should be_true
     WebMock.should have_requested(:put, url).
       with(:body => body)
   end

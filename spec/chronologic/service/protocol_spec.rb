@@ -139,6 +139,16 @@ describe Chronologic::Service::Protocol do
     protocol.fetch_event(event.key).data['hotness'].should eq("It's so new!")
   end
 
+  it "updates an event's attributes and writes to all timelines" do
+    event = simple_event
+    protocol.publish(event, false)
+    event.timelines << 'testify_1'
+
+    protocol.update_event(event, true)
+    protocol.fetch_event(event.key).timelines.should include('testify_1')
+    protocol.schema.timeline_events_for('testify_1').values.should include(event.key)
+  end
+
   it "counts item in a feed" do
     populate_timeline
     protocol.feed_count("user_1_home").should == 10

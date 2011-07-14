@@ -65,10 +65,16 @@ RSpec.configure do |config|
 
   config.before do
     if ENV['CASSANDRA']
-      Chronologic::Schema.write_opts = {
+      Chronologic::Service::Schema.write_opts = {
         :consistency => Cassandra::Consistency::ONE
       }
-      Chronologic.connection = Cassandra.new('ChronologicTest')
+      Chronologic.connection = Cassandra.new(
+        'ChronologicTest',
+        ['127.0.0.1:9160'],
+        :connection_timeout => 3,
+        :retries => 2,
+        :timeout => 3
+      )
       clean_up_keyspace!(Chronologic.connection)
     else
       schema = {

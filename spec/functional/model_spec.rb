@@ -36,7 +36,18 @@ describe 'Client-side models' do
     Story.fetch(url).should eq(story)
   end
 
-  it 'update objects on an event'
+  it 'update objects on an event' do
+    user = Story::User.new
+    user.username = 'akk'
+    user.age = 31
+
+    url = story.save
+    story.add_user(user)
+    story.save
+
+    fetched = Story.fetch(url)
+    Story.fetch(url).objects['users'].should include(user.to_cl_key)
+  end
 
   it 'update events on an event'
 

@@ -50,8 +50,8 @@ module Chronologic::Client::Event
         def #{name}
           objects.
             fetch('#{name}', {}).
-            values.map { |obj| 
-              obj.is_a?(#{klass}) ? obj : #{klass}.new.from_cl(obj) 
+            values.map { |obj|
+              obj.is_a?(#{klass}) ? obj : #{klass}.new.from_cl(obj)
             }.sort
         end
 
@@ -145,17 +145,16 @@ module Chronologic::Client::Event
     end
 
     def update
-      # Extract changed objects
       # Extract changed subevents
-      # Changed timelines (?)
+      # Changed timelines - requires flag
       # How to prevent timestamp changes (?)
-
-      cl_dirty_attributes = cl_attributes
+      # Properly materlize objects and subevents
 
       event = Chronologic::Event.new(
         :key => cl_key,
         :timestamp => cl_timestamp,
-        :data => cl_dirty_attributes
+        :data => cl_attributes,
+        :objects => cl_objects
       )
       client.update(event)
     end

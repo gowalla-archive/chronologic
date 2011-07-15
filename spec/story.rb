@@ -18,6 +18,8 @@ class Story
   end
 
   class Activity
+    include Chronologic::Client::Event
+
     def from_cl(attrs)
       case attrs['type']
       when 'photo'
@@ -29,7 +31,7 @@ class Story
   end
 
   class Photo < Activity
-    attr_accessor :message, :url, :timestamp
+    attribute :message
 
     def to_cl_key
       'photo_1'
@@ -37,7 +39,6 @@ class Story
 
     def from_cl(attrs)
       self.message = attrs['message']
-      self.url = attrs['url']
       self.timestamp = attrs['timestamp']
       self
     end

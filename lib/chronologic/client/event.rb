@@ -16,6 +16,7 @@ module Chronologic::Client::Event
     attr_accessor :cl_key, :timestamp
 
     attr_reader :timelines
+    attr_reader :cl_url
 
     include ActiveModel::Dirty
   end
@@ -30,12 +31,8 @@ module Chronologic::Client::Event
         end
 
         def #{name}=(val)
-        #{name}_will_change! unless val == @attributes[:#{name}]
+          #{name}_will_change! unless val == @attributes[:#{name}]
           @attributes[:#{name}] = val
-        end
-
-        def cl_attributes
-          @attributes
         end
       }, __FILE__, __LINE__
     end
@@ -59,19 +56,13 @@ module Chronologic::Client::Event
         def remove_#{name.to_s.singularize}(obj)
           objects['#{name}'].delete(obj.to_cl_key)
         end
-
-        def cl_objects
-          objects.inject({}) { |hsh, (key, objs)| hsh.update(key => objs.keys) }
-        end
       }, __FILE__, __LINE__
     end
 
     def events(name, klass)
       self.class_eval %Q{
         def #{name}
-          events.values.map { |obj|
-            obj.is_a?(#{klass}) ? obj : #{klass}.new.from_cl(obj)
-          }.sort
+          casted_events
         end
 
         def add_#{name.to_s.singularize}(obj)
@@ -82,11 +73,10 @@ module Chronologic::Client::Event
           events.delete(obj.to_cl_key)
         end
 
-        def cl_subevents
-          events.keys
+        def event_class
+          #{klass}
         end
       }, __FILE__, __LINE__
-
     end
 
     def fetch(event_url)
@@ -106,8 +96,20 @@ module Chronologic::Client::Event
       super
     end
 
-    def cl_timestamp
-      timestamp
+    def parent
+      @attributes['parent']
+    end
+
+    def parent=(parent_key)
+      @attributes['parent'] = parent_key
+    end
+
+    def parent_key
+      @attributes['parent']
+    end
+
+    def new_record?
+      @new_record
     end
 
     def add_timeline(timeline)
@@ -124,26 +126,53 @@ module Chronologic::Client::Event
       @dirty_timelines
     end
 
+    def cl_changed?
+      changed?
+    end
+
+    def cl_timestamp
+      timestamp
+    end
+
+    def cl_attributes
+      @attributes
+    end
+
+    def cl_objects
+      objects.inject({}) { |hsh, (key, objs)| hsh.update(key => objs.keys) }
+    end
+
     def cl_timelines
       timelines
     end
 
+    def cl_subevents
+      events.keys
+    end
+
+    def casted_events
+      events.values.map { |obj|
+        obj.is_a?(event_class) ? obj : event_class.new.from_cl(obj)
+      }.sort
+    end
+
     def save
       return false unless cl_changed?
+      save_subevents
 
       result = new_record? ? publish : update
+      @cl_url = result
       @new_record = false
       @dirty_timelines = false
       # XXX: clear dirty attributes?
       result
     end
 
-    def cl_changed?
-      changed?
-    end
-
-    def new_record?
-      @new_record
+    def save_subevents
+      casted_events.each do |event|
+        event.parent = cl_key
+        event.save
+      end
     end
 
     def publish
@@ -158,7 +187,6 @@ module Chronologic::Client::Event
     end
 
     def update
-      # Extract changed subevents
       # How to prevent timestamp changes (?)
       # Properly materlize objects and subevents
 

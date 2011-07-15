@@ -119,10 +119,11 @@ describe Chronologic::Client::Connection do
     stub_request(:put, url).
       with(:body => body).
       to_return(
-        :status => 201
+        :status => 201,
+        :headers => {"Location" => "/event/checkin_1/abc123"}
       )
 
-    client.update(event).should be_true
+    client.update(event, false).should eq("/event/checkin_1/abc123")
     WebMock.should have_requested(:put, url).
       with(:body => body)
   end
@@ -135,10 +136,11 @@ describe Chronologic::Client::Connection do
     stub_request(:put, url).
       with(:body => body).
       to_return(
-        :status => 201
+        :status => 201,
+        :headers => {"Location" => "/event/checkin_1/abc123"}
       )
 
-    client.update(event, true).should be_true
+    client.update(event, true).should eq("/event/checkin_1/abc123")
     WebMock.should have_requested(:put, url).
       with(:body => body)
   end

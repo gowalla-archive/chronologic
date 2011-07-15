@@ -107,7 +107,7 @@ class Chronologic::Client::Connection
     event.published!
 
     handle(resp, "Error updating event") do
-      true
+      resp.headers["Location"]
     end
   end
 

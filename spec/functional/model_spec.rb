@@ -3,7 +3,7 @@ require 'story'
 
 describe 'Client-side models' do
 
-  before { story.client = Chronologic::Client::Connection.new('http://localhost:9292') }
+  before { Story.client = Chronologic::Client::Connection.new('http://localhost:9292') }
   before { Chronologic.connection = Cassandra.new('Chronologic') }
 
   let(:story) do
@@ -49,17 +49,18 @@ describe 'Client-side models' do
   end
 
   it 'update subevents on an event' do
-    pending('Save the photo, not the story')
+    Story::Photo.client = Story.client # XXX
     photo = Story::Photo.new
+    photo.cl_key = 'photo_1'
     photo.message = "Look at this great square-cropped pic!"
-    photo.url = '/photos/1'
+    # photo.image_url = '/photos/1'
     photo.timestamp = Time.now.utc
 
     url = story.save
     story.add_activity(photo)
     story.save
 
-    Photo.fetch(photo.url).parent.should eq(story)
+    Story::Photo.fetch(photo.cl_url).parent_key.should eq(story.cl_key)
   end
 
   it 'update timelines on an event' do

@@ -19,8 +19,8 @@ describe Chronologic::Client::Event do
       },
       'timelines' => ['user_1', 'spot_1'],
       'subevents' => {
-        'photo_1' => {'type' => 'photo', 'message' => 'Look at this!', 'url' => '/p/123.jpg', 'timestamp' => Time.now - 60},
-        'photo_2' => {'type' => 'photo', 'message' => 'Look at that!', 'url' => '/p/456.jpg', 'timestamp' => Time.now - 120}
+        'photo_1' => {'type' => 'photo', 'message' => 'Look at this!', 'timestamp' => Time.now - 60},
+        'photo_2' => {'type' => 'photo', 'message' => 'Look at that!', 'timestamp' => Time.now - 120}
       }
     }
   end
@@ -116,8 +116,8 @@ describe Chronologic::Client::Event do
 
     it 'fetches events in order defined by the class' do
       story = Story.new.from(event)
-      story.activities.first.url.should match(/456\.jpg/)
-      story.activities.last.url.should match(/123\.jpg/)
+      story.activities.first.message.should match(/that/)
+      story.activities.last.message.should match(/this/)
     end
 
     it 'generates an array for saving to Chronologic' do

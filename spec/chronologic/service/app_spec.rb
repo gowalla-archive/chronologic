@@ -163,6 +163,7 @@ describe Chronologic::Service::App do
     put "/event/#{event.key}/#{event.token}", event.to_transport
 
     last_response.status.should eq(204)
+    last_response.headers["Location"].should match(%r!/event/#{event["key"]}/[\d\w-]*!)
   end
 
   it "updates an event and its timelines" do
@@ -174,6 +175,7 @@ describe Chronologic::Service::App do
 
     last_response.status.should eq(204)
     Chronologic.schema.timeline_events_for('foo_1').values.should include(event['key'])
+    last_response.headers["Location"].should match(%r!/event/#{event["key"]}/[\d\w-]*!)
   end
 
   it 'fetches a single event' do

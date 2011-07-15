@@ -81,6 +81,7 @@ class Chronologic::Service::App < Sinatra::Base
       false
     end
     protocol.update_event(event, update_timelines)
+    headers("Location" => "/event/#{event.key}/#{event.token}")
     status 204
   end
 

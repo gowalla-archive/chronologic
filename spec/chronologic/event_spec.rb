@@ -84,5 +84,9 @@ describe Chronologic::Event do
     event.token.should eq(Chronologic.schema.new_guid(event.timestamp))
   end
 
+  it "flags an empty event" do
+    subject.should be_empty
+  end
+
 end
 

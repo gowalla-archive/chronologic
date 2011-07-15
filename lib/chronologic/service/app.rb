@@ -69,9 +69,13 @@ class Chronologic::Service::App < Sinatra::Base
 
   get '/event/:event_key/:token' do
     event = protocol.fetch_event(params['event_key'])
-    json(
-      'event' => event.to_transport
-    )
+    if event.empty?
+      status 404
+    else
+      json(
+        'event' => event.to_transport
+      )
+    end
   end
 
   put '/event/:event_key/:token' do

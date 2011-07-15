@@ -75,5 +75,9 @@ class Chronologic::Event < Hashie::Dash
     Chronologic.schema.new_guid(timestamp)
   end
 
+  def empty?
+    data.empty?
+  end
+
 end
 

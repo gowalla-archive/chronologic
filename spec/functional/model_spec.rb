@@ -75,7 +75,12 @@ describe 'Client-side models' do
     # Make sure that the event was written to the new timeline?
   end
 
-  it 'delete an event'
+  it 'delete an event' do
+    url = story.save
+    story.destroy
+
+    expect { Story.fetch(url) }.to raise_exception
+  end
 
   it 'properly loads events and objects'
 

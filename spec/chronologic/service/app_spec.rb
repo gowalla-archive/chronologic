@@ -188,6 +188,11 @@ describe Chronologic::Service::App do
     json_body['event'].should include('key', 'timestamp', 'data', 'timelines', 'objects')
   end
 
+  it "returns 404 if an event isn't found" do
+    get "/event/123/456"
+    last_response.status.should == 404
+  end
+
   it "reads a timeline feed" do
     jp = {"name" => "Juan Pelota's", "awesome_factor" => "100"}
     keeg = {"name" => "Keegan", "awesome_factor" => "109"}

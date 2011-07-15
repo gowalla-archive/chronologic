@@ -202,7 +202,7 @@ module Chronologic::Client::Event
 
     def destroy
       raise %q{Won't destroy a new record} if new_record?
-      client.unpublish # SLIME
+      client.unpublish(cl_key)
     end
 
     def from(attrs)

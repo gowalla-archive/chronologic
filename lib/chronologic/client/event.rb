@@ -23,7 +23,7 @@ module Chronologic::Client::Event
 
   module ClassMethods
     def attribute(name)
-      self.class_eval %Q{
+      self.class_eval <<-RUBY, __FILE__, __LINE__
         define_attribute_methods [:#{name}]
 
         def #{name}
@@ -34,11 +34,11 @@ module Chronologic::Client::Event
           #{name}_will_change! unless val == @attributes[:#{name}]
           @attributes[:#{name}] = val
         end
-      }, __FILE__, __LINE__
+      RUBY
     end
 
     def objects(name, klass)
-      self.class_eval %Q{
+      self.class_eval <<-RUBY, __FILE__, __LINE__
         # SLOW this potentially converts hashes to the klass every time.
         # Could memoize this sometime in the future.
         def #{name}
@@ -56,11 +56,11 @@ module Chronologic::Client::Event
         def remove_#{name.to_s.singularize}(obj)
           objects['#{name}'].delete(obj.to_cl_key)
         end
-      }, __FILE__, __LINE__
+      RUBY
     end
 
     def events(name, klass)
-      self.class_eval %Q{
+      self.class_eval <<-RUBY, __FILE__, __LINE__
         def #{name}
           casted_events
         end
@@ -76,7 +76,7 @@ module Chronologic::Client::Event
         def event_class
           #{klass}
         end
-      }, __FILE__, __LINE__
+      RUBY
     end
 
     def fetch(event_url)
@@ -188,7 +188,6 @@ module Chronologic::Client::Event
 
     def update
       # How to prevent timestamp changes (?)
-      # Properly materlize objects and subevents
 
       event = Chronologic::Event.new(
         :key => cl_key,

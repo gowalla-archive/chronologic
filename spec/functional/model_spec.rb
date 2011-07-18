@@ -82,7 +82,19 @@ describe 'Client-side models' do
     expect { Story.fetch(url) }.to raise_exception
   end
 
-  it 'properly loads events and objects'
+  it 'properly loads events and objects' do
+    pending("Get object models working")
+    user = Story::User.new
+    photo = Story::Photo.new
+
+    story.add_user(user)
+    story.add_activity(photo)
+    story.save
+
+    other = Story.fetch(story.cl_url)
+    # other.users.first.should eq(user)
+    other.activities.first.should eq(user)
+  end
 
   it 'create an object'
 

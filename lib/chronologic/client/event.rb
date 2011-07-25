@@ -76,7 +76,12 @@ module Chronologic::Client::Event
     end
 
     def fetch(event_url)
-      new.from(client.fetch(event_url))
+      new.from(connection.fetch(event_url))
+    end
+
+    # HAX
+    def connection
+      Chronologic::Client::Connection.instance
     end
   end
 
@@ -91,6 +96,10 @@ module Chronologic::Client::Event
       @events = Hash.new { |h, k| h[k] = {} }
       @timelines = []
       super
+    end
+
+    def connection
+      Chronologic::Client::Connection.instance
     end
 
     def parent
@@ -124,7 +133,7 @@ module Chronologic::Client::Event
     end
 
     def cl_changed?
-      changed?
+      @dirty_attributes
     end
 
     def cl_timestamp
@@ -181,7 +190,7 @@ module Chronologic::Client::Event
         :objects   => cl_objects,
         :timelines => cl_timelines
       )
-      client.publish(event)
+      connection.publish(event)
     end
 
     def update
@@ -194,12 +203,12 @@ module Chronologic::Client::Event
         :objects => cl_objects,
         :timelines => cl_timelines
       )
-      client.update(event, dirty_timelines?)
+      connection.update(event, dirty_timelines?)
     end
 
     def destroy
       raise %q{Won't destroy a new record} if new_record?
-      client.unpublish(cl_key)
+      connection.unpublish(cl_key)
     end
 
     def from(attrs)

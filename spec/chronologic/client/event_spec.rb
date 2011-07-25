@@ -208,8 +208,9 @@ describe Chronologic::Client::Event do
     it 'loads an existing event' do
       title = 'This is a great story!'
 
-      story.client = double
-      story.client.should_receive(:fetch).and_return('data' => {'title' => title})
+      connection = double
+      connection.should_receive(:fetch).and_return('data' => {'title' => title})
+      Chronologic::Client::Connection.instance = connection
 
       story = Story.fetch('story_123')
       story.title.should == title
@@ -219,22 +220,24 @@ describe Chronologic::Client::Event do
 
   context '#save' do
 
-    before { story.client = stub }
+    before { connection = Chronologic::Client::Connection.instance = stub }
     before { story.title = 'This is a great thing.' }
 
+    let(:connection) { Chronologic::Client::Connection.instance }
+
     it 'publishes new events' do
-      story.client.should_receive(:publish)
+      story.connection.should_receive(:publish)
       story.save
     end
 
     it 'updates existing events' do
-      story.client.should_receive(:update)
+      story.connection.should_receive(:update)
       story.new_record = false
       story.save
     end
 
     it 'clears the new_record? flag' do
-      story.client.stub(:publish)
+      story.connection.stub(:publish)
       story.save
       story.should_not be_new_record
     end
@@ -249,7 +252,7 @@ describe Chronologic::Client::Event do
   context '#update' do
 
     it "delegates updates to the connection" do
-      story.client.should_receive(:update)
+      story.connection.should_receive(:update)
       story.update
     end
 
@@ -263,7 +266,7 @@ describe Chronologic::Client::Event do
 
     it 'unpublishes an event' do
       story.new_record = false
-      story.client.should_receive(:unpublish)
+      story.connection.should_receive(:unpublish)
       story.destroy
     end
 

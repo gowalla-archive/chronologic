@@ -8,8 +8,6 @@ module Chronologic::Client::Event
   extend ActiveSupport::Concern
 
   included do
-    cattr_accessor :client
-
     # XXX Protect this?
     attr_accessor :new_record
     attr_accessor :objects, :events
@@ -17,21 +15,19 @@ module Chronologic::Client::Event
 
     attr_reader :timelines
     attr_reader :cl_url
-
-    include ActiveModel::Dirty
   end
 
   module ClassMethods
     def attribute(name)
       self.class_eval <<-RUBY, __FILE__, __LINE__
-        define_attribute_methods [:#{name}]
+        attr_accessor :attributes
 
         def #{name}
           @attributes[:#{name}]
         end
 
         def #{name}=(val)
-          #{name}_will_change! unless val == @attributes[:#{name}]
+          @dirty_attributes = true
           @attributes[:#{name}] = val
         end
       RUBY
@@ -89,6 +85,7 @@ module Chronologic::Client::Event
     def initialize
       @attributes = {}
       @new_record = true
+      @dirty_attributes = false
       @dirty_timelines = false
       @objects = Hash.new { |h, k| h[k] = {} }
       @events = Hash.new { |h, k| h[k] = {} }
@@ -163,6 +160,7 @@ module Chronologic::Client::Event
       result = new_record? ? publish : update
       @cl_url = result
       @new_record = false
+      @dirty_attributes = false
       @dirty_timelines = false
       # XXX: clear dirty attributes?
       result

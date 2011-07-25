@@ -40,10 +40,9 @@ describe Chronologic::Client::Event do
     end
 
     it 'tracks dirtiness for attributes' do
-      story.should_not be_changed
+      story.should_not be_cl_changed
       story.title = 'Great party!'
-      story.title_changed?.should be_true
-      story.should be_changed
+      story.should be_cl_changed
     end
 
     it 'generates an attributes hash' do

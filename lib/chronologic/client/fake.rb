@@ -1,14 +1,15 @@
 class Chronologic::Client::Fake
 
+  attr_reader :objects, :subscribers, :events, :timelines
+
   def initialize
     @objects = {}
     @subscribers = Hash.new { |hsh, k| hsh[k] = {} }
     @events = {}
-    @timelines = {}
+    @timelines = Hash.new { |hsh, k| hsh[k] = {} }
   end
 
   def record(object_key, data)
-    p "record: #{object_key}"
     @objects[object_key] = data
   end
 
@@ -31,11 +32,13 @@ class Chronologic::Client::Fake
   end
 
   def publish(event)
-    p "publish: #{event.key}"
-    p event
     @events[event.key] = event
+    event.timelines.each do |timeline|
+      @timelines[timeline][SimpleUUID::UUID.new(event.timestamp)] = event.key
+    end
+    # XXX subscriber fanout
+
     event.key # Return something more like a real CL URL?
-    # XXX fanout
   end
 
   def unpublish(event)
@@ -44,14 +47,9 @@ class Chronologic::Client::Fake
   end
 
   def fetch(event_url)
-    p "fetch: #{event_url}"
     @events.fetch(event_url, {}).tap do |event|
-      # At this point, objects is a hash of key -> array pairs. We need key -> hash.
-      objects = Hash.new { |hsh, k| hsh[k] = Hash.new }
-      event.objects.each do |k, refs|
-        refs.each { |ref| p "#{k} -> #{ref}"; p @objects[ref]; objects[k][ref] = @objects[ref]; objects }
-      end
-      event.objects = objects
+      populate_subevents_for(event)
+      populate_objects_for(event)
     end
   end
 
@@ -66,4 +64,23 @@ class Chronologic::Client::Fake
     # XXX read objects from @objects
     # XXX handle subevents
   end
+
+  # Private
+  def populate_objects_for(event)
+    # At this point, objects is a hash of key -> array pairs. We need key -> hash.
+    objects = Hash.new { |hsh, k| hsh[k] = Hash.new }
+    event.objects.each do |k, refs|
+      refs.each { |ref| objects[k][ref] = @objects[ref] }
+    end
+    event.objects = objects
+  end
+
+  # Private
+  def populate_subevents_for(event)
+    subevents = @timelines[event.key].values.map do |event_key|
+      fetch(event_key)
+    end
+    event.subevents = subevents
+  end
+
 end

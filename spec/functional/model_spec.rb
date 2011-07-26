@@ -49,7 +49,6 @@ describe 'Client-side models' do
   end
 
   it 'update subevents on an event' do
-    Story::Photo.client = Story.client # XXX
     photo = Story::Photo.new
     photo.cl_key = 'photo_1'
     photo.message = "Look at this great square-cropped pic!"

@@ -46,10 +46,12 @@ module Chronologic::Client::Event
         end
 
         def add_#{name.to_s.singularize}(obj)
+          @dirty_objects = true
           objects['#{name}'][obj.to_cl_key] = obj
         end
 
         def remove_#{name.to_s.singularize}(obj)
+          @dirty_objects = true
           objects['#{name}'].delete(obj.to_cl_key)
         end
       RUBY
@@ -62,10 +64,12 @@ module Chronologic::Client::Event
         end
 
         def add_#{name.to_s.singularize}(obj)
+          @dirty_events = true
           events[obj.to_cl_key] = obj
         end
 
         def remove_#{name.to_s.singularize}(obj)
+          @dirty_events = true
           events.delete(obj.to_cl_key)
         end
 
@@ -92,6 +96,8 @@ module Chronologic::Client::Event
       @new_record = true
       @dirty_attributes = false
       @dirty_timelines = false
+      @dirty_objects = false
+      @dirty_events = false # XXX merge all these dirty flags
       @objects = Hash.new { |h, k| h[k] = {} }
       @events = Hash.new { |h, k| h[k] = {} }
       @timelines = []
@@ -108,6 +114,7 @@ module Chronologic::Client::Event
 
     def parent=(parent_key)
       @attributes['parent'] = parent_key
+      add_timeline(parent_key)
     end
 
     def parent_key
@@ -133,7 +140,7 @@ module Chronologic::Client::Event
     end
 
     def cl_changed?
-      @dirty_attributes
+      @dirty_attributes || @dirty_objects || @dirty_timelines || @dirty_events
     end
 
     def cl_timestamp
@@ -167,11 +174,14 @@ module Chronologic::Client::Event
       save_subevents
 
       result = new_record? ? publish : update
-      @cl_url = result
-      @new_record = false
+
+      @cl_url           = result
+      @new_record       = false
       @dirty_attributes = false
-      @dirty_timelines = false
-      # XXX: clear dirty attributes?
+      @dirty_objects    = false
+      @dirty_timelines  = false
+      @dirty_events     = false
+
       result
     end
 

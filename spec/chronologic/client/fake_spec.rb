@@ -87,6 +87,12 @@ describe Chronologic::Client::Fake do
       subject.fetch(event.key).should eq(event)
     end
 
+    it "copies retrieved events" do
+      event = double(:event, :key => 'event_1').as_null_object
+      subject.publish(event)
+      subject.fetch(event.key).should_not eql(event)
+    end
+
     it "populates objects on fetched events" do
       object = double
       subject.record('object_1', object)

@@ -18,10 +18,10 @@ describe Chronologic::Client::Event do
         }
       },
       'timelines' => ['user_1', 'spot_1'],
-      'subevents' => {
-        'photo_1' => {'type' => 'photo', 'message' => 'Look at this!', 'timestamp' => Time.now - 60},
-        'photo_2' => {'type' => 'photo', 'message' => 'Look at that!', 'timestamp' => Time.now - 120}
-      }
+      'subevents' => [
+        Hashie::Mash.new({'key' => 'photo_1', 'type' => 'photo', 'message' => 'Look at this!', 'timestamp' => Time.now - 60}),
+        Hashie::Mash.new({'key' => 'photo_2', 'type' => 'photo', 'message' => 'Look at that!', 'timestamp' => Time.now - 120})
+      ]
     }
   end
 
@@ -184,7 +184,7 @@ describe Chronologic::Client::Event do
     end
 
     it 'loads events' do
-      story.events['photo_1'].should eq(event['subevents']['photo_1'])
+      story.events['photo_1'].should eq(event['subevents'].first)
     end
 
     it "loads the event key" do
@@ -280,9 +280,9 @@ describe Chronologic::Client::Event do
   end
 
   it 'compares to other objects' do
-    left = story.from(event)
-    right = 'not a story'
-    left.should_not eq(right)
+    story = Story.new.from(event)
+    other = 'not a story'
+    story.should_not eq(other)
   end
 
   it 'compares to another event object' do

@@ -254,7 +254,7 @@ module Chronologic::Client::Event
     end
 
     def load_events(objs)
-      self.events = objs.inject({}) { |events, (key, obj)| events.update(key => obj) }
+      self.events = objs.inject({}) { |events, obj| events.update(obj.key => obj) }
     end
 
     def clear_new_record_flag

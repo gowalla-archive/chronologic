@@ -169,20 +169,30 @@ module Chronologic::Client::Event
       }.sort
     end
 
-    def save
-      return false unless cl_changed?
-      save_subevents
-
-      result = new_record? ? publish : update
-
-      @cl_url           = result
-      @new_record       = false
+    def mark_clean
       @dirty_attributes = false
       @dirty_objects    = false
       @dirty_timelines  = false
       @dirty_events     = false
+    end
 
-      result
+    def set_cl_url(url)
+      @cl_url = url
+    end
+
+    def clear_new_record
+      @new_record = false
+    end
+
+    def save
+      return false unless cl_changed?
+      save_subevents
+
+      (new_record? ? publish : update).tap do |url|
+        set_cl_url(url)
+        clear_new_record
+        mark_clean
+      end
     end
 
     def save_subevents

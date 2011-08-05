@@ -161,11 +161,78 @@ describe Chronologic::Client::Fake do
 
   describe "#timeline" do
 
-    it "fetches a page of events on a timeline"
+    let(:events) do
+      10.times.map do |i|
+        event = double(
+          :event,
+          :key => "event_#{i}",
+          :objects => {},
+          :timelines => ['home'],
+          :timestamp => i
+        ).as_null_object
+      end
+    end
+    before { events.each { |e| subject.publish(e) } }
 
-    it "fetches objects on events"
+    it "fetches a page of events on a timeline" do
+      feed = subject.timeline('home')
 
-    it "fetches subevents on events"
+      feed['count'].should eq(10)
+      feed['items'].should eq(events)
+    end
+
+    it "fetches the specified number of events" do
+      feed = subject.timeline('home', 'per_page' => 5)
+
+      feed['count'].should eq(10)
+      feed['items'].length.should eq(5)
+    end
+
+    it "fetches from a page offset" do
+      token = subject.timeline('home', 'per_page' => 5)['next_page']
+      feed = subject.timeline('home', 'per_page' => 5, 'page' => token)
+
+      feed['count'].should eq(10)
+      feed['items'].length.should eq(5)
+      feed['items'].should eq(events.last(5))
+    end
+
+    it "fetches objects on events" do
+      object = double(:object).as_null_object
+      subject.record('object_1', object)
+
+      with_object = Chronologic::Event.new(
+        :key => 'event_100',
+        :timelines => ['with_object'],
+        :objects => {"object" => ['object_1']},
+        :timestamp => 1
+      )
+      subject.publish(with_object)
+
+      feed = subject.timeline('with_object')
+      feed['items'].first['objects']["object"].should eq({"object_1" => object})
+    end
+
+    it "fetches subevents on events" do
+      parent = Chronologic::Event.new(
+        :key => 'event_1',
+        :timelines => ['with_subevent'],
+        :objects => {},
+        :timestamp => 1
+      )
+      subevent = Chronologic::Event.new(
+        :key => 'event_2',
+        :timelines => ['event_1'],
+        :objects => {},
+        :timestamp => 2
+      )
+
+      subject.publish(parent)
+      subject.publish(subevent)
+
+      feed = subject.timeline('with_subevent')
+      feed['items'].first['subevents'].should eq([subevent])
+    end
 
   end
 

@@ -41,8 +41,8 @@ class Chronologic::Client::Fake
     event.key # Return something more like a real CL URL?
   end
 
-  def unpublish(event)
-    @events.delete(event.key)
+  def unpublish(event_key)
+    @events.delete(event_key)
     # XXX unfanout
   end
 
@@ -58,11 +58,25 @@ class Chronologic::Client::Fake
     # XXX update timelines
   end
 
-  def timeline(timeline_key)
-    # XXX read event keys from @timelines
-    # XXX read events from @events
-    # XXX read objects from @objects
-    # XXX handle subevents
+  def timeline(timeline_key, options={})
+    per_page = options.fetch('per_page', 10)
+    page = options.fetch('page', -1)
+
+    range = Hash[@timelines[timeline_key].to_a.select { |(k, v)| k.to_i > page }]
+    next_page = range.keys.first(per_page).last
+    count = @timelines[timeline_key].length
+    event_keys = range.values.first(per_page)
+    items = event_keys.map { |k| @events[k] }
+    items.each do |ev|
+      populate_objects_for(ev)
+      populate_subevents_for(ev)
+    end
+
+    {
+      "items"     => items,
+      "count"     => count,
+      "next_page" => next_page.to_i
+    }
   end
 
   # Private

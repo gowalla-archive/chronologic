@@ -34,11 +34,14 @@ class Chronologic::Client::Fake
   def publish(event)
     @events[event.key] = event
     event.timelines.each do |timeline|
-      @timelines[timeline][SimpleUUID::UUID.new(event.timestamp)] = event.key
+      uuid = SimpleUUID::UUID.new(event.timestamp)
+      @timelines[timeline][uuid] = event.key
+      @subscribers[timeline].keys.each do |t|
+        @timelines[t][uuid] = event.key
+      end
     end
-    # XXX subscriber fanout
 
-    event.key # Return something more like a real CL URL?
+    event.key
   end
 
   def unpublish(event_key)
@@ -63,8 +66,10 @@ class Chronologic::Client::Fake
     page = options.fetch('page', -1)
 
     range = Hash[@timelines[timeline_key].to_a.select { |(k, v)| k.to_i > page }]
+
     next_page = range.keys.first(per_page).last
     count = @timelines[timeline_key].length
+
     event_keys = range.values.first(per_page)
     items = event_keys.map { |k| @events[k] }
     items.each do |ev|

@@ -68,6 +68,18 @@ describe Chronologic::Client::Fake do
       subject.timelines['foo'].values.should include('event_1')
     end
 
+    it "writes the event to subscribed timelines" do
+      subject.subscribe('user_1', 'user_2')
+      event = double(
+        :event,
+        :key => 'event_1',
+        :timelines => ['user_1'],
+        :timestamp => 1
+      )
+      subject.publish(event)
+      subject.timelines['user_2'].values.should include(event.key)
+    end
+
     it "returns a CL key instead of a URL" do
       event = stub('event', :key => 'event_1', :timelines => [])
       subject.publish(event).should eq('event_1')

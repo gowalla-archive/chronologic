@@ -11,12 +11,9 @@ module Chronologic
     Chronologic::Service::Schema
   end
 
-  VERSION = '0.9.1'
+  VERSION = '0.10.0'
 
   autoload :Event, "chronologic/event"
-  autoload :Publisher, "chronologic/publisher"
-  autoload :Record, "chronologic/record"
-  autoload :Subscriber, "chronologic/subscriber"
 
   module Service
     autoload :App, "chronologic/service/app"
@@ -26,12 +23,10 @@ module Chronologic
   end
 
   module Client
-
     autoload :Connection, "chronologic/client/connection"
     autoload :Event, 'chronologic/client/event'
     autoload :Object, 'chronologic/client/object'
     autoload :Fake, 'chronologic/client/fake'
-
   end
 
   class Exception < RuntimeError; end

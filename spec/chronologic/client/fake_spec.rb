@@ -89,6 +89,10 @@ describe Chronologic::Client::Fake do
 
   describe "#fetch" do
 
+    it "returns nil if an event isn't found" do
+      subject.fetch('gobbeldygook').should be_nil
+    end
+
     it "retrieves an event" do
       event = double(
         'event',

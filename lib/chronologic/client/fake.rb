@@ -50,7 +50,9 @@ class Chronologic::Client::Fake
   end
 
   def fetch(event_url)
-    @events.fetch(event_url, {}).dup.tap do |event|
+    event = @events[event_url]
+    return event if event.nil?
+    event.dup.tap do |event|
       populate_subevents_for(event)
       populate_objects_for(event)
     end

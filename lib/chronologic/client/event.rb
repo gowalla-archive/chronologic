@@ -80,7 +80,9 @@ module Chronologic::Client::Event
     end
 
     def fetch(event_url)
-      new.from(connection.fetch(event_url))
+      obj = connection.fetch(event_url)
+      raise 'Event not found' if obj.nil?
+      new.from(obj)
     end
 
     # HAX

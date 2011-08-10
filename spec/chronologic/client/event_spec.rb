@@ -25,7 +25,6 @@ describe Chronologic::Client::Event do
     }
   end
 
-
   # ---- SUGAR ----
 
   context '.attribute' do
@@ -214,6 +213,13 @@ describe Chronologic::Client::Event do
 
       story = Story.fetch('story_123')
       story.title.should == title
+    end
+
+    it "raises an exception if no event was found" do
+      connection = double(:fetch => nil)
+      Chronologic::Client::Connection.instance = connection
+
+      expect { Story.fetch('story_123') }.to raise_exception
     end
 
   end

@@ -11,7 +11,7 @@ module Chronologic
     Chronologic::Service::Schema
   end
 
-  VERSION = '0.10.0'
+  VERSION = '0.10.1'
 
   autoload :Event, "chronologic/event"
 

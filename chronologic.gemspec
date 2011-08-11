@@ -20,10 +20,10 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency('cassandra', ["~> 0.11.0"])
-  s.add_dependency('httparty', ["~> 0.7.8"])
-  s.add_dependency('hashie', ["~> 1.1.0"])
-  s.add_dependency('will_paginate', ["~> 3.0.0"])
-  s.add_dependency('yajl-ruby', ["~> 0.8.2"])
+  s.add_dependency('httparty', ["~> 0.6.1"])
+  s.add_dependency('hashie', ["~> 0.4.0"])
+  s.add_dependency('will_paginate', ["~> 3.0.pre2"])
+  s.add_dependency('yajl-ruby', ["~> 0.7.7"])
   s.add_dependency('activesupport', ["~> 3.0.0"])
   s.add_dependency('i18n', ["~> 0.5.0"])
   s.add_dependency('sinatra', ["~> 1.0.0"])

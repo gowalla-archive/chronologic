@@ -11,7 +11,7 @@ module Chronologic
     Chronologic::Service::Schema
   end
 
-  VERSION = '0.10.2'
+  VERSION = '0.10.3'
 
   autoload :Event, "chronologic/event"
 
@@ -30,7 +30,7 @@ module Chronologic
   end
 
   class Exception < RuntimeError; end
-  class ServiceError < RuntimeError 
+  class ServiceError < RuntimeError
     attr_reader :response
 
     def initialize(resp)

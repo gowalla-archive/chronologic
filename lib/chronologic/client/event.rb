@@ -188,13 +188,17 @@ module Chronologic::Client::Event
 
     def save
       return false unless cl_changed?
-      save_subevents
 
-      (new_record? ? publish : update).tap do |url|
+      result = (new_record? ? publish : update).tap do |url|
         set_cl_url(url)
         clear_new_record
         mark_clean
+        url
       end
+
+      save_subevents
+
+      result
     end
 
     def save_subevents

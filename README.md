@@ -26,17 +26,17 @@ Chronologic exposes four kinds of data:
 
 ## Hello, Chronologic
 
-Example goes here.
+An example goes here.
 
 ## Running Chronologic
 
-Operational details go here.
+Instructions on running Chronologic and idea about deploying it go here.
 
 ## Contributing
 
-Process goes here.
+The way you contribute to the development of Chronologic goes here.
 
 ## License
 
-Copyright and license blurb goes here.
+Copyright 2010-2011 Gowalla Incorporated. Chronologic is MIT licensed.
 

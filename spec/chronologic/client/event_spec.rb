@@ -19,8 +19,8 @@ describe Chronologic::Client::Event do
       },
       'timelines' => ['user_1', 'spot_1'],
       'subevents' => [
-        Hashie::Mash.new({'key' => 'photo_1', 'type' => 'photo', 'message' => 'Look at this!', 'timestamp' => Time.now - 60}),
-        Hashie::Mash.new({'key' => 'photo_2', 'type' => 'photo', 'message' => 'Look at that!', 'timestamp' => Time.now - 120})
+        {'key' => 'photo_1', 'type' => 'photo', 'message' => 'Look at this!', 'timestamp' => Time.now - 60},
+        {'key' => 'photo_2', 'type' => 'photo', 'message' => 'Look at that!', 'timestamp' => Time.now - 120}
       ]
     }
   end

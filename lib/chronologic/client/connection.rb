@@ -67,7 +67,7 @@ class Chronologic::Client::Connection
   def publish(event, fanout=true)
     resp = self.class.post(
       "/event",
-      :query => {:fanout => fanout ? 1 : 0}, 
+      :query => {:fanout => fanout ? 1 : 0},
       :body => event.to_transport
     )
     event.published!

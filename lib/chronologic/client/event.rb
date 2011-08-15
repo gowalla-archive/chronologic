@@ -269,8 +269,8 @@ module Chronologic::Client::Event
       @timelines = timelines
     end
 
-    def load_events(objs)
-      self.events = objs.inject({}) { |events, obj| events.update(obj.key => obj) }
+    def load_events(event_hashes)
+      self.events = event_hashes.inject({}) { |events, hash| events.update(hash['key'] => hash) }
     end
 
     def clear_new_record_flag

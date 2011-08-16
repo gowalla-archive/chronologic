@@ -1,3 +1,5 @@
+require 'active_support/core_ext/hash'
+
 class Chronologic::Client::Fake
 
   attr_reader :objects, :subscribers, :events, :timelines
@@ -32,16 +34,17 @@ class Chronologic::Client::Fake
   end
 
   def publish(event)
-    @events[event.key] = event
-    event.timelines.each do |timeline|
-      uuid = SimpleUUID::UUID.new(event.timestamp)
-      @timelines[timeline][uuid] = event.key
+    event = event.with_indifferent_access
+    @events[event['key']] = event
+    event['timelines'].each do |timeline|
+      uuid = SimpleUUID::UUID.new(Time.parse(event['timestamp']))
+      @timelines[timeline][uuid] = event['key']
       @subscribers[timeline].keys.each do |t|
-        @timelines[t][uuid] = event.key
+        @timelines[t][uuid] = event['key']
       end
     end
 
-    event.key
+    event['key']
   end
 
   def unpublish(event_key)
@@ -59,7 +62,7 @@ class Chronologic::Client::Fake
   end
 
   def update(event, update_timelines=false)
-    @events[event.key] = event
+    @events[event['key']] = event
     # XXX update timelines
   end
 
@@ -67,12 +70,24 @@ class Chronologic::Client::Fake
     per_page = options.fetch('per_page', 10)
     page = options.fetch('page', -1)
 
-    range = Hash[@timelines[timeline_key].to_a.select { |(k, v)| k.to_i > page }]
+    range =
+      # Fetch the timeline
+      @timelines[timeline_key].
+        # Convert the TimeUUID -> event key mapping to an array
+        to_a.
+        # Only use events greater than the paging token
+        select { |(k, v)| k.to_i >= page }.
+        # Sort by the TimeUUID
+        sort_by { |k, v| k }.
+        # Put it in reverse chronologic order
+        reverse
 
-    next_page = range.keys.first(per_page).last
+    # Grab n entries out of the range, take the last one, and grab its TimeUUID
+    next_page = range.first(per_page).last.first
     count = @timelines[timeline_key].length
 
-    event_keys = range.values.first(per_page)
+    # Reverse the range (?), grab n entries, take just the value
+    event_keys = range.reverse.first(per_page).map { |k, v| v }
     items = event_keys.map { |k| @events[k] }
     items.each do |ev|
       populate_objects_for(ev)
@@ -90,18 +105,18 @@ class Chronologic::Client::Fake
   def populate_objects_for(event)
     # At this point, objects is a hash of key -> array pairs. We need key -> hash.
     objects = Hash.new { |hsh, k| hsh[k] = Hash.new }
-    event.objects.each do |k, refs|
+    event.fetch('objects', {}).each do |k, refs|
       refs.each { |ref| objects[k][ref] = @objects[ref] }
     end
-    event.objects = objects
+    event['objects'] = objects
   end
 
   # Private
   def populate_subevents_for(event)
-    subevents = @timelines[event.key].values.map do |event_key|
+    subevents = @timelines[event['key']].values.map do |event_key|
       fetch(event_key)
     end
-    event.subevents = subevents
+    event['subevents'] = subevents
   end
 
 end

@@ -2,6 +2,17 @@ require 'spec_helper'
 
 describe Chronologic::Client::Fake do
 
+  def valid_event
+    {
+      'key' => 'event_1',
+      'timelines' => [],
+      'objects' => {},
+      'subevents' => [],
+      'timestamp' => Time.now.iso8601,
+      'data' => {}
+    }
+  end
+
   describe "#record" do
     it "stores an object" do
       subject.record("thing_1", {"thingy" => "thingoid"})
@@ -52,17 +63,14 @@ describe Chronologic::Client::Fake do
   describe "#publish" do
 
     it "creates a new event" do
-      event = stub('event', :key => 'event_1', :timelines => [])
+      event = valid_event
       subject.publish(event)
       subject.events.values.should include(event)
     end
 
     it "writes the event to each specified timeline" do
-      event = stub(
-        'event',
-        :key => 'event_1',
-        :timelines => ['foo'],
-        :timestamp => Time.now
+      event = valid_event.merge(
+        'timelines' => ['foo']
       )
       subject.publish(event)
       subject.timelines['foo'].values.should include('event_1')
@@ -70,18 +78,15 @@ describe Chronologic::Client::Fake do
 
     it "writes the event to subscribed timelines" do
       subject.subscribe('user_1', 'user_2')
-      event = double(
-        :event,
-        :key => 'event_1',
-        :timelines => ['user_1'],
-        :timestamp => 1
+      event = valid_event.merge(
+        'timelines' => ['user_1']
       )
       subject.publish(event)
-      subject.timelines['user_2'].values.should include(event.key)
+      subject.timelines['user_2'].values.should include(event['key'])
     end
 
     it "returns a CL key instead of a URL" do
-      event = stub('event', :key => 'event_1', :timelines => [])
+      event = valid_event
       subject.publish(event).should eq('event_1')
     end
 
@@ -94,67 +99,59 @@ describe Chronologic::Client::Fake do
     end
 
     it "retrieves an event" do
-      event = double(
-        'event',
-        :key => 'event_1',
-        :timelines => []
-      ).as_null_object
+      event = valid_event
       subject.publish(event)
-      subject.fetch(event.key).should eq(event)
+      subject.fetch(event['key']).should eq(event)
     end
 
     it "copies retrieved events" do
-      event = double(:event, :key => 'event_1').as_null_object
+      event = valid_event
       subject.publish(event)
-      subject.fetch(event.key).should_not eql(event)
+      subject.fetch(event['key']).should_not equal(event)
     end
 
     it "populates objects on fetched events" do
-      object = double
+      object = {"thingy" => '1234'}
       subject.record('object_1', object)
 
-      event = Chronologic::Event.new(
-        :key => 'event_1',
-        :objects => {'objects' => ['object_1']}
+      event = valid_event.merge(
+        'key' => 'event_1',
+        'objects' => {'gizmos' => ['object_1']}
       )
       subject.publish(event)
 
-      subject.fetch(event.key).objects['objects']['object_1'].should eq(object)
+      subject.fetch(event['key'])['objects']['gizmos']['object_1'].should eq(object)
     end
 
     it "fetches subevents on fetched events" do
-      event = Chronologic::Event.new(
-        :key => 'event_1'
-      )
+      event = valid_event
       subject.publish(event)
 
-      subevent = Chronologic::Event.new(
-        :key => 'subevent_1',
-        :timelines => [event.key]
+      subevent = valid_event.merge(
+        'key' => 'subevent_1',
+        'timelines' => [event['key']]
       )
       subject.publish(subevent)
 
-      subject.fetch(event.key).subevents.should include(subevent)
+      subject.fetch(event['key'])['subevents'].should include(subevent)
     end
 
     it "populates objects on fetched subevents" do
-      object = double
-      subject.record('object_1', object)
-
-      event = Chronologic::Event.new(
-        :key => 'event_1'
-      )
+      event = valid_event
       subject.publish(event)
 
-      subevent = Chronologic::Event.new(
-        :key => 'subevent_1',
-        :timelines => [event.key],
-        :objects => {'objects' => ['object_1']}
+      subevent = valid_event.merge(
+        'key' => 'subevent_1',
+        'timelines' => [event['key']],
+        'objects' => {'gizmos' => ['object_1']}
       )
       subject.publish(subevent)
 
-      fetched = subject.fetch(event.key).subevents.first
-      fetched.objects['objects'].should include('object_1' => object)
+      object = {"thingy" => "weird"}
+      subject.record('object_1', object)
+
+      fetched = subject.fetch(event['key'])['subevents'].first
+      fetched['objects']['gizmos'].should include('object_1' => object)
     end
 
   end
@@ -162,15 +159,13 @@ describe Chronologic::Client::Fake do
   describe "#update" do
 
     it "rewrites an existing event" do
-      event = double('event', :key => 'event_1').as_null_object
+      event = valid_event
       subject.publish(event)
-      updated = double(
-        'event',
-        :key => 'event_1',
-        :timelines => []
-      ).as_null_object
+
+      updated = event.merge('data' => {"happy" => "yep!"})
       subject.update(updated)
-      subject.fetch(event.key).should eq(updated)
+
+      subject.fetch(event['key']).should eq(updated)
     end
 
   end
@@ -178,14 +173,13 @@ describe Chronologic::Client::Fake do
   describe "#timeline" do
 
     let(:events) do
+      timestamp = Time.now
       10.times.map do |i|
-        event = double(
-          :event,
-          :key => "event_#{i}",
-          :objects => {},
-          :timelines => ['home'],
-          :timestamp => i
-        ).as_null_object
+        event = valid_event.merge(
+          'key' => "event_#{i}",
+          'timelines' => ['home'],
+          'timestamp' => (timestamp + i).iso8601
+        )
       end
     end
     before { events.each { |e| subject.publish(e) } }
@@ -194,7 +188,8 @@ describe Chronologic::Client::Fake do
       feed = subject.timeline('home')
 
       feed['count'].should eq(10)
-      feed['items'].should eq(events)
+      feed['items'].first.should eq(events.first)
+      # feed['items'].should eq(events)
     end
 
     it "fetches the specified number of events" do
@@ -214,35 +209,29 @@ describe Chronologic::Client::Fake do
     end
 
     it "fetches objects on events" do
-      object = double(:object).as_null_object
+      object = {"doneness" => "so close"}
       subject.record('object_1', object)
 
-      with_object = Chronologic::Event.new(
-        :key => 'event_100',
-        :timelines => ['with_object'],
-        :objects => {"object" => ['object_1']},
-        :timestamp => 1
+      event = valid_event.merge(
+        'key' => 'event_100',
+        'timelines' => ['with_object'],
+        'objects' => {"object" => ['object_1']}
       )
-      subject.publish(with_object)
+      subject.publish(event)
 
       feed = subject.timeline('with_object')
       feed['items'].first['objects']["object"].should eq({"object_1" => object})
     end
 
     it "fetches subevents on events" do
-      parent = Chronologic::Event.new(
-        :key => 'event_1',
-        :timelines => ['with_subevent'],
-        :objects => {},
-        :timestamp => 1
+      parent = valid_event.merge(
+        'key' => 'event_1',
+        'timelines' => ['with_subevent']
       )
-      subevent = Chronologic::Event.new(
-        :key => 'event_2',
-        :timelines => ['event_1'],
-        :objects => {},
-        :timestamp => 2
+      subevent = valid_event.merge(
+        'key' => 'event_2',
+        'timelines' => ['event_1']
       )
-
       subject.publish(parent)
       subject.publish(subevent)
 
@@ -253,3 +242,4 @@ describe Chronologic::Client::Fake do
   end
 
 end
+

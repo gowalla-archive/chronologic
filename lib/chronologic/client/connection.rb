@@ -1,4 +1,5 @@
 require "active_support/core_ext/module"
+require 'active_support/core_ext/hash'
 require "will_paginate/array"
 require "httparty"
 
@@ -126,7 +127,7 @@ class Chronologic::Client::Connection
         "items" => resp["feed"].
           map { |v| Chronologic::Event.new(v) }.
           paginate(:total_entries => resp["count"])
-      }
+      }.with_indifferent_access
     end
   end
 

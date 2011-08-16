@@ -12,6 +12,7 @@ class Chronologic::Client::Fake
   end
 
   def record(object_key, data)
+    raise ArgumentError.new("`data` should be a Hash.") unless data.is_a?(Hash)
     @objects[object_key] = data
   end
 
@@ -21,12 +22,12 @@ class Chronologic::Client::Fake
 
   def subscribe(subscriber_key, timeline_key, backlink_key=nil, backfill=true)
     @subscribers[subscriber_key][timeline_key] = backlink_key
-    # XXX backfill
+    # TODO: backfill
   end
 
   def unsubscribe(subscriber_key, timeline_key)
     @subscribers[subscriber_key].delete(timeline_key)
-    # XXX unfill
+    # TODO: unfill
   end
 
   def connected?(subscriber_key, backlink_key)
@@ -34,17 +35,17 @@ class Chronologic::Client::Fake
   end
 
   def publish(event)
-    event = event.with_indifferent_access
-    @events[event['key']] = event
-    event['timelines'].each do |timeline|
-      uuid = SimpleUUID::UUID.new(Time.parse(event['timestamp']))
-      @timelines[timeline][uuid] = event['key']
+    raise ArgumentError.new("`event` should be a Chronologic::Event.") unless event.is_a?(Chronologic::Event)
+    @events[event.key] = event
+    event.timelines.each do |timeline|
+      uuid = SimpleUUID::UUID.new(event.timestamp)
+      @timelines[timeline][uuid] = event.key
       @subscribers[timeline].keys.each do |t|
-        @timelines[t][uuid] = event['key']
+        @timelines[t][uuid] = event.key
       end
     end
 
-    event['key']
+    event.key
   end
 
   def unpublish(event_key)
@@ -89,6 +90,7 @@ class Chronologic::Client::Fake
     # Reverse the range (?), grab n entries, take just the value
     event_keys = range.reverse.first(per_page).map { |k, v| v }
     items = event_keys.map { |k| @events[k] }
+
     items.each do |ev|
       populate_objects_for(ev)
       populate_subevents_for(ev)

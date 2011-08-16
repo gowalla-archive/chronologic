@@ -188,8 +188,7 @@ describe Chronologic::Client::Fake do
       feed = subject.timeline('home')
 
       feed['count'].should eq(10)
-      feed['items'].first.should eq(events.first)
-      # feed['items'].should eq(events)
+      feed['items'].should eq(events)
     end
 
     it "fetches the specified number of events" do

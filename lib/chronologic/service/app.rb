@@ -51,7 +51,7 @@ class Chronologic::Service::App < Sinatra::Base
   post "/event" do
     fanout = params.fetch("fanout", "") == "1"
     uuid = protocol.publish(event, fanout)
-    headers("Location" => "/event/#{params["key"]}/#{uuid}")
+    headers("Location" => "/event/#{params["key"]}")
     status 201
   end
 
@@ -75,14 +75,14 @@ class Chronologic::Service::App < Sinatra::Base
     end
   end
 
-  put '/event/:event_key/:token' do
+  put '/event/:event_key' do
     update_timelines = if params.fetch('update_timelines', '') == "true"
       true
     else
       false
     end
     protocol.update_event(event, update_timelines)
-    headers("Location" => "/event/#{event.key}/#{event.token}")
+    headers("Location" => "/event/#{event.key}")
     status 204
   end
 

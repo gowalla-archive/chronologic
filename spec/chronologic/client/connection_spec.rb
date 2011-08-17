@@ -114,7 +114,7 @@ describe Chronologic::Client::Connection do
   it 'updates an event' do
     event = simple_event
 
-    url = "http://localhost:3000/event/#{event.key}/#{event.token}?update_timelines=false"
+    url = "http://localhost:3000/event/#{event.key}?update_timelines=false"
     body = event.to_transport
     stub_request(:put, url).
       with(:body => body).
@@ -131,7 +131,7 @@ describe Chronologic::Client::Connection do
   it 'updates an event with timeline changes' do
     event = simple_event
 
-    url = "http://localhost:3000/event/#{event.key}/#{event.token}?update_timelines=true"
+    url = "http://localhost:3000/event/#{event.key}?update_timelines=true"
     body = event.to_transport
     stub_request(:put, url).
       with(:body => body).
@@ -178,7 +178,6 @@ describe Chronologic::Client::Connection do
     result = client.timeline("user_1_home", :subevents => false, :page => "abc-123", :per_page => "5")
     WebMock.should have_requested(:get, "http://localhost:3000/timeline/user_1_home?subevents=false&page=abc-123&per_page=5")
     result["feed"].length.should == 1
-    result["items"].total_entries.should == 1
     (result["feed"].first.keys - ["timestamp"]).each do |k|
       result["feed"].first[k].should == event[k]
     end

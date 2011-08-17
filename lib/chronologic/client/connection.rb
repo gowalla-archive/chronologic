@@ -98,7 +98,7 @@ class Chronologic::Client::Connection
 
   def update(event, update_timelines=false)
     resp = self.class.put(
-      "/event/#{event.key}/#{event.token}",
+      "/event/#{event.key}",
       :query => {:update_timelines => update_timelines},
       :body => event.to_transport
     )

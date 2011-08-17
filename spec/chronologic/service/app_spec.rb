@@ -118,7 +118,7 @@ describe Chronologic::Service::App do
     result["data"].should == event["data"]
     result["objects"].should == event["objects"]
 
-    last_response.headers["Location"].should match(%r!/event/#{event["key"]}/[\d\w-]*!)
+    last_response.headers["Location"].should match(%r!/event/#{event["key"]}!)
   end
 
   it "publishes an event without fanout" do
@@ -160,10 +160,10 @@ describe Chronologic::Service::App do
     event = simple_event
     protocol.publish(event)
 
-    put "/event/#{event.key}/#{event.token}", event.to_transport
+    put "/event/#{event.key}", event.to_transport
 
     last_response.status.should eq(204)
-    last_response.headers["Location"].should match(%r!/event/#{event["key"]}/[\d\w-]*!)
+    last_response.headers["Location"].should match(%r!/event/#{event["key"]}!)
   end
 
   it "updates an event and its timelines" do
@@ -171,11 +171,11 @@ describe Chronologic::Service::App do
     protocol.publish(event)
     event.timelines << 'foo_1'
 
-    put "/event/#{event.key}/#{event.token}?update_timelines=true", event.to_transport
+    put "/event/#{event.key}?update_timelines=true", event.to_transport
 
     last_response.status.should eq(204)
     Chronologic.schema.timeline_events_for('foo_1').values.should include(event['key'])
-    last_response.headers["Location"].should match(%r!/event/#{event["key"]}/[\d\w-]*!)
+    last_response.headers["Location"].should match(%r!/event/#{event["key"]}!)
   end
 
   it 'fetches a single event' do

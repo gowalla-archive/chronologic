@@ -66,7 +66,10 @@ module Chronologic::Service::Protocol
   end
 
   def self.fetch_event(event_key)
-    event = Chronologic::Event.load_from_columns(schema.event_for(event_key)).tap do |ev|
+    raw_event = schema.event_for(event_key)
+    raise Chronologic::NotFound.new('Event not found') if raw_event.empty?
+
+    event = Chronologic::Event.load_from_columns(raw_event).tap do |ev|
       ev.key = event_key
     end
 

@@ -130,6 +130,10 @@ describe Chronologic::Service::Protocol do
     protocol.fetch_event(event.key).key.should eq(event.key)
   end
 
+  it "raises Chronologic::NotFound if an event isn't present" do
+    expect { protocol.fetch_event('abc_123') }.to raise_exception(Chronologic::NotFound)
+  end
+
   it "fetches an event with objects" do
     user = {'username' => 'ak'}
     spot = {'name' => 'JP'}

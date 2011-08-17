@@ -68,13 +68,10 @@ class Chronologic::Service::App < Sinatra::Base
   end
 
   get '/event/:event_key' do
-    event = protocol.fetch_event(params['event_key'])
-    if event.keys.empty? # TODO test this case
+    begin
+      json('event' => protocol.fetch_event(params['event_key']))
+    rescue Chronologic::NotFound => e
       status 404
-    else
-      json(
-        'event' => event#.to_transport
-      )
     end
   end
 

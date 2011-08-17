@@ -182,14 +182,14 @@ describe Chronologic::Service::App do
     event = simple_event
     uuid = protocol.publish(event)
 
-    get "/event/#{event.key}/#{uuid}"
+    get "/event/#{event.key}"
     last_response.status.should == 200
     json_body.should include('event')
     json_body['event'].should include('key', 'timestamp', 'data', 'timelines', 'objects')
   end
 
   it "returns 404 if an event isn't found" do
-    get "/event/123/456"
+    get "/event/thingy_123"
     last_response.status.should == 404
   end
 

@@ -28,6 +28,7 @@ module Chronologic
   end
 
   class Exception < RuntimeError; end
+  class NotFound < RuntimeError; end
   class ServiceError < RuntimeError
     attr_reader :response
 
@@ -35,7 +36,6 @@ module Chronologic
       @response = Hashie::Mash.new(resp)
       super("Chronologic service error: #{response.message}")
     end
-
   end
 
 end

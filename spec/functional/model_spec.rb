@@ -23,12 +23,12 @@ describe 'Client-side models' do
     event['timestamp'].should eq(story.timestamp.iso8601)
   end
 
-  it 'fetch a new event' do
+  xit 'fetch a new event' do
     url = story.save
     Story.fetch(url).should eq(story)
   end
 
-  it 'update attributes on an event' do
+  xit 'update attributes on an event' do
     url = story.save
     story.title = "BRASKY ONCE ATE AN OX IN ONE BITE"
     story.save
@@ -36,7 +36,7 @@ describe 'Client-side models' do
     Story.fetch(url).should eq(story)
   end
 
-  it 'update objects on an event' do
+  xit 'update objects on an event' do
     user = Story::User.new
     user.username = 'akk'
     user.age = 31

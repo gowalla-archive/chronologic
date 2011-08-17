@@ -2,21 +2,29 @@ require 'spec_helper'
 
 describe Chronologic::Client::Fake do
 
-  def valid_event
+  def valid_event_hash
     {
       'key' => 'event_1',
       'timelines' => [],
       'objects' => {},
       'subevents' => [],
-      'timestamp' => Time.now.iso8601,
+      'timestamp' => Time.now,
       'data' => {}
     }
+  end
+
+  def valid_event
+    Chronologic::Event.new(valid_event_hash)
   end
 
   describe "#record" do
     it "stores an object" do
       subject.record("thing_1", {"thingy" => "thingoid"})
       subject.objects.should include("thing_1" => {"thingy" => "thingoid"})
+    end
+
+    it "raises an exception if data is not a hash" do
+      expect { subject.record("thing_1", Array.new) }.to raise_exception(ArgumentError)
     end
   end
 
@@ -53,7 +61,7 @@ describe Chronologic::Client::Fake do
 
   describe "#connected?" do
 
-    it "checks if a subscriber is strongly connected to a consumer" do
+    it "checks if a subscriber is connected with a backlink to a consumer" do
       subject.subscribe("user_akk", "user_mt_feed", "user_mt")
       subject.should be_connected("user_akk", "user_mt")
     end
@@ -77,19 +85,22 @@ describe Chronologic::Client::Fake do
     end
 
     it "writes the event to subscribed timelines" do
-      subject.subscribe('user_1', 'user_2')
+      subject.subscribe('user_1', 'user_2_feed')
       event = valid_event.merge(
         'timelines' => ['user_1']
       )
       subject.publish(event)
-      subject.timelines['user_2'].values.should include(event['key'])
+      subject.timelines['user_2_feed'].values.should include(event.key)
     end
 
     it "returns a CL key instead of a URL" do
       event = valid_event
-      subject.publish(event).should eq('event_1')
+      subject.publish(event).should eq(event.key)
     end
 
+    it "raises an exception if event is not a Chronologic::Event" do
+      expect { subject.publish("string") }.to raise_exception(ArgumentError)
+    end
   end
 
   describe "#fetch" do
@@ -107,7 +118,7 @@ describe Chronologic::Client::Fake do
     it "copies retrieved events" do
       event = valid_event
       subject.publish(event)
-      subject.fetch(event['key']).should_not equal(event)
+      subject.fetch(event.key).should_not equal(event)
     end
 
     it "populates objects on fetched events" do
@@ -123,17 +134,24 @@ describe Chronologic::Client::Fake do
       subject.fetch(event['key'])['objects']['gizmos']['object_1'].should eq(object)
     end
 
+    it "not return a Chronologic::Event" do
+      event = valid_event
+      subject.publish(event)
+
+      subject.fetch(event.key).class.should_not be_kind_of(Chronologic::Event)
+    end
+
     it "fetches subevents on fetched events" do
       event = valid_event
       subject.publish(event)
 
       subevent = valid_event.merge(
         'key' => 'subevent_1',
-        'timelines' => [event['key']]
+        'timelines' => [event.key]
       )
       subject.publish(subevent)
 
-      subject.fetch(event['key'])['subevents'].should include(subevent)
+      subject.fetch(event.key)['subevents'].should include(subevent)
     end
 
     it "populates objects on fetched subevents" do
@@ -150,7 +168,7 @@ describe Chronologic::Client::Fake do
       object = {"thingy" => "weird"}
       subject.record('object_1', object)
 
-      fetched = subject.fetch(event['key'])['subevents'].first
+      fetched = subject.fetch(event.key)['subevents'].first
       fetched['objects']['gizmos'].should include('object_1' => object)
     end
 
@@ -165,7 +183,7 @@ describe Chronologic::Client::Fake do
       updated = event.merge('data' => {"happy" => "yep!"})
       subject.update(updated)
 
-      subject.fetch(event['key']).should eq(updated)
+      subject.fetch(event.key).should eq(updated)
     end
 
   end
@@ -178,11 +196,12 @@ describe Chronologic::Client::Fake do
         event = valid_event.merge(
           'key' => "event_#{i}",
           'timelines' => ['home'],
-          'timestamp' => (timestamp + i).iso8601
+          'timestamp' => (timestamp + i)
         )
       end
     end
-    before { events.each { |e| subject.publish(e) } }
+
+    before(:each) { events.each { |e| subject.publish(e) } }
 
     it "fetches a page of events on a timeline" do
       feed = subject.timeline('home')

@@ -130,6 +130,49 @@ describe Chronologic::Service::Protocol do
     protocol.fetch_event(event.key).key.should eq(event.key)
   end
 
+  it "fetches an event with objects" do
+    user = {'username' => 'ak'}
+    spot = {'name' => 'JP'}
+    protocol.record('user_1', user)
+    protocol.record('spot_1', spot)
+
+    event = simple_event
+    protocol.publish(simple_event, false)
+
+    protocol.fetch_event(event.key).objects['user'].should eq(user)
+    protocol.fetch_event(event.key).objects['spot'].should eq(spot)
+  end
+
+  it "fetches an event with subevents" do
+    event = simple_event
+    protocol.publish(event, false)
+
+    nested = nested_event
+    protocol.publish(nested, false)
+
+    protocol.fetch_event(event.key).subevents.first.key.should eq(nested.key)
+  end
+
+  it "fetches an event with subevents with objects" do
+    user = {'username' => 'ak'}
+    user2 = {'username' => 'ka'}
+    spot = {'name' => 'JP'}
+    protocol.record('user_1', user)
+    protocol.record('user_2', user2)
+    protocol.record('spot_1', spot)
+
+    event = simple_event
+    protocol.publish(event, false)
+
+    nested = nested_event
+    protocol.publish(nested, false)
+
+    event = protocol.fetch_event(event.key)
+    event.objects['user'].should eq(user)
+    event.objects['spot'].should eq(spot)
+    event.subevents.first.objects['user'].should eq(user2)
+  end
+
   it "updates an event's attributes" do
     event = simple_event
     protocol.publish(event, false)

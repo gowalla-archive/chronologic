@@ -90,12 +90,15 @@ class Chronologic::Client::Connection
     resp = self.class.get(event_url)
 
     handle(resp, "Error fetching event") do
-      Chronologic::Event.new(resp['event']).tap do |event|
-        # XXX: push this into CL::Event
-        event.data = JSON.load(event.data)
-        event.objects = JSON.load(event.objects)
-        event.timelines = JSON.load(event.timelines)
+      Chronologic::Event.new(resp['event']).tap do |ev|
+        ev.subevents = ev.subevents.map { |sub| Chronologic::Event.new(sub) }
       end
+      # Chronologic::Event.new(resp['event']).tap do |event|
+      #   # XXX: push this into CL::Event
+      #   event.data = JSON.load(event.data)
+      #   event.objects = JSON.load(event.objects)
+      #   event.timelines = JSON.load(event.timelines)
+      # end
     end
   end
 

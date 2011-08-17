@@ -67,13 +67,13 @@ class Chronologic::Service::App < Sinatra::Base
     status 204
   end
 
-  get '/event/:event_key/:token' do
+  get '/event/:event_key' do
     event = protocol.fetch_event(params['event_key'])
-    if event.empty?
+    if event.keys.empty? # TODO test this case
       status 404
     else
       json(
-        'event' => event.to_transport
+        'event' => event#.to_transport
       )
     end
   end

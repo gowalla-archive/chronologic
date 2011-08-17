@@ -150,17 +150,17 @@ describe Chronologic::Client::Connection do
 
     stub_request(
       :get,
-      "http://localhost:3000/events/#{event.key}/#{event.token}"
+      "http://localhost:3000/events/#{event.key}"
     ).to_return(
       :status => 200,
-      :body => {'event' => simple_event.to_transport}.to_json,
+      :body => {'event' => simple_event}.to_json,
       :headers => {'Content-Type' => 'application/json'}
     )
 
-    result = client.fetch("/events/#{event.key}/#{event.token}")
+    result = client.fetch("/events/#{event.key}")
     WebMock.should have_requested(
       :get,
-      "http://localhost:3000/events/#{event.key}/#{event.token}"
+      "http://localhost:3000/events/#{event.key}"
     )
     result.should be_a(Chronologic::Event)
   end

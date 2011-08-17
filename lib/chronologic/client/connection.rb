@@ -93,12 +93,6 @@ class Chronologic::Client::Connection
       Chronologic::Event.new(resp['event']).tap do |ev|
         ev.subevents = ev.subevents.map { |sub| Chronologic::Event.new(sub) }
       end
-      # Chronologic::Event.new(resp['event']).tap do |event|
-      #   # XXX: push this into CL::Event
-      #   event.data = JSON.load(event.data)
-      #   event.objects = JSON.load(event.objects)
-      #   event.timelines = JSON.load(event.timelines)
-      # end
     end
   end
 
@@ -123,13 +117,16 @@ class Chronologic::Client::Connection
            end
 
     handle(resp, "Error fetching timeline") do
+      items = resp["feed"].map do |ev|
+        Chronologic::Event.new(ev).tap do |e|
+          e.subevents = e.subevents.map { |sub| Chronologic::Event.new(sub) }
+        end
+      end
       {
         "feed" => resp["feed"],
         "count" => resp["count"],
         "next_page" => resp["next_page"],
-        "items" => resp["feed"].
-          map { |v| Chronologic::Event.new(v) }.
-          paginate(:total_entries => resp["count"])
+        "items" => items
       }.with_indifferent_access
     end
   end
@@ -137,6 +134,8 @@ class Chronologic::Client::Connection
   def handle(response, message)
     if response.code == 500 && response.content_type == 'application/json'
       raise Chronologic::ServiceError.new(JSON.load(response.body))
+    elsif response.code == 404
+      raise Chronologic::NotFound.new
     elsif response.code < 200 || response.code > 299
       raise Chronologic::Exception.new(message)
     elsif block_given?

@@ -104,10 +104,10 @@ module Chronologic::Service::Schema
     when String
       if start.nil? # First page
         connection.get(
-          :Timeline, 
-          timeline, 
-          :start => start, 
-          :count => count, 
+          :Timeline,
+          timeline,
+          :start => start,
+          :count => count,
           # AKK: it would be nice to figure out how not to need to reverse
           # this so that clients don't have to reverse it again to get
           # reverse-chronological listings
@@ -153,6 +153,75 @@ module Chronologic::Service::Schema
 
   def self.timeline_count(timeline)
     connection.count_columns(:Timeline, timeline)
+  end
+
+  # Lookup events on the specified timeline(s) and return all the events
+  # referenced by those timelines.
+  #
+  # timeline_keys - one or more String timeline_keys to fetch events from
+  #
+  # Returns a flat array of events
+  def self.fetch_timelines(timeline_keys, per_page=20, page='')
+    event_keys = timeline_events_for(
+      timeline_keys,
+      :per_page => per_page,
+      :page => page
+    ).values.flatten
+
+    event_for(event_keys.uniq).
+      map do |k, e|
+        Chronologic::Event.load_from_columns(e).tap do |event|
+          event.key = k
+        end
+      end
+  end
+
+  # Fetch objects referenced by events and correctly populate the event objects
+  #
+  # events - an array of Chronologic::Event objects to populate
+  #
+  # Returns a flat array of Chronologic::Event objects with their object
+  # references populated.
+  def self.fetch_objects(events)
+    object_keys = events.map { |e| e.objects.values }.flatten.uniq
+    objects = object_for(object_keys)
+    events.map do |e|
+      e.tap do
+        e.objects.each do |type, keys|
+          if keys.is_a?(Array)
+            e.objects[type] = keys.map { |k| objects[k] }
+          else
+            e.objects[type] = objects[keys]
+          end
+        end
+      end
+    end
+  end
+
+  # Convert a flat array of Chronologic::Events into a properly hierarchical
+  # timeline.
+  #
+  # events - an array of Chronologic::Event objects, each possibly referencing
+  # other events
+  #
+  # Returns a flat array of Chronologic::Event objects with their subevent
+  # references correctly populated.
+  def self.reify_timeline(events)
+    event_index = events.inject({}) { |idx, e| idx.update(e.key => e) }
+    timeline_index = events.inject([]) do |timeline, e|
+      if e.subevent? && event_index.has_key?(e.parent)
+        # AKK: something is weird about Hashie::Dash or Event in that if you 
+        # push objects onto subevents, they are added to an object that is 
+        # referenced by all instances of event. So, these dup'ing hijinks are 
+        subevents = event_index[e.parent].subevents.dup
+        subevents << e
+        event_index[e.parent].subevents = subevents
+      else
+        timeline << e.key
+      end
+      timeline
+    end
+    timeline_index.map { |key| event_index[key] }
   end
 
   def self.new_guid(timestamp=Time.now)

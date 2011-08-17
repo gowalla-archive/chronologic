@@ -70,9 +70,9 @@ module Chronologic::Service::Protocol
       ev.key = event_key
     end
 
-    subevents = EventGraph.fetch_timelines([event.key])
-    populated_events = EventGraph.fetch_objects([event, subevents].flatten)
-    EventGraph.reify_timeline(populated_events).first
+    subevents = schema.fetch_timelines([event.key])
+    populated_events = schema.fetch_objects([event, subevents].flatten)
+    schema.reify_timeline(populated_events).first
   end
 
   def self.update_event(event, update_timelines=false)
@@ -93,61 +93,6 @@ module Chronologic::Service::Protocol
 
   def self.schema
     Chronologic.schema
-  end
-
-  module EventGraph
-    # TODO don't copy this so much, man
-
-    def self.fetch_objects(events)
-      object_keys = events.map { |e| e.objects.values }.flatten.uniq
-      objects = schema.object_for(object_keys)
-      events.map do |e|
-        e.tap do
-          e.objects.each do |type, keys|
-            if keys.is_a?(Array)
-              e.objects[type] = keys.map { |k| objects[k] }
-            else
-              e.objects[type] = objects[keys]
-            end
-          end
-        end
-      end
-    end
-
-    def self.fetch_timelines(timeline_keys)
-      event_keys = schema.timeline_events_for(timeline_keys).values.flatten
-
-      schema.
-        event_for(event_keys.uniq).
-        map do |k, e|
-          Chronologic::Event.load_from_columns(e).tap do |event|
-            event.key = k
-          end
-        end
-    end
-
-    def self.reify_timeline(events)
-      event_index = events.inject({}) { |idx, e| idx.update(e.key => e) }
-      timeline_index = events.inject([]) do |timeline, e|
-        if e.subevent? && event_index.has_key?(e.parent)
-          # AKK: something is weird about Hashie::Dash or Event in that if you 
-          # push objects onto subevents, they are added to an object that is 
-          # referenced by all instances of event. So, these dup'ing hijinks are 
-          subevents = event_index[e.parent].subevents.dup
-          subevents << e
-          event_index[e.parent].subevents = subevents
-        else
-          timeline << e.key
-        end
-        timeline
-      end
-      timeline_index.map { |key| event_index[key] }
-    end
-
-    def self.schema
-      Chronologic.schema
-    end
-
   end
 
 end

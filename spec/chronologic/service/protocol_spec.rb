@@ -124,76 +124,107 @@ describe Chronologic::Service::Protocol do
 
   # AKK: no test for Protocol.feed since it delegates everything to Feed
 
-  it "fetches one event" do
-    event = simple_event
-    protocol.publish(event, false)
-    protocol.fetch_event(event.key).key.should eq(event.key)
+  describe ".fetch_event" do
+
+    it "fetches one event" do
+      event = simple_event
+      protocol.publish(event, false)
+      protocol.fetch_event(event.key).key.should eq(event.key)
+    end
+
+    it "raises Chronologic::NotFound if an event isn't present" do
+      expect { protocol.fetch_event('abc_123') }.to raise_exception(Chronologic::NotFound)
+    end
+
+    it "fetches an event with objects" do
+      user = {'username' => 'ak'}
+      spot = {'name' => 'JP'}
+      protocol.record('user_1', user)
+      protocol.record('spot_1', spot)
+
+      event = simple_event
+      protocol.publish(simple_event, false)
+
+      protocol.fetch_event(event.key).objects['user'].should eq(user)
+      protocol.fetch_event(event.key).objects['spot'].should eq(spot)
+    end
+
+    it "fetches an event with subevents" do
+      event = simple_event
+      protocol.publish(event, false)
+
+      nested = nested_event
+      protocol.publish(nested, false)
+
+      protocol.fetch_event(event.key).subevents.first.key.should eq(nested.key)
+    end
+
+    it "fetches an event with subevents with objects" do
+      user = {'username' => 'ak'}
+      user2 = {'username' => 'ka'}
+      spot = {'name' => 'JP'}
+      protocol.record('user_1', user)
+      protocol.record('user_2', user2)
+      protocol.record('spot_1', spot)
+
+      event = simple_event
+      protocol.publish(event, false)
+
+      nested = nested_event
+      protocol.publish(nested, false)
+
+      event = protocol.fetch_event(event.key)
+      event.objects['user'].should eq(user)
+      event.objects['spot'].should eq(spot)
+      event.subevents.first.objects['user'].should eq(user2)
+    end
+
   end
 
-  it "raises Chronologic::NotFound if an event isn't present" do
-    expect { protocol.fetch_event('abc_123') }.to raise_exception(Chronologic::NotFound)
-  end
+  describe ".update_event" do
 
-  it "fetches an event with objects" do
-    user = {'username' => 'ak'}
-    spot = {'name' => 'JP'}
-    protocol.record('user_1', user)
-    protocol.record('spot_1', spot)
+    it "updates an event's attributes" do
+      event = simple_event
+      protocol.publish(event, false)
+      event.data['hotness'] = "It's so new!"
 
-    event = simple_event
-    protocol.publish(simple_event, false)
+      protocol.update_event(event)
+      protocol.fetch_event(event.key).data['hotness'].should eq("It's so new!")
+    end
 
-    protocol.fetch_event(event.key).objects['user'].should eq(user)
-    protocol.fetch_event(event.key).objects['spot'].should eq(spot)
-  end
+    it "updates an event's attributes and writes to all timelines" do
+      event = simple_event
+      protocol.publish(event, false)
+      event.timelines << 'testify_1'
 
-  it "fetches an event with subevents" do
-    event = simple_event
-    protocol.publish(event, false)
+      protocol.update_event(event, true)
+      protocol.fetch_event(event.key).timelines.should include('testify_1')
+      protocol.schema.timeline_events_for('testify_1').values.should include(event.key)
+    end
 
-    nested = nested_event
-    protocol.publish(nested, false)
+    it "updates an event's timelines and fans out to all timelines" do
+      protocol.subscribe('activity_feed', 'testify_1')
 
-    protocol.fetch_event(event.key).subevents.first.key.should eq(nested.key)
-  end
+      event = simple_event
+      protocol.publish(event, false)
+      event.timelines << 'testify_1'
 
-  it "fetches an event with subevents with objects" do
-    user = {'username' => 'ak'}
-    user2 = {'username' => 'ka'}
-    spot = {'name' => 'JP'}
-    protocol.record('user_1', user)
-    protocol.record('user_2', user2)
-    protocol.record('spot_1', spot)
+      protocol.update_event(event, true)
+      protocol.schema.timeline_events_for('activity_feed').values.should include(event.key)
+    end
 
-    event = simple_event
-    protocol.publish(event, false)
+    it "cleans up timelines removed from the updated event" do
+      protocol.subscribe('activity_feed', 'testify_1')
+      event = simple_event
+      event.timelines << 'testify_1'
+      protocol.publish(event, true)
+      protocol.schema.timeline_events_for('activity_feed').values.should include(event.key)
 
-    nested = nested_event
-    protocol.publish(nested, false)
+      event.timelines.delete('testify_1')
+      protocol.update_event(event, true)
+      protocol.schema.timeline_events_for('activity_feed').values.should_not include(event.key)
+    end
 
-    event = protocol.fetch_event(event.key)
-    event.objects['user'].should eq(user)
-    event.objects['spot'].should eq(spot)
-    event.subevents.first.objects['user'].should eq(user2)
-  end
-
-  it "updates an event's attributes" do
-    event = simple_event
-    protocol.publish(event, false)
-    event.data['hotness'] = "It's so new!"
-
-    protocol.update_event(event)
-    protocol.fetch_event(event.key).data['hotness'].should eq("It's so new!")
-  end
-
-  it "updates an event's attributes and writes to all timelines" do
-    event = simple_event
-    protocol.publish(event, false)
-    event.timelines << 'testify_1'
-
-    protocol.update_event(event, true)
-    protocol.fetch_event(event.key).timelines.should include('testify_1')
-    protocol.schema.timeline_events_for('testify_1').values.should include(event.key)
   end
 
   it "counts item in a feed" do

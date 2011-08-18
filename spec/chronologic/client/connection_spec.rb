@@ -82,8 +82,6 @@ describe Chronologic::Client::Connection do
   end
 
   it "publishes an event" do
-    guid = SimpleUUID::UUID.new.to_guid
-
     event = simple_event
 
     body = event.to_transport
@@ -91,7 +89,7 @@ describe Chronologic::Client::Connection do
       with(:body => body).
       to_return(
         :status => 201,
-        :headers => {"Location" => "/event/checkin_1/#{guid}"}
+        :headers => {"Location" => "/event/checkin_1"}
       )
 
     client.publish(event, true).should match(/[\w\d-]*/)

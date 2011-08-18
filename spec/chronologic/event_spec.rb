@@ -5,7 +5,6 @@ describe Chronologic::Event do
   let(:event) do
     Chronologic::Event.new.tap do |e|
       e.key = 'event_1'
-      e.timestamp = Time.now
       e.data = {"foo" => {"one" => "two"}}
       e.objects = {"user" => "user_1", "spot" => "spot_1"}
       e.timelines = ["user_1", "sxsw"]
@@ -40,6 +39,23 @@ describe Chronologic::Event do
     event.to_transport["objects"].should == JSON.dump(event.objects)
     event.to_transport["timelines"].should == JSON.dump(event.timelines)
     event.to_transport["key"].should == event.key
+  end
+
+  it "encodes for sending back to HTTP clients" do
+    event.to_client_encoding["data"].should == event.data
+    event.to_client_encoding["objects"].should == event.objects
+    event.to_client_encoding["timelines"].should == event.timelines
+    event.to_client_encoding["key"].should == event.key
+  end
+
+  it "populates timestamp" do
+    event.set_timestamp
+    event.timestamp.should_not be_nil
+  end
+
+  it "raises an exception if timestamp is repopulated" do
+    event.set_timestamp
+    expect { event.set_timestamp }.to raise_exception(Chronologic::TimestampAlreadySet)
   end
 
   it "knows whether it is a subevent" do
@@ -82,6 +98,7 @@ describe Chronologic::Event do
   end
 
   it "generates a timestamp token" do
+    event.set_timestamp
     event.token.should eq(Chronologic.schema.new_guid(event.timestamp))
   end
 

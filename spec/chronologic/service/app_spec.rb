@@ -101,50 +101,66 @@ describe Chronologic::Service::App do
     obj['user_bo'].should == true
   end
 
-  it "publishes an event" do
-    event = {
-      "key" => "checkin_1212",
-      "timestamp" => Time.now.utc.iso8601,
-      "data" => JSON.dump({"type" => "checkin", "message" => "I'm here!"}),
-      "objects" => JSON.dump({"user" => "user_1", "spot" => "spot_1"}),
-      "timelines" => JSON.dump(["user_1", "spot_1"])
-    }
+  context "POST /event" do
 
-    post "/event", event
+    it "publishes an event" do
+      event = {
+        "key" => "checkin_1212",
+        "data" => JSON.dump({"type" => "checkin", "message" => "I'm here!"}),
+        "objects" => JSON.dump({"user" => "user_1", "spot" => "spot_1"}),
+        "timelines" => JSON.dump(["user_1", "spot_1"])
+      }
 
-    last_response.status.should == 201
+      post "/event", event
 
-    result = Chronologic.schema.event_for("checkin_1212")
-    result["data"].should == event["data"]
-    result["objects"].should == event["objects"]
+      last_response.status.should == 201
 
-    last_response.headers["Location"].should match(%r!/event/#{event["key"]}!)
-  end
+      result = Chronologic.schema.event_for("checkin_1212")
+      result["data"].should == event["data"]
+      result["objects"].should == event["objects"]
 
-  it "publishes an event without fanout" do
-    event = {
-      "key" => "checkin_1212",
-      "timestamp" => Time.now.utc.iso8601,
-      "data" => JSON.dump({"type" => "checkin", "message" => "I'm here!"}),
-      "objects" => JSON.dump({"user" => "user_1", "spot" => "spot_1"}),
-      "timelines" => JSON.dump(["user_1", "spot_1"])
-    }
-    protocol.subscribe("user_1_home", "user_1")
+      last_response.headers["Location"].should match(%r!/event/#{event["key"]}!)
+    end
 
-    post "/event?fanout=0", event
+    it "returns an error if a duplicate event is published" do
+      event = {
+        "key" => "checkin_1212",
+        "data" => JSON.dump({"type" => "checkin", "message" => "I'm here!"}),
+        "objects" => JSON.dump({"user" => "user_1", "spot" => "spot_1"}),
+        "timelines" => JSON.dump(["user_1", "spot_1"])
+      }
 
-    last_response.status.should == 201
+      post "/event?fanout=0", event
+      post "/event?fanout=0", event
 
-    result = Chronologic.schema.event_for("checkin_1212")
-    result["data"].should == event["data"]
-    result["objects"].should == event["objects"]
-    Chronologic.schema.timeline_events_for("user_1_home").values.should_not include(event["key"])
+      last_response.status.should == 500
+      last_response.body.should match(/duplicate event/)
+    end
+
+    it "publishes an event without fanout" do
+      event = {
+        "key" => "checkin_1212",
+        "data" => JSON.dump({"type" => "checkin", "message" => "I'm here!"}),
+        "objects" => JSON.dump({"user" => "user_1", "spot" => "spot_1"}),
+        "timelines" => JSON.dump(["user_1", "spot_1"])
+      }
+      protocol.subscribe("user_1_home", "user_1")
+
+      post "/event?fanout=0", event
+
+      last_response.status.should == 201
+
+      result = Chronologic.schema.event_for("checkin_1212")
+      result["data"].should == event["data"]
+      result["objects"].should == event["objects"]
+      Chronologic.schema.timeline_events_for("user_1_home").values.should_not include(event["key"])
+    end
+
   end
 
   it "unpublishes an event" do
     event = Chronologic::Event.new
     event.key = "checkin_1111"
-    event.timestamp = Time.now.utc
     event.data = {"type" => "checkin", "message" => "I'm here!"}
     event.objects = {"user" => "user_1", "spot" => "spot_1"}
     event.timelines = ["user_1", "spot_1"]
@@ -183,9 +199,11 @@ describe Chronologic::Service::App do
     uuid = protocol.publish(event)
 
     get "/event/#{event.key}"
+
     last_response.status.should == 200
     json_body.should include('event')
-    json_body['event'].should include('key', 'timestamp', 'data', 'timelines', 'objects')
+    json_body['event'].should_not include('timestamp')
+    json_body['event'].should include('key', 'data', 'timelines', 'objects')
   end
 
   it "returns 404 if an event isn't found" do
@@ -216,9 +234,12 @@ describe Chronologic::Service::App do
   end
 
   it "reads a timeline feed with page and per_page parameters" do
-    uuids = populate_timeline
+    populate_timeline
 
-    get "/timeline/user_1_home", :per_page => 5, :page => uuids[4]
+    get "/timeline/user_1_home", :per_page => 5
+    page = json_body["next_page"]
+
+    get "/timeline/user_1_home", :per_page => 5, :page => page
 
     obj = json_body
     obj["feed"].length.should == 5
@@ -236,7 +257,6 @@ describe Chronologic::Service::App do
 
     event = Chronologic::Event.new
     event.key = "checkin_1111"
-    event.timestamp = Time.now
     event.data = {"type" => "checkin", "message" => "I'm here!"}
     event.objects = {"user" => "user_1", "spot" => "spot_1"}
     event.timelines = ["user_1", "spot_1"]
@@ -246,7 +266,6 @@ describe Chronologic::Service::App do
 
     event = Chronologic::Event.new
     event.key = "comment_1111"
-    event.timestamp = Time.now.utc
     event.data = {"type" => "comment", "message" => "Me too!", "parent" => "checkin_1111"}
     event.objects = {"user" => "user_2"}
     event.timelines = ["checkin_1111"]
@@ -254,7 +273,6 @@ describe Chronologic::Service::App do
 
     event = Chronologic::Event.new
     event.key = "comment_2222"
-    event.timestamp = Time.now.utc
     event.data = {"type" => "comment", "message" => "Great!", "parent" => "checkin_1111"}
     event.objects = {"user" => "user_1"}
     event.timelines = ["checkin_1111"]

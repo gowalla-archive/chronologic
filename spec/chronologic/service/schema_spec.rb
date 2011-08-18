@@ -81,6 +81,11 @@ describe Chronologic::Service::Schema do
     @schema.followers_for('user_1').should == []
   end
 
+  it "checks the existence of an event" do
+    @schema.create_event("checkin_1111", simple_data)
+    @schema.event_exists?("checkin_1111").should be_true
+  end
+
   it "creates an event" do
     data = simple_data
     @schema.create_event("checkin_1111", data)

@@ -17,7 +17,7 @@ class Chronologic::Event < Hashie::Dash
 
   def to_columns
     {
-      "timestamp" => timestamp.utc.iso8601,
+      "timestamp" => timestamp ? timestamp.utc.iso8601 : nil,
       "data" => JSON.dump(data),
       "objects" => JSON.dump(objects),
       "timelines" => JSON.dump(timelines)
@@ -28,6 +28,15 @@ class Chronologic::Event < Hashie::Dash
     to_columns.update("key" => key).tap do |col|
       col.delete("timestamp")
     end
+  end
+
+  def to_client_encoding
+    {
+      "key" => key,
+      "data" => data,
+      "objects" => objects,
+      "timelines" => timelines
+    }
   end
 
   def self.load_from_columns(columns)
@@ -43,6 +52,12 @@ class Chronologic::Event < Hashie::Dash
     }
 
     new(to_load)
+  end
+
+  def set_timestamp
+    raise Chronologic::TimestampAlreadySet unless timestamp.nil?
+
+    self.timestamp = Time.now.utc
   end
 
   def subevent?

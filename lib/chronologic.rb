@@ -29,6 +29,8 @@ module Chronologic
 
   class Exception < RuntimeError; end
   class NotFound < RuntimeError; end
+  class Duplicate < RuntimeError; end
+  class TimestampAlreadySet < RuntimeError; end
   class ServiceError < RuntimeError
     attr_reader :response
 

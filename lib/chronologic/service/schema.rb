@@ -76,6 +76,12 @@ module Chronologic::Service::Schema
     connection.remove(:Event, event_key)
   end
 
+  def self.event_exists?(event_key)
+    log("event_exists?(#{event_key.inspect})")
+
+    connection.exists?(:Event, event_key)
+  end
+
   def self.event_for(event_key)
     log("event_for(#{event_key.inspect})")
 

@@ -49,10 +49,16 @@ class Chronologic::Service::App < Sinatra::Base
   end
 
   post "/event" do
-    fanout = params.fetch("fanout", "") == "1"
-    uuid = protocol.publish(event, fanout)
-    headers("Location" => "/event/#{params["key"]}")
-    status 201
+    begin
+      fanout = params.fetch("fanout", "") == "1"
+      protocol.publish(event, fanout)
+
+      headers("Location" => "/event/#{params["key"]}")
+      status 201
+    rescue Chronologic::Duplicate
+      body("Could not create duplicate event, did you mean to update it?")
+      status 500
+    end
   end
 
   delete "/event/:event_key" do
@@ -69,7 +75,8 @@ class Chronologic::Service::App < Sinatra::Base
 
   get '/event/:event_key' do
     begin
-      json('event' => protocol.fetch_event(params['event_key']))
+      event = protocol.fetch_event(params['event_key'])
+      json('event' => event.to_client_encoding)
     rescue Chronologic::NotFound => e
       status 404
     end
@@ -112,7 +119,6 @@ class Chronologic::Service::App < Sinatra::Base
     def event
       Chronologic::Event.new(
         "key" => params["key"],
-        "timestamp" => Time.parse(params["timestamp"]),
         "data" => JSON.load(params["data"]),
         "objects" => JSON.load(params["objects"]),
         "timelines" => JSON.load(params["timelines"])

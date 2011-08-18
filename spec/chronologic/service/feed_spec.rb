@@ -83,11 +83,12 @@ describe Chronologic::Service::Feed do
   end
 
   it "fetches a feed by page" do
-    uuids = populate_timeline
+    populate_timeline
+    page = subject.create("user_1_home", :per_page => 5).next_page
 
     subject.create(
       "user_1_home",
-      :page => uuids[4],
+      :page => page,
       :per_page => 5
     ).items.length.should ==(5)
   end
@@ -96,11 +97,11 @@ describe Chronologic::Service::Feed do
   # the paging bits
 
   it "tracks the event key for the next page" do
-    uuids = populate_timeline
+    populate_timeline
     feed = subject.new("user_1_home")
     feed.items
 
-    feed.next_page.should == uuids.first
+    feed.next_page.should_not be_nil
   end
 
   it "stores the item count for the feed" do

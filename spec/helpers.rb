@@ -3,7 +3,6 @@ module ChronologicHelpers
   def simple_event
     Chronologic::Event.new.tap do |event|
       event.key = "checkin_1"
-      event.timestamp = Time.now.utc
       event.data = {"type" => "checkin", "message" => "I'm here!"}
       event.objects = {"user" => "user_1", "spot" => "spot_1"}
       event.timelines = ["user_1", "spot_1"]
@@ -13,7 +12,6 @@ module ChronologicHelpers
   def nested_event
     Chronologic::Event.new.tap do |event|
       event.key = "comment_1"
-      event.timestamp = Time.now.utc
       event.data = {"type" => "comment", "message" => "Me too!", "parent" => "checkin_1"}
       event.objects = {"user" => "user_2"}
       event.timelines = ["checkin_1"]
@@ -24,7 +22,7 @@ module ChronologicHelpers
     jp = {"name" => "Juan Pelota's"}
     protocol.record("spot_1", jp)
 
-    uuids = []
+    events = []
     %w{sco jc am pb mt rm ak ad rs bf}.each_with_index do |u, i|
       record = {"name" => u}
       key = "user_#{i}"
@@ -36,10 +34,12 @@ module ChronologicHelpers
       event.key = "checkin_#{i}"
       event.objects["user"] = key
       event.timelines = [key, "spot_1"]
-      uuids << protocol.publish(event)
+
+      events << event
+      protocol.publish(event)
     end
 
-    return uuids
+    return events
   end
 
   # Cassandra#truncate isn't reliable against cassandra-0.7.4, but

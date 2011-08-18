@@ -3,6 +3,12 @@ require 'functional_helper'
 describe "The Chronologic API" do
 
   let(:connection) { Chronologic::Client::Connection.instance = Chronologic::Client::Connection.new('http://localhost:9292') }
+  before do
+    c = Cassandra.new("Chronologic")
+    [:Object, :Subscription, :Timeline, :Event].each do |cf|
+      c.truncate!(cf)
+    end
+  end
 
   context "GET /event/[event_key]" do
 

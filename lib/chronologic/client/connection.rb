@@ -136,6 +136,8 @@ class Chronologic::Client::Connection
   def handle(response, message)
     if response.code == 500 && response.content_type == 'application/json'
       raise Chronologic::ServiceError.new(JSON.load(response.body))
+    elsif response.code == 500
+      raise Chronologic::Duplicate.new(response.body)
     elsif response.code == 404
       raise Chronologic::NotFound.new
     elsif response.code < 200 || response.code > 299

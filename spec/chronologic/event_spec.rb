@@ -45,6 +45,7 @@ describe Chronologic::Event do
     event.to_client_encoding["data"].should == event.data
     event.to_client_encoding["objects"].should == event.objects
     event.to_client_encoding["timelines"].should == event.timelines
+    event.to_client_encoding["subevents"].should == event.subevents
     event.to_client_encoding["key"].should == event.key
   end
 

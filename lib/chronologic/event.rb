@@ -35,7 +35,8 @@ class Chronologic::Event < Hashie::Dash
       "key" => key,
       "data" => data,
       "objects" => objects,
-      "timelines" => timelines
+      "timelines" => timelines,
+      "subevents" => subevents
     }
   end
 

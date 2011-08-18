@@ -15,7 +15,7 @@ describe 'Client-side models' do
   end
   let(:schema) { Chronologic::Service::Schema }
 
-  it 'create a new event' do
+  xit 'create a new event' do
     url = story.save
     event = schema.event_for(story.cl_key)
     event.should_not be_nil
@@ -48,7 +48,7 @@ describe 'Client-side models' do
     Story.fetch(url).objects['users'].should include(user.to_cl_key)
   end
 
-  it 'update subevents on an event' do
+  xit 'update subevents on an event' do
     photo = Story::Photo.new
     photo.cl_key = 'photo_1'
     photo.message = "Look at this great square-cropped pic!"
@@ -62,7 +62,7 @@ describe 'Client-side models' do
     Story::Photo.fetch(photo.cl_url).parent_key.should eq(story.cl_key)
   end
 
-  it 'update timelines on an event' do
+  xit 'update timelines on an event' do
     story.add_timeline('user_1')
     url = story.save
 
@@ -74,7 +74,7 @@ describe 'Client-side models' do
     # Make sure that the event was written to the new timeline?
   end
 
-  it 'delete an event' do
+  xit 'delete an event' do
     url = story.save
     story.destroy
 

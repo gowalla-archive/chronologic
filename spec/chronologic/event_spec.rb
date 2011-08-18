@@ -35,6 +35,7 @@ describe Chronologic::Event do
   end
 
   it "serializes for HTTP transport" do
+    event.to_transport.should_not have_key("timestamp")
     event.to_transport["data"].should == JSON.dump(event.data)
     event.to_transport["objects"].should == JSON.dump(event.objects)
     event.to_transport["timelines"].should == JSON.dump(event.timelines)

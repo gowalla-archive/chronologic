@@ -25,7 +25,9 @@ class Chronologic::Event < Hashie::Dash
   end
 
   def to_transport
-    to_columns.update("key" => key)
+    to_columns.update("key" => key).tap do |col|
+      col.delete("timestamp")
+    end
   end
 
   def self.load_from_columns(columns)

@@ -17,7 +17,7 @@ class Chronologic::Event < Hashie::Dash
 
   def to_columns
     {
-      "timestamp" => timestamp ? timestamp.utc.iso8601 : nil,
+      "timestamp" => timestamp ? [timestamp.tv_sec, timestamp.tv_usec].join('.') : nil,
       "data" => JSON.dump(data),
       "objects" => JSON.dump(objects),
       "timelines" => JSON.dump(timelines)
@@ -43,7 +43,9 @@ class Chronologic::Event < Hashie::Dash
   def self.load_from_columns(columns)
     # XXX this is so janky
     raw_time = columns['timestamp']
-    timestamp = raw_time.is_a?(DateTime) ? raw_time : (Time.parse(raw_time) rescue nil)
+    timestamp = if raw_time
+                  raw_time.is_a?(DateTime) ? raw_time : Time.at(Float(raw_time))
+                end
 
     to_load = {
       "data" => JSON.load(columns.fetch("data", '{}')),

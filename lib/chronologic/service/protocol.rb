@@ -52,6 +52,7 @@ module Chronologic::Service::Protocol
 
     all_timelines.
       flatten.
+      uniq.
       map { |t| schema.create_timeline_event(t, uuid, event.key) }
     event.published!
     event

@@ -49,4 +49,12 @@ describe "The Chronologic API" do
 
   end
 
+  context "GET /timeline/[timeline_key]" do
+
+    it "does not return a next page key if there is no more data"
+
+    it "returns 404 if the timeline key isn't found"
+
+  end
+
 end

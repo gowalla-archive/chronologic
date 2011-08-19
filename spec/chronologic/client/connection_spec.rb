@@ -25,7 +25,7 @@ describe Chronologic::Client::Connection do
     stub_request(:post, "http://localhost:3000/subscription").
       to_return(:status => 201)
 
-    client.subscribe("user_1_home", "user_2", "user_1").should be_true
+    client.subscribe("user_2", "user_1_home", "user_1").should be_true
     WebMock.should have_requested(:post, "http://localhost:3000/subscription").
       with(
         :body => {
@@ -40,7 +40,7 @@ describe Chronologic::Client::Connection do
     stub_request(:post, "http://localhost:3000/subscription").
       to_return(:status => 201)
 
-    client.subscribe("user_1_home", "user_2", "user_1", false).should be_true
+    client.subscribe("user_2", "user_1_home", "user_1", false).should be_true
     WebMock.should have_requested(:post, "http://localhost:3000/subscription").
       with(
         :body => {

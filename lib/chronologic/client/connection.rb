@@ -30,7 +30,7 @@ class Chronologic::Client::Connection
     end
   end
 
-  def subscribe(subscriber_key, timeline_key, backlink_key=nil, backfill=true)
+  def subscribe(timeline_key, subscriber_key, backlink_key=nil, backfill=true)
     body = {
       "subscriber_key" => subscriber_key,
       "timeline_key" => timeline_key

@@ -21,8 +21,8 @@ class Chronologic::Service::Feed
   def items
     return @items if @items
 
-    self.next_page = set_next_page
-    self.count = set_count
+    set_next_page
+    set_count
 
     events = schema.fetch_timelines(timeline_key, per_page, start)
     subevents = schema.fetch_timelines(events.map { |e| e.key }, per_page, start)
@@ -37,11 +37,17 @@ class Chronologic::Service::Feed
   end
 
   def set_next_page
-    self.next_page = schema.timeline_events_for(
+    current = schema.timeline_events_for(
       timeline_key,
-      :per_page => per_page,
+      :per_page => per_page + 1,
       :page => start
-    ).keys.last
+    )
+
+    if current.length == (per_page + 1)
+      self.next_page = current.keys.last
+    else
+      self.next_page = nil
+    end
   end
 
   # Private: easier access to the Chronologic schema
@@ -50,3 +56,4 @@ class Chronologic::Service::Feed
   end
 
 end
+

@@ -98,18 +98,26 @@ describe Chronologic::Service::Feed do
 
   it "tracks the event key for the next page" do
     populate_timeline
-    feed = subject.new("user_1_home")
+    feed = subject.new("user_1_home", 1)
     feed.items
 
     feed.next_page.should_not be_nil
   end
 
+  it "doesn't set the next page if there is no next page" do
+    events = populate_timeline
+    feed = subject.new("user_1_home", events.length)
+    feed.items
+
+    feed.next_page.should be_nil
+  end
+
   it "stores the item count for the feed" do
-    uuids = populate_timeline
+    events = populate_timeline
     feed = subject.new("user_1_home")
     feed.items
 
-    feed.count.should == uuids.length
+    feed.count.should == events.length
   end
 
   it "fetches multiple objects per type" do

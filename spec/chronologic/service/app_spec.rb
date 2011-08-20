@@ -237,14 +237,10 @@ describe Chronologic::Service::App do
     populate_timeline
 
     get "/timeline/user_1_home", :per_page => 5
-    page = json_body["next_page"]
 
-    get "/timeline/user_1_home", :per_page => 5, :page => page
-
-    obj = json_body
-    obj["feed"].length.should == 5
-    obj["count"].should == 10
-    obj["next_page"].should_not be_nil
+    json_body.should have_key("next_page")
+    json_body["count"].should eq(10)
+    json_body["feed"].length.should == 5
   end
 
   it "reads a timeline with subevents" do

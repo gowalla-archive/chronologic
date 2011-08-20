@@ -108,30 +108,16 @@ module Chronologic::Service::Schema
 
     case timeline
     when String
-      if start.nil? # First page
-        connection.get(
-          :Timeline,
-          timeline,
-          :start => start,
-          :count => count,
-          # AKK: it would be nice to figure out how not to need to reverse
-          # this so that clients don't have to reverse it again to get
-          # reverse-chronological listings
-          :reversed => true
-        )
-      else # nth page, need cleverness
-        results = connection.get(
-          :Timeline,
-          timeline,
-          :start => start,
-          :count => count + 1,
-          # AKK: it would be nice to figure out how not to need to reverse
-          # this so that clients don't have to reverse it again to get
-          # reverse-chronological listings
-          :reversed => true
-        )
-        count >= results.length ? results : Hash[*results.drop(1).flatten]
-      end
+      connection.get(
+        :Timeline,
+        timeline,
+        :start => start,
+        :count => count,
+        # AKK: it would be nice to figure out how not to need to reverse
+        # this so that clients don't have to reverse it again to get
+        # reverse-chronological listings
+        :reversed => true
+      )
     when Array
       return {} if timeline.empty?
       connection.multi_get(:Timeline, timeline)

@@ -2,6 +2,25 @@ require 'chronologic'
 require 'rack/test'
 require 'helpers'
 
+module FunctionalTestHelpers
+
+  def truncate_cfs
+    c = Cassandra.new("Chronologic")
+    [:Object, :Subscription, :Timeline, :Event].each do |cf|
+      c.truncate!(cf)
+    end
+  end
+
+  # AKK Could this move into an RSpec let?
+  def connection
+    @connection ||= Chronologic::Client::Connection.new('http://localhost:9292')
+  end
+
+end
+
 RSpec.configure do |config|
   config.include ChronologicHelpers
+  config.include(FunctionalTestHelpers)
+
+  config.before { truncate_cfs }
 end

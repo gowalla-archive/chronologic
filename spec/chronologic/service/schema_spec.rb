@@ -124,35 +124,37 @@ describe Chronologic::Service::Schema do
   end
 
   it "creates a new timeline event" do
-    uuid = @schema.new_guid
+    key = "gizmo_1111"
+    token = [Time.now.tv_sec, key].join('_')
     data = {"gizmo" => JSON.dump({"message" => "I'm here!"})}
-    @schema.create_event("gizmo_1111", data)
-    @schema.create_timeline_event("_global", uuid, "gizmo_1111")
+    @schema.create_event(key, data)
+    @schema.create_timeline_event("_global", token, key)
 
-    @schema.timeline_for("_global").should ==({uuid => "gizmo_1111"})
-    @schema.timeline_events_for("_global").values.should == ["gizmo_1111"]
+    @schema.timeline_for("_global").should ==({token => key})
+    @schema.timeline_events_for("_global").values.should == [key]
   end
 
   it "creates timeline events without duplicates if timestamps match" do
-    now = Time.now
-    @schema.create_timeline_event("_global", @schema.new_guid(now), "gizmo_1111")
-    @schema.create_timeline_event("_global", @schema.new_guid(now), "gizmo_1111")
+    key = "gizmo_1111"
+    token = [Time.now.tv_sec, key].join('_')
+    @schema.create_timeline_event("_global", token, key)
+    @schema.create_timeline_event("_global", token, key)
 
     @schema.timeline_events_for("_global").length.should == 1
   end
 
   it "fetches timeline events with a count parameter" do
-    uuids = 15.times.inject({}) { |result, i|
-      uuid = @schema.new_guid
-      ref = "gizmo_#{i}"
+    tokens = 15.times.inject({}) { |result, i|
+      key = "gizmo_#{i}"
+      token = [Time.now.tv_sec, key].join('_')
 
-      @schema.create_timeline_event("_global", uuid, ref)
-      result.update(uuid => ref)
-    }.sort_by { |uuid, ref| uuid }
+      @schema.create_timeline_event("_global", token, key)
+      result.update(token => key)
+    }.sort_by { |token, key| token }
 
     events = @schema.timeline_for("_global", :per_page => 10)
     events.length.should == 10
-    events.sort_by { |uuid, ref| uuid }.should == uuids.slice(5, 10)
+    events.sort_by { |token, key| token }.should == tokens.slice(5, 10)
   end
 
   it "fetches timeline events from a page offset" do
@@ -207,16 +209,18 @@ describe Chronologic::Service::Schema do
 
   it "removes a timeline event" do
     data = simple_data
-    uuid = @schema.create_event("gizmo_1111", data)
-    timeline_guid = @schema.new_guid
-    @schema.create_timeline_event("_global", timeline_guid, "gizmo_1111")
+    key = "gizmo_1111"
+    token = [Time.now.tv_sec, key].join("_")
 
-    @schema.remove_timeline_event("_global", timeline_guid)
+    @schema.create_event("gizmo_1111", data)
+    @schema.create_timeline_event("_global", token, key)
+    @schema.remove_timeline_event("_global", token)
+
     @schema.timeline_events_for("_global").values.should == []
   end
 
   it "counts items in a timeline" do
-    10.times { @schema.create_timeline_event("_global", @schema.new_guid, "junk") }
+    10.times { |i| @schema.create_timeline_event("_global", i, "junk") }
     @schema.timeline_count("_global").should == 10
   end
 
@@ -315,15 +319,6 @@ describe Chronologic::Service::Schema do
       timeline[2].subevents[0].subevents.length.should == 1
     end
 
-  end
-
-  it "generates a new guid" do
-    @schema.new_guid.should be_instance_of(String)
-  end
-
-  it "generates a guid given a timestamp" do
-    t = Time.now
-    @schema.new_guid(t).should == @schema.new_guid(t)
   end
 
   def simple_data

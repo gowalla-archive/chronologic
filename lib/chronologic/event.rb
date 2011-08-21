@@ -4,7 +4,7 @@ require "time"
 class Chronologic::Event < Hashie::Dash
 
   property :key
-  property :timestamp
+  property :token
   property :data, :default => {}
   property :objects, :default => {}
   property :timelines, :default => []
@@ -17,7 +17,7 @@ class Chronologic::Event < Hashie::Dash
 
   def to_columns
     {
-      "timestamp" => timestamp ? [timestamp.tv_sec, timestamp.tv_usec].join('.') : nil,
+      "token" => token,
       "data" => JSON.dump(data),
       "objects" => JSON.dump(objects),
       "timelines" => JSON.dump(timelines)
@@ -26,7 +26,7 @@ class Chronologic::Event < Hashie::Dash
 
   def to_transport
     to_columns.update("key" => key).tap do |col|
-      col.delete("timestamp")
+      col.delete("token")
     end
   end
 
@@ -41,26 +41,18 @@ class Chronologic::Event < Hashie::Dash
   end
 
   def self.load_from_columns(columns)
-    # XXX this is so janky
-    raw_time = columns['timestamp']
-    timestamp = if raw_time
-                  raw_time.is_a?(DateTime) ? raw_time : Time.at(Float(raw_time))
-                end
-
     to_load = {
       "data" => JSON.load(columns.fetch("data", '{}')),
       "objects" => JSON.load(columns.fetch("objects", '{}')),
       "timelines" => JSON.load(columns.fetch("timelines", '[]')),
-      "timestamp" => timestamp
+      "token" => columns.fetch('token', '')
     }
 
     new(to_load)
   end
 
-  def set_timestamp
-    raise Chronologic::TimestampAlreadySet unless timestamp.nil?
-
-    self.timestamp = Time.now.utc
+  def set_token
+    self.token = [Time.now.utc.tv_sec, key].join('_')
   end
 
   def subevent?
@@ -88,11 +80,6 @@ class Chronologic::Event < Hashie::Dash
   # Returns an array of Chronologic::Event objects.
   def children
     @children ||= subevents.map { |s| Chronologic::Event.new(s) }
-  end
-
-  def token
-    # XXX janky jank-sauce
-    Chronologic.schema.new_guid(timestamp)
   end
 
   def empty?

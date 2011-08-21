@@ -39,12 +39,11 @@ class Story
 
     def from_cl(attrs)
       self.message = attrs['message']
-      self.timestamp = attrs['timestamp']
       self
     end
 
     def <=>(other)
-      self.timestamp <=> other.timestamp
+      self.message <=> other.message
     end
   end
 

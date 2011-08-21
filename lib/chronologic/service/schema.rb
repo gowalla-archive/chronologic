@@ -216,10 +216,6 @@ module Chronologic::Service::Schema
     timeline_index.map { |key| event_index[key] }
   end
 
-  def self.new_guid(timestamp=Time.now)
-    SimpleUUID::UUID.new(timestamp.stamp).to_guid
-  end
-
   def self.connection
     Chronologic.connection
   end

@@ -10,7 +10,6 @@ describe Chronologic::Client::Event do
       'data' => {
         'title' => 'Some awesome story is awesome.'
       },
-      'timestamp' => Time.now,
       'objects' => {
         'users' => {
           'user_1' => {'username' => 'akk', 'age' => '31'},
@@ -19,8 +18,8 @@ describe Chronologic::Client::Event do
       },
       'timelines' => ['user_1', 'spot_1'],
       'subevents' => [
-        {'key' => 'photo_1', 'type' => 'photo', 'message' => 'Look at this!', 'timestamp' => Time.now - 60},
-        {'key' => 'photo_2', 'type' => 'photo', 'message' => 'Look at that!', 'timestamp' => Time.now - 120}
+        {'key' => 'photo_1', 'type' => 'photo', 'message' => 'Look at this!'},
+        {'key' => 'photo_2', 'type' => 'photo', 'message' => 'Look at that!'}
       ]
     }
   end
@@ -125,12 +124,6 @@ describe Chronologic::Client::Event do
     end
   end
 
-  it "has a timestamp" do
-    t = Time.now
-    story.timestamp = t
-    story.timestamp.should eq(t)
-  end
-
   it 'instantiates a new event object' do
     story.title.should be_nil
     story.should be_new_record
@@ -188,10 +181,6 @@ describe Chronologic::Client::Event do
 
     it "loads the event key" do
       story.cl_key.should eq(event['key'])
-    end
-
-    it "loads the timestamp" do
-      story.timestamp.to_s.should eq(event['timestamp'].to_s)
     end
 
     it "loads the timelines" do

@@ -38,10 +38,9 @@ class Chronologic::Client::Fake
     raise ArgumentError.new("`event` should be a Chronologic::Event.") unless event.is_a?(Chronologic::Event)
     @events[event.key] = event
     event.timelines.each do |timeline|
-      uuid = SimpleUUID::UUID.new(event.timestamp)
-      @timelines[timeline][uuid] = event.key
+      @timelines[timeline][event.token] = event.key
       @subscribers[timeline].keys.each do |t|
-        @timelines[t][uuid] = event.key
+        @timelines[t][event.token] = event.key
       end
     end
 
@@ -74,16 +73,16 @@ class Chronologic::Client::Fake
     range =
       # Fetch the timeline
       @timelines[timeline_key].
-        # Convert the TimeUUID -> event key mapping to an array
+        # Convert the token -> event key mapping to an array
         to_a.
         # Only use events greater than the paging token
         select { |(k, v)| k.to_i >= page }.
-        # Sort by the TimeUUID
+        # Sort by the token
         sort_by { |k, v| k }.
         # Put it in reverse chronologic order
         reverse
 
-    # Grab n entries out of the range, take the last one, and grab its TimeUUID
+    # Grab n entries out of the range, take the last one, and grab its token
     next_page = range.first(per_page).last.first
     count = @timelines[timeline_key].length
 

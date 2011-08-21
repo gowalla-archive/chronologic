@@ -8,6 +8,7 @@ describe Chronologic::Event do
       e.data = {"foo" => {"one" => "two"}}
       e.objects = {"user" => "user_1", "spot" => "spot_1"}
       e.timelines = ["user_1", "sxsw"]
+      e.token = [Time.now.tv_sec, e.key].join('_')
     end
   end
 
@@ -19,7 +20,7 @@ describe Chronologic::Event do
 
   it "loads an event fetched from Cassandra" do
     new_event = Chronologic::Event.load_from_columns(event.to_columns)
-    new_event.timestamp.to_s.should == event.timestamp.to_s
+    new_event.token.should == event.token
     new_event.data.should == event.data
     new_event.objects.should == event.objects
     new_event.timelines.should == event.timelines
@@ -27,7 +28,7 @@ describe Chronologic::Event do
 
   it "loads an empty event" do
     empty_event = Chronologic::Event.load_from_columns({})
-    empty_event.timestamp.should be_nil
+    empty_event.token.should == ''
     empty_event.data.should == Hash.new
     empty_event.objects.should == Hash.new
     empty_event.timelines.should == Array.new
@@ -49,14 +50,10 @@ describe Chronologic::Event do
     event.to_client_encoding["key"].should == event.key
   end
 
-  it "populates timestamp" do
-    event.set_timestamp
-    event.timestamp.should_not be_nil
-  end
-
-  it "raises an exception if timestamp is repopulated" do
-    event.set_timestamp
-    expect { event.set_timestamp }.to raise_exception(Chronologic::TimestampAlreadySet)
+  it "populates token" do
+    event.key = "thingoid_1"
+    event.set_token
+    event.token.should match(/thingoid_1/)
   end
 
   it "knows whether it is a subevent" do
@@ -85,22 +82,15 @@ describe Chronologic::Event do
   it "returns children as CL::Event objects" do
     subevent = {
       "key" => "bar_1",
-      "timestamp" => Time.now.utc,
       "data" => {"bar" => "herp"}
     }
 
     event = Chronologic::Event.new(
       :key => "foo_1", 
-      :timestamp => Time.now.utc, 
       :data => {"foo" => "derp"}, 
       :subevents => [subevent]
     )
     event.children.should == [Chronologic::Event.new(subevent)]
-  end
-
-  it "generates a timestamp token" do
-    event.set_timestamp
-    event.token.should eq(Chronologic.schema.new_guid(event.timestamp))
   end
 
   it "flags an empty event" do

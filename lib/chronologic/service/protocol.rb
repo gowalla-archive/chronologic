@@ -41,9 +41,9 @@ module Chronologic::Service::Protocol
   def self.publish(event, fanout=true)
     raise Chronologic::Duplicate.new if schema.event_exists?(event.key)
 
-    event.timestamp = Time.now.utc # TODO push this into server-side event class
+    event.set_token
+
     schema.create_event(event.key, event.to_columns)
-    uuid = schema.new_guid(event.timestamp)
 
     all_timelines = [event.timelines]
     if fanout
@@ -53,13 +53,11 @@ module Chronologic::Service::Protocol
     all_timelines.
       flatten.
       uniq.
-      map { |t| schema.create_timeline_event(t, uuid, event.key) }
-    event.published!
+      map { |t| schema.create_timeline_event(t, event.token, event.key) }
     event
   end
 
   def self.unpublish(event)
-    uuid = schema.new_guid(event.timestamp)
     schema.remove_event(event.key)
 
     raw_timelines = event.timelines
@@ -69,7 +67,7 @@ module Chronologic::Service::Protocol
     timelines = raw_timelines.respond_to?(:keys) ? raw_timelines.keys : raw_timelines
 
     all_timelines = [timelines, schema.subscribers_for(timelines)].flatten
-    all_timelines.map { |t| schema.remove_timeline_event(t, uuid) }
+    all_timelines.map { |t| schema.remove_timeline_event(t, event.token) }
   end
 
   def self.fetch_event(event_key)
@@ -89,7 +87,7 @@ module Chronologic::Service::Protocol
     original = Chronologic::Event.load_from_columns(schema.event_for(event.key))
     deleted_timelines = original.timelines - event.timelines
 
-    event.timestamp = original.timestamp # FIXME set this in a method
+    event.token = original.token
 
     schema.update_event(event.key, event.to_columns)
 

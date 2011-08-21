@@ -11,7 +11,7 @@ module Chronologic::Client::Event
     # XXX Protect this?
     attr_accessor :new_record
     attr_accessor :objects, :events
-    attr_accessor :cl_key, :timestamp
+    attr_accessor :cl_key
 
     attr_reader :timelines
     attr_reader :cl_url
@@ -145,10 +145,6 @@ module Chronologic::Client::Event
       @dirty_attributes || @dirty_objects || @dirty_timelines || @dirty_events
     end
 
-    def cl_timestamp
-      timestamp
-    end
-
     def cl_attributes
       @attributes
     end
@@ -211,7 +207,6 @@ module Chronologic::Client::Event
     def publish
       event = Chronologic::Event.new(
         :key       => cl_key,
-        :timestamp => cl_timestamp,
         :data      => cl_attributes,
         :objects   => cl_objects,
         :timelines => cl_timelines
@@ -220,11 +215,8 @@ module Chronologic::Client::Event
     end
 
     def update
-      # How to prevent timestamp changes (?)
-
       event = Chronologic::Event.new(
         :key => cl_key,
-        :timestamp => cl_timestamp,
         :data => cl_attributes,
         :objects => cl_objects,
         :timelines => cl_timelines
@@ -239,7 +231,6 @@ module Chronologic::Client::Event
 
     def from(attrs)
       load_key(attrs.fetch('key', ''))
-      load_timestamp(attrs.fetch('timestamp', 'blurg'))
       load_attributes(attrs.fetch('data', {}))
       load_objects(attrs.fetch('objects', {}))
       load_timelines(attrs.fetch('timelines', []))
@@ -251,10 +242,6 @@ module Chronologic::Client::Event
 
     def load_key(key)
       self.cl_key = key
-    end
-
-    def load_timestamp(timestamp)
-      self.timestamp = timestamp
     end
 
     def load_attributes(attrs)
@@ -281,7 +268,6 @@ module Chronologic::Client::Event
       return false unless other.is_a?(self.class)
 
       cl_key == other.cl_key &&
-        cl_timestamp.to_s == other.cl_timestamp.to_s &&
         cl_attributes == other.cl_attributes &&
         cl_objects == other.cl_objects &&
         cl_subevents == other.cl_subevents

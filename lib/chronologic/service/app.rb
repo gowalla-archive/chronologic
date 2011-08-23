@@ -57,7 +57,7 @@ class Chronologic::Service::App < Sinatra::Base
       status 201
     rescue Chronologic::Duplicate
       body("Could not create duplicate event, did you mean to update it?")
-      status 500
+      status 409
     end
   end
 

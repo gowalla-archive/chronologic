@@ -133,7 +133,7 @@ describe Chronologic::Service::App do
       post "/event?fanout=0", event
       post "/event?fanout=0", event
 
-      last_response.status.should == 500
+      last_response.status.should == 409
       last_response.body.should match(/duplicate event/)
     end
 

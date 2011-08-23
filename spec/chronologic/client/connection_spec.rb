@@ -201,5 +201,43 @@ describe Chronologic::Client::Connection do
     Chronologic::Client::Connection.instance = client
     Chronologic::Client::Connection.instance.should == client
   end
+
+  context "#handle" do
+
+    it "parses JSON errors" do
+      resp = double(
+        :response,
+        :code => 500,
+        :content_type => 'application/json',
+        :body => JSON.dump({})
+      )
+
+      expect { client.handle(resp, 'message') }.to raise_exception(Chronologic::ServiceError)
+    end
+
+    it "parses duplicate errors" do
+      resp = double(:response, :code => 409, :body => 'duplicate!')
+      expect { client.handle(resp, 'message') }.to raise_exception(Chronologic::Duplicate)
+    end
+
+    it "parses not found errors" do
+      resp = double(:response, :code => 404)
+      expect { client.handle(resp, 'message') }.to raise_exception(Chronologic::NotFound)
+    end
+
+    it "parses generic errors" do
+      resp = double(:response, :code => 500, :content_type => 'text/plain')
+      expect { client.handle(resp, 'message') }.to raise_exception(Chronologic::Exception)
+    end
+
+    it "yields on success" do
+      called = false
+      resp = double(:response, :code => 201)
+      client.handle(resp, 'boom') { called = true }
+      called.should be_true
+    end
+
+  end
+
 end
 

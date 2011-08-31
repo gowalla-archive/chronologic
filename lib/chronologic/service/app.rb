@@ -51,7 +51,8 @@ class Chronologic::Service::App < Sinatra::Base
   post "/event" do
     begin
       fanout = params.fetch("fanout", "") == "1"
-      protocol.publish(event, fanout)
+      force_timestamp = params.fetch("force_timestamp", false)
+      protocol.publish(event, fanout, force_timestamp)
 
       headers("Location" => "/event/#{params["key"]}")
       status 201

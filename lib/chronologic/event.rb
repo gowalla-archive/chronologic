@@ -51,8 +51,13 @@ class Chronologic::Event < Hashie::Dash
     new(to_load)
   end
 
-  def set_token
-    self.token = [Time.now.utc.tv_sec, key].join('_')
+  def set_token(force_timestamp=false)
+    timestamp = if force_timestamp
+      force_timestamp
+    else
+      Time.now.utc.tv_sec
+    end
+    self.token = [timestamp, key].join('_')
   end
 
   def subevent?

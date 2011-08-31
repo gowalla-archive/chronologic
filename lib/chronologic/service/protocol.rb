@@ -38,10 +38,10 @@ module Chronologic::Service::Protocol
     schema.followers_for(timeline_key).include?(backlink_key)
   end
 
-  def self.publish(event, fanout=true)
+  def self.publish(event, fanout=true, force_timestamp=false)
     raise Chronologic::Duplicate.new if schema.event_exists?(event.key)
 
-    event.set_token
+    event.set_token(force_timestamp)
 
     schema.create_event(event.key, event.to_columns)
 

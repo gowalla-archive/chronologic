@@ -56,6 +56,12 @@ describe Chronologic::Event do
     event.token.should match(/thingoid_1/)
   end
 
+  it "populates token with a forced timestamp" do
+    event.key = "thingoid_1"
+    event.set_token(123)
+    event.token.should eq("123_thingoid_1")
+  end
+
   it "knows whether it is a subevent" do
     nested_event.subevent?.should == true
   end

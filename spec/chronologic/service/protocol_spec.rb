@@ -95,6 +95,14 @@ describe Chronologic::Service::Protocol do
       expect { protocol.publish(event, false) }.to raise_exception(Chronologic::Duplicate)
     end
 
+    it "publishes an event with a forced timestamp" do
+      event = simple_event
+      t = Time.now.tv_sec - 180
+      protocol.publish(event, false, t)
+
+      protocol.schema.timeline_events_for(event.timelines.first).should include("#{t}_#{event.key}")
+    end
+
   end
 
   context "#unpublish" do

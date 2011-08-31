@@ -83,18 +83,19 @@ describe Chronologic::Client::Connection do
 
   it "publishes an event" do
     event = simple_event
+    t = Time.now.utc.tv_sec
 
     body = event.to_transport
-    stub_request(:post, "http://localhost:3000/event?fanout=1").
+    stub_request(:post, "http://localhost:3000/event?fanout=1&force_timestamp=#{t}").
       with(:body => body).
       to_return(
         :status => 201,
         :headers => {"Location" => "/event/checkin_1"}
       )
 
-    client.publish(event, true).should match(/[\w\d-]*/)
+    client.publish(event, true, t).should match(/[\w\d-]*/)
     event.should be_published
-    WebMock.should have_requested(:post, "http://localhost:3000/event?fanout=1").
+    WebMock.should have_requested(:post, "http://localhost:3000/event?fanout=1&force_timestamp=#{t}").
       with(:body => body)
   end
 

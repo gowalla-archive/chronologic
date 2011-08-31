@@ -156,6 +156,21 @@ describe Chronologic::Service::App do
       Chronologic.schema.timeline_events_for("user_1_home").values.should_not include(event["key"])
     end
 
+    it "publishes an event with a forced timestamp" do
+      event = {
+        "key" => "checkin_1212",
+        "data" => JSON.dump({"type" => "checkin", "message" => "I'm here!"}),
+        "objects" => JSON.dump({"user" => "user_1", "spot" => "spot_1"}),
+        "timelines" => JSON.dump(["user_1", "spot_1"])
+      }
+      t = Time.now.tv_sec - 120
+
+      post "/event?fanout=0&force_timestamp=#{t}", event
+
+      last_response.status.should == 201
+      Chronologic.schema.timeline_events_for('user_1').keys.should include("#{t}_checkin_1212")
+    end
+
   end
 
   it "unpublishes an event" do

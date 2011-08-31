@@ -68,10 +68,13 @@ class Chronologic::Client::Connection
     end
   end
 
-  def publish(event, fanout=true)
+  def publish(event, fanout=true, force_timestamp=nil)
+    query = {:fanout => fanout ? 1 : 0}
+    query = query.merge(:force_timestamp => force_timestamp) unless force_timestamp.nil?
+
     resp = self.class.post(
       "/event",
-      :query => {:fanout => fanout ? 1 : 0},
+      :query => query,
       :body => event.to_transport
     )
     event.published!

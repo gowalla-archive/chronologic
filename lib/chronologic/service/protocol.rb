@@ -92,17 +92,19 @@ module Chronologic::Service::Protocol
     schema.update_event(event.key, event.to_columns)
 
     if update_timelines
-      timelines = [
-        event.timelines,
-        schema.subscribers_for(event.timelines)
-      ].flatten
-      timelines.each { |t| schema.create_timeline_event(t, event.token, event.key) }
+      schema.connection.batch do # HAX
+        timelines = [
+          event.timelines,
+          schema.subscribers_for(event.timelines)
+        ].flatten
+        timelines.each { |t| schema.create_timeline_event(t, event.token, event.key) }
 
-      deleted = [
-        deleted_timelines,
-        schema.subscribers_for(deleted_timelines)
-      ].flatten
-      deleted.each { |t| schema.remove_timeline_event(t, event.token) }
+        deleted = [
+          deleted_timelines,
+          schema.subscribers_for(deleted_timelines)
+        ].flatten
+        deleted.each { |t| schema.remove_timeline_event(t, event.token) }
+      end
     end
   end
 

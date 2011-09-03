@@ -6,6 +6,9 @@ module Chronologic::Service::Schema
 
   self.write_opts = {:consistency => Cassandra::Consistency::QUORUM}
 
+  MAX_SUBSCRIPTIONS = 50_000
+  MAX_TIMELINES = 50_000
+
   def self.create_object(key, attrs)
     log "create_object(#{key})"
 
@@ -21,6 +24,9 @@ module Chronologic::Service::Schema
   def self.object_for(object_key)
     log("object_for(#{object_key})")
 
+    # Note: this will only pull 100 columns for objects. This seems like a
+    # reasonable default, but we'll look back at this comment some day and
+    # laugh. ~AKK
     case object_key
     when String
       connection.get(:Object, object_key)
@@ -47,15 +53,15 @@ module Chronologic::Service::Schema
 
     case timeline_key
     when String
-      connection.get(:Subscription, timeline_key).keys
+      connection.get(:Subscription, timeline_key, :count => MAX_SUBSCRIPTIONS).keys
     when Array
       return [] if timeline_key.empty?
-      connection.multi_get(:Subscription, timeline_key).map { |k, v| v.keys }.flatten
+      connection.multi_get(:Subscription, timeline_key, :count => MAX_SUBSCRIPTIONS).map { |k, v| v.keys }.flatten
     end
   end
 
   def self.followers_for(timeline_key)
-    connection.get(:Subscription, timeline_key).values
+    connection.get(:Subscription, timeline_key, :count => MAX_SUBSCRIPTIONS).values
   end
 
   def self.create_event(event_key, data)
@@ -85,6 +91,9 @@ module Chronologic::Service::Schema
   def self.event_for(event_key)
     log("event_for(#{event_key.inspect})")
 
+    # Note: this will only pull 100 columns for events. This seems like a
+    # reasonable default, but we'll look back at this comment some day and
+    # laugh. ~AKK
     case event_key
     when Array
       return {} if event_key.empty?
@@ -144,7 +153,10 @@ module Chronologic::Service::Schema
   end
 
   def self.timeline_count(timeline)
-    connection.count_columns(:Timeline, timeline)
+    # Used to use connection.count_columns here, but it doesn't seem
+    # to respect the :count option. There is a fix for this in rjackson's fork,
+    # need to see if its merged into fauna and included in a release. ~AKK
+    connection.get(:Timeline, timeline, :count => MAX_TIMELINES).length
   end
 
   # Lookup events on the specified timeline(s) and return all the events

@@ -30,6 +30,14 @@ class Chronologic::Client::Connection
     end
   end
 
+  def retrieve(object_key)
+    resp = self.class.get("/object/#{object_key}")
+
+    handle(resp, "Error retrieving record") do
+      resp
+    end
+  end
+
   def subscribe(subscriber_key, timeline_key, backlink_key=nil, backfill=true)
     body = {
       # The names above are consistent with how subscriptions work. They

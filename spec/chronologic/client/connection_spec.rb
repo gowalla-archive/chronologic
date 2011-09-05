@@ -4,7 +4,7 @@ describe Chronologic::Client::Connection do
 
   let(:client) { Chronologic::Client::Connection.new('http://localhost:3000') }
 
-  it "records an entity" do
+  it "records an object" do
     stub_request(:post, "http://localhost:3000/object").
       to_return(:status => 201)
 
@@ -13,13 +13,37 @@ describe Chronologic::Client::Connection do
       with(:body => {"object_key" => "user_1", "data" => {"name" => "akk"}})
   end
 
-  it "unrecords an entity" do
+  it "unrecords an object" do
     stub_request(:delete, "http://localhost:3000/object/spot_1").
       to_return(:status => 204)
 
     client.unrecord("spot_1").should be_true
     WebMock.should have_requested(:delete, "http://localhost:3000/object/spot_1")
   end
+
+  it "retrieves an object" do
+    object = {
+      'test' => 'abc'
+    }
+
+    stub_request(
+      :get,
+      "http://localhost:3000/object/spot_1"
+    ).to_return(
+      :status => 200,
+      :body => object.to_json,
+      :headers => {'Content-Type' => 'application/json'}
+    )
+
+    result = client.retrieve("spot_1")
+    WebMock.should have_requested(
+      :get,
+      "http://localhost:3000/object/spot_1"
+    )
+    result.should eq(object)
+  end
+
+
 
   it "subscribes a user to a timeline" do
     stub_request(:post, "http://localhost:3000/subscription").
@@ -29,7 +53,7 @@ describe Chronologic::Client::Connection do
     WebMock.should have_requested(:post, "http://localhost:3000/subscription").
       with(
         :body => {
-          "subscriber_key" => "user_1_home", 
+          "subscriber_key" => "user_1_home",
           "timeline_key" => "user_2",
           "backlink_key" => "user_1"
         }
@@ -44,7 +68,7 @@ describe Chronologic::Client::Connection do
     WebMock.should have_requested(:post, "http://localhost:3000/subscription").
       with(
         :body => {
-          "subscriber_key" => "user_1_home", 
+          "subscriber_key" => "user_1_home",
           "timeline_key" => "user_2",
           "backlink_key" => "user_1",
           "backfill" => "false"
@@ -54,7 +78,7 @@ describe Chronologic::Client::Connection do
 
   it "unsubscribes a user to a timeline" do
     stub_request(
-      :delete, 
+      :delete,
       "http://localhost:3000/subscription/user_1_home/user_2"
     ).to_return(:status => 204)
 
@@ -169,7 +193,7 @@ describe Chronologic::Client::Connection do
 
     stub_request(:get, "http://localhost:3000/timeline/user_1_home?subevents=false&page=abc-123&per_page=5").
       to_return(
-        :status => 200, 
+        :status => 200,
         :body => {"feed" => [event]}.to_json,
         :headers => {"Content-Type" => "application/json"}
     )
@@ -185,7 +209,7 @@ describe Chronologic::Client::Connection do
   it "fetches a timeline with subevents" do
     event = simple_event
     event["subevents"] = [nested_event]
-    
+
     stub_request(:get, "http://localhost:3000/timeline/user_1_home?subevents=true").
       to_return(
         :status => 200,

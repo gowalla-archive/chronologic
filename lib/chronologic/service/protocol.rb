@@ -4,26 +4,30 @@ require "hashie/mash"
 module Chronologic::Service::Protocol
   SUBSCRIBE_BACKFILL_COUNT = 20
 
-  def self.record(event_key, data)
-    schema.create_object(event_key, data)
+  def self.record(object_key, data)
+    schema.create_object(object_key, data)
   end
 
-  def self.unrecord(event_key)
-    schema.remove_object(event_key)
+  def self.unrecord(object_key)
+    schema.remove_object(object_key)
   end
 
-  # Subscribe timeline_key to events created on subscriber_key and copy events 
+  def self.retrieve(object_key)
+    schema.object_for(object_key)
+  end
+
+  # Subscribe timeline_key to events created on subscriber_key and copy events
   # from subscriber_key to timeline_key
   def self.subscribe(timeline_key, subscriber_key, backlink_key='', backfill=true)
     schema.create_subscription(timeline_key, subscriber_key, backlink_key)
     return unless backfill
 
     event_keys = schema.timeline_for(
-      subscriber_key, 
+      subscriber_key,
       :per_page => SUBSCRIBE_BACKFILL_COUNT
     )
-    event_keys.each do |guid, event_key| 
-      schema.create_timeline_event(timeline_key, guid, event_key) 
+    event_keys.each do |guid, event_key|
+      schema.create_timeline_event(timeline_key, guid, event_key)
     end
   end
 

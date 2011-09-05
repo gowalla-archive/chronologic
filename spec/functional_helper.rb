@@ -5,7 +5,7 @@ require 'helpers'
 module FunctionalTestHelpers
 
   def self.truncate_cfs
-    c = Cassandra.new("Chronologic")
+    c = Cassandra.new("ChronologicTest")
     [:Object, :Subscription, :Timeline, :Event].each do |cf|
       c.truncate!(cf)
     end

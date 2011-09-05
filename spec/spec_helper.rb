@@ -22,14 +22,14 @@ RSpec.configure do |config|
       clean_up_keyspace!(Chronologic.connection)
     else
       schema = {
-        'Chronologic' => {
+        'ChronologicTest' => {
           'Object' => {},
           'Subscription' => {},
           'Event' => {},
           'Timeline' => {}
         }
       }
-      Chronologic.connection = Cassandra::Mock.new('Chronologic', schema)
+      Chronologic.connection = Cassandra::Mock.new('ChronologicTest', schema)
     end
   end
 

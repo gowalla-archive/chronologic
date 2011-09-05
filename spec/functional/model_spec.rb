@@ -4,7 +4,7 @@ require 'story'
 describe 'Client-side models' do
 
   before { Chronologic::Client::Connection.instance = Chronologic::Client::Connection.new('http://localhost:9292') }
-  before { Chronologic.connection = Cassandra.new('Chronologic') }
+  before { Chronologic.connection = Cassandra.new('ChronologicTest') }
 
   let(:story) do
     Story.new.tap do |story|

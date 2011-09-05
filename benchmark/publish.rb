@@ -30,7 +30,7 @@ end
 friends = 50
 events = 1000
 timeline = "cl_timeline"
-Chronologic.connection = Cassandra.new("Chronologic")
+Chronologic.connection = Cassandra.new("ChronologicTest")
 
 if __FILE__ == $PROGRAM_NAME
   result = Benchmark.measure do

@@ -13,8 +13,8 @@ servers = [
 ]
 
 Chronologic.connection = Cassandra.new(
-  "Chronologic", 
-  servers, 
+  "ChronologicTest",
+  servers,
   :retries => 3
 )
 # logger = Logger.new(STDOUT)

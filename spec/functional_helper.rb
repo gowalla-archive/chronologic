@@ -4,11 +4,15 @@ require 'helpers'
 
 module FunctionalTestHelpers
 
-  def truncate_cfs
+  def self.truncate_cfs
     c = Cassandra.new("Chronologic")
     [:Object, :Subscription, :Timeline, :Event].each do |cf|
       c.truncate!(cf)
     end
+  end
+
+  def truncate_cfs
+    FunctionalTestHelpers.truncate_cfs
   end
 
   # AKK Could this move into an RSpec let?
@@ -22,5 +26,5 @@ RSpec.configure do |config|
   config.include ChronologicHelpers
   config.include(FunctionalTestHelpers)
 
-  config.before { truncate_cfs }
+  config.before { FunctionalTestHelpers.truncate_cfs }
 end

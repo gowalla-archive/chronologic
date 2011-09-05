@@ -5,6 +5,8 @@ require "chronologic/cassandra_ext"
 
 module Chronologic
 
+  EXPLICIT_NULL_VALUE = '.:_null_:.'
+
   mattr_accessor :connection
 
   def self.schema

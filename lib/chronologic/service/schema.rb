@@ -11,6 +11,9 @@ module Chronologic::Service::Schema
 
   def self.create_object(key, attrs)
     log "create_object(#{key})"
+    attrs.each do |k,v|
+      attrs[k] = Chronologic::EXPLICIT_NULL_VALUE if v.nil?
+    end
 
     connection.insert(:Object, key, attrs, write_opts)
   end
@@ -29,10 +32,20 @@ module Chronologic::Service::Schema
     # laugh. ~AKK
     case object_key
     when String
-      connection.get(:Object, object_key)
+      attrs = connection.get(:Object, object_key)
+      attrs.each do |k,v|
+        attrs[k] = nil if v == Chronologic::EXPLICIT_NULL_VALUE
+      end
+      attrs
     when Array
       return {} if object_key.empty?
-      connection.multi_get(:Object, object_key)
+      result = connection.multi_get(:Object, object_key)
+      result.each do |attrs|
+        attrs.each do |k,v|
+          attrs[k] = nil if v == Chronologic::EXPLICIT_NULL_VALUE
+        end
+      end
+      result
     end
   end
 

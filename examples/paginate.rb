@@ -1,7 +1,7 @@
 require "pp"
 require "chronologic"
 
-Chronologic.connection = Cassandra.new("Chronologic")
+Chronologic.connection = Cassandra.new("ChronologicTest")
 
 puts "Paginating with Chronologic::Schema"
 page = Chronologic::Schema.timeline_for("user_1165", :per_page => 5).keys

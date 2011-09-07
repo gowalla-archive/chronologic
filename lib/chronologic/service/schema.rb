@@ -156,7 +156,10 @@ module Chronologic::Service::Schema
     # Used to use connection.count_columns here, but it doesn't seem
     # to respect the :count option. There is a fix for this in rjackson's fork,
     # need to see if its merged into fauna and included in a release. ~AKK
-    connection.get(:Timeline, timeline, :count => MAX_TIMELINES).length
+
+    # But in the meantime, nothing in Gowalla is using the page count so we're
+    # going to hardcode this obviously incorrect value for the time being.
+    -1
   end
 
   # Lookup events on the specified timeline(s) and return all the events

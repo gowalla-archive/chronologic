@@ -26,9 +26,8 @@ class Chronologic::Service::Feed
 
     events = schema.fetch_timelines(timeline_key, per_page, start)
     subevents = schema.fetch_timelines(events.map { |e| e.key }, per_page, start)
-    subsubevents = schema.fetch_timelines(subevents.map { |e| e.key }, per_page, start)
 
-    all_events = schema.fetch_objects([events, subevents, subsubevents].flatten)
+    all_events = schema.fetch_objects([events, subevents].flatten)
     @items = schema.reify_timeline(all_events)
   end
 

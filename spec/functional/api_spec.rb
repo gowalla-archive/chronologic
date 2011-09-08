@@ -2,6 +2,39 @@ require 'functional_helper'
 
 describe "The Chronologic API" do
 
+  let(:schema) { Chronologic::Service::Schema }
+  before do
+    Chronologic.connection = Cassandra.new('ChronologicTest')
+  end
+
+  context "DELETE /subscription/[subscriber_key]/[timeline_key]" do
+
+    it "removes the subscription from timeline key to subscriber key" do
+      # events flow "tech" -> "home"
+      connection.subscribe("home", "tech")
+      schema.subscribers_for("tech").should include("home")
+
+      # events flow "tech" -> "home"
+      connection.unsubscribe("home", "tech")
+      schema.subscribers_for("tech").should_not include("home")
+    end
+
+    it "removes events from subscriber key on timeline key" do
+      # events flow "tech" -> "home"
+      connection.subscribe("home", "tech")
+
+      event = simple_event
+      event.timelines = ["tech"]
+      connection.publish(event)
+      connection.timeline("home")["items"].should have(1).item
+
+      # events flow "tech" -> "home"
+      connection.unsubscribe("home", "tech")
+      connection.timeline("home")["items"].should be_empty
+    end
+
+  end
+
   context "GET /event/[event_key]" do
 
     it "returns an event" do

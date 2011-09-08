@@ -1,6 +1,6 @@
 require 'chronologic'
 
-cl = Chronologic::Client.new('http://localhost:9292')
+cl = Chronologic::Client.new('http://localhost:7979')
 
 # AK is public and friends with BF and BO
 cl.subscribe('user_ak_feed', 'user_bf')

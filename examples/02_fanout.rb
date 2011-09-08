@@ -1,7 +1,7 @@
 # Subscribe to a timeline, publish an event, verify fanout to other timelines
 
 require 'boilerplate'
-connection = Chronologic::Client::Connection.new('http://localhost:9292')
+connection = Chronologic::Client::Connection.new('http://localhost:7979')
 
 connection.subscribe("tech", "home")
 

@@ -17,7 +17,7 @@ module FunctionalTestHelpers
 
   # AKK Could this move into an RSpec let?
   def connection
-    @connection ||= Chronologic::Client::Connection.new('http://localhost:9292')
+    @connection ||= Chronologic::Client::Connection.new('http://localhost:7979')
   end
 
 end

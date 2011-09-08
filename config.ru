@@ -1,6 +1,6 @@
 require "chronologic"
 
-Chronologic.connection = Cassandra.new("Chronologic")
+Chronologic.connection = Cassandra.new("ChronologicTest")
 
 logger = Logger.new(STDOUT)
 logger.level = Logger::DEBUG

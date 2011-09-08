@@ -1,7 +1,7 @@
 # Create some objects, create some subscriptions, publish some events, fetch
 
 require 'boilerplate'
-connection = Chronologic::Client::Connection.new('http://localhost:9292')
+connection = Chronologic::Client::Connection.new('http://localhost:7979')
 
 connection.record("user:ak", {"long_name" => "Adam Keys"})
 connection.record("user:rs", {"long_name" => "Richard Schneeman"})

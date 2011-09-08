@@ -1,7 +1,7 @@
 require 'pp'
 require 'chronologic'
 
-cl = Chronologic::Client.new('http://localhost:9292')
+cl = Chronologic::Client.new('http://localhost:7979')
 
 user = 'grouping_user_0'
 

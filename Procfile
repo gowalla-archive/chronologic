@@ -1,2 +1,2 @@
-service: bundle exec shotgun -p 9292
+service: bundle exec rackup -p 7979
 cassandra: cassandra -f

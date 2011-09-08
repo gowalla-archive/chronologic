@@ -1,7 +1,7 @@
 # Create some objects, publish an event, publish a subevent, fetch it all
 
 require 'boilerplate'
-connection = Chronologic::Client::Connection.new('http://localhost:9292')
+connection = Chronologic::Client::Connection.new('http://localhost:7979')
 
 connection.record("author_1", {"name" => "Adam"})
 connection.record("author_2", {"name" => "Fred Derp"})

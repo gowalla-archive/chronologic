@@ -1,6 +1,6 @@
 require 'boilerplate'
 
-connection = Chronologic::Client::Connection.new('http://localhost:9292')
+connection = Chronologic::Client::Connection.new('http://localhost:7979')
 
 event = Chronologic::Event.new
 event.key = "story_1"

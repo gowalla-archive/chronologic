@@ -1,6 +1,6 @@
 require "chronologic"
 
-cl = Chronologic::Client.new("http://localhost:9292")
+cl = Chronologic::Client.new("http://localhost:7979")
 
 # Create ten events, push to ten timelines, unpublish them, and publish a new
 # event in the middle of the sequence

@@ -1,7 +1,7 @@
 # Publish an event, publish a subevent, fetch both in one operation
 
 require 'boilerplate'
-connection = Chronologic::Client::Connection.new('http://localhost:9292')
+connection = Chronologic::Client::Connection.new('http://localhost:7979')
 
 event = Chronologic::Event.new
 event.key = "story_1"

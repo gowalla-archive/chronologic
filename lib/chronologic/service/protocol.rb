@@ -54,10 +54,12 @@ module Chronologic::Service::Protocol
       all_timelines << schema.subscribers_for(event.timelines)
     end
 
-    all_timelines.
-      flatten.
-      uniq.
-      map { |t| schema.create_timeline_event(t, event.token, event.key) }
+    schema.batch do
+      all_timelines.
+        flatten.
+        uniq.
+        map { |t| schema.create_timeline_event(t, event.token, event.key) }
+    end
     event
   end
 
@@ -71,7 +73,9 @@ module Chronologic::Service::Protocol
     timelines = raw_timelines.respond_to?(:keys) ? raw_timelines.keys : raw_timelines
 
     all_timelines = [timelines, schema.subscribers_for(timelines)].flatten
-    all_timelines.map { |t| schema.remove_timeline_event(t, event.token) }
+    schema.batch do
+      all_timelines.map { |t| schema.remove_timeline_event(t, event.token) }
+    end
   end
 
   def self.fetch_event(event_key)
@@ -96,7 +100,7 @@ module Chronologic::Service::Protocol
     schema.update_event(event.key, event.to_columns)
 
     if update_timelines
-      schema.connection.batch do # HAX
+      schema.batch do
         timelines = [
           event.timelines,
           schema.subscribers_for(event.timelines)

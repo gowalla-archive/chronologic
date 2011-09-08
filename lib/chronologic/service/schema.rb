@@ -231,6 +231,10 @@ module Chronologic::Service::Schema
     timeline_index.map { |key| event_index[key] }
   end
 
+  def self.batch
+    connection.batch { yield }
+  end
+
   def self.connection
     Chronologic.connection
   end

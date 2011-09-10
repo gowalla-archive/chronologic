@@ -74,6 +74,66 @@ describe "The Chronologic API" do
 
   end
 
+  context "DELETE /event/[event_key]" do
+
+    let(:event) { simple_event }
+
+    it "removes the specified event" do
+      url = connection.publish(simple_event)
+      connection.fetch(url).should be_true
+
+      connection.unpublish(event.key)
+      expect { connection.fetch(url).should }.to raise_exception(Chronologic::NotFound)
+    end
+
+    it "indicates success if the event isn't found" do
+      url = "abc123"
+
+      connection.unpublish(url).should be_true
+    end
+
+    it "removes the event from all timelines it was posted to" do
+      url = connection.publish(event)
+      event.timelines.each do |t|
+        connection.timeline(t)["items"].
+          map { |e| e["key"] }.
+          should include(event.key)
+      end
+
+      connection.unpublish(event.key)
+      event.timelines.each do |t|
+        connection.timeline(t)["items"].
+          map { |e| e["key"] }.
+          should_not include(event.key)
+      end
+    end
+
+    it "removes the event from all timelines subscribed to the timelines it was on" do
+      subscribed_timelines = event.timelines.map do |t|
+        10.times.map do |i|
+          other = "other_#{i}"
+          connection.subscribe(other, t)
+          other
+        end
+      end.flatten
+
+      connection.publish(event)
+      subscribed_timelines.each do |t|
+        connection.timeline(t)["items"].
+          map { |e| e["key"] }.
+          should include(event.key)
+      end
+
+      connection.unpublish(event.key)
+      subscribed_timelines.each do |t|
+        connection.timeline(t)["items"].
+          map { |e| e["key"] }.
+          should_not include(event.key)
+      end
+    end
+
+  end
+
   context "GET /timeline/[timeline_key]" do
 
     it "does not return a next page key if there is no more data" do

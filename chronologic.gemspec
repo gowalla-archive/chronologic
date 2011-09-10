@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  s.add_dependency('cassandra', ["~> 0.11.0"])
+  s.add_dependency('cassandra', ["0.11.3"])
   s.add_dependency('httparty', ["~> 0.6.1"])
   s.add_dependency('hashie', ["~> 0.4.0"])
   s.add_dependency('will_paginate', ["~> 3.0.pre2"])
@@ -30,7 +30,8 @@ Gem::Specification.new do |s|
   s.add_dependency('activemodel', ['~> 3.0.0'])
 
   # HAX
-  s.add_dependency('thrift', ['~> 0.5.0'])
-  s.add_dependency('thrift_client', ['~> 0.6.0'])
+  s.add_dependency('thrift', ['~> 0.6.0'])
+  s.add_dependency('thrift_client', ['~> 0.6.3'])
+  s.add_dependency('simple_uuid', ['~> 0.1.0'])
 end
 

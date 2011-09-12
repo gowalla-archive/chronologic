@@ -7,6 +7,35 @@ describe "The Chronologic API" do
     Chronologic.connection = Cassandra.new('ChronologicTest')
   end
 
+  context "POST /subscription" do
+
+    it "creates a subscription from timeline key to subscriber key" do
+      # home <- tech
+      connection.subscribe("home", "tech")
+      schema.subscribers_for("tech").should include("home")
+    end
+
+    it "creates a subscription from timeline to subscriber with a backlink" do
+      # home <- tech
+      connection.subscribe("home", "tech", "home")
+      schema.followers_for("tech").should include("home")
+    end
+
+    it "backfills existing timeline events to the subscriber" do
+      5.times do |n|
+        event = simple_event
+        event.key = "event_#{n}"
+        event.timelines = ["tech"]
+        connection.publish(event)
+      end
+
+      # home <- tech
+      connection.subscribe("home", "tech", nil, true)
+      connection.timeline("home")["items"].should have(5).items
+    end
+
+  end
+
   context "DELETE /subscription/[subscriber_key]/[timeline_key]" do
 
     it "removes the subscription from timeline key to subscriber key" do

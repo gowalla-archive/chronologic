@@ -47,7 +47,7 @@ class Chronologic::Client::Connection
       "timeline_key" => subscriber_key # TODO: FIXME!  notice what's going on here and fix it on the service end
     }
     body['backlink_key'] = backlink_key unless backlink_key.nil?
-    body['backfill'] = false unless backfill
+    body['backfill'] = backfill
 
     resp = self.class.post("/subscription", :body => body)
 

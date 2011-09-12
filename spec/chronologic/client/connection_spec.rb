@@ -55,7 +55,8 @@ describe Chronologic::Client::Connection do
         :body => {
           "subscriber_key" => "user_1_home",
           "timeline_key" => "user_2",
-          "backlink_key" => "user_1"
+          "backlink_key" => "user_1",
+          "backfill" => "true"
         }
       )
   end

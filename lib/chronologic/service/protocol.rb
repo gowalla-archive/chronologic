@@ -47,6 +47,9 @@ module Chronologic::Service::Protocol
 
     event.set_token(force_timestamp)
 
+    if event.token.nil? || event.token.empty?
+      raise "Chronologic is perplexed: blank tokens are seriously not cool."
+    end
     schema.create_event(event.key, event.to_columns)
 
     all_timelines = [event.timelines]
@@ -96,6 +99,9 @@ module Chronologic::Service::Protocol
     deleted_timelines = original.timelines - event.timelines
 
     event.token = original.token
+    if event.token.nil? || event.token.empty?
+      raise "Chronologic is perplexed: blank tokens are seriously not cool."
+    end
 
     schema.update_event(event.key, event.to_columns)
 

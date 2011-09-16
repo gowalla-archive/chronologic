@@ -1,12 +1,13 @@
 require 'spec_helper'
 
-describe Chronologic::Service::Feed do
+describe Chronologic::Service::ObjectlessFeed do
 
   let(:protocol) { Chronologic::Service::Protocol }
-  subject { Chronologic::Service::Feed }
+  subject { Chronologic::Service::ObjectlessFeed }
 
   it_behaves_like "a feed strategy"
 
+  # AKK: reduce duplication of code in this examples
   it "generates a feed for a timeline key" do
     akk = {"name" => "akk"}
     jp = {"name" => "Juan Pelota's"}
@@ -21,11 +22,10 @@ describe Chronologic::Service::Feed do
     ["user_1", "spot_1", "user_1_home"].each do |t|
       feed = subject.create(t).items
       feed[0].data.should == event.data
-      feed[0].objects["user"].should == protocol.schema.object_for("user_1")
-      feed[0].objects["spot"].should == protocol.schema.object_for("spot_1")
     end
   end
 
+  # AKK: reduce duplication of code in this examples
   it "generates a feed for a timeline key, fetching nested timelines" do
     akk = {"name" => "akk"}
     sco = {"name" => "sco"}
@@ -60,9 +60,6 @@ describe Chronologic::Service::Feed do
     protocol.schema.timeline_events_for("checkin_1111").values.should include(event.key)
     subevents = subject.create("user_1_home", :fetch_subevents => true).items.first.subevents
     subevents.last.data.should == event.data
-    subevents.first.objects["user"].should == protocol.schema.object_for("user_2")
-    subevents.last.objects["user"].should == protocol.schema.object_for("user_1")
   end
-
 
 end

@@ -100,6 +100,7 @@ class Chronologic::Service::App < Sinatra::Base
       :page => params["page"] || nil,
       :per_page => Integer(params["per_page"] || "20")
     }
+    options.update(:strategy => params["strategy"]) if params.has_key?("strategy")
     feed = protocol.feed(params["timeline_key"], options)
 
     status 200

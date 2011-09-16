@@ -123,7 +123,15 @@ module Chronologic::Service::Protocol
   end
 
   def self.feed(timeline_key, options={})
-    Chronologic::Service::Feed.create(timeline_key, options)
+    strategy = case options.fetch(:strategy, "feed")
+    when "objectless"
+      Chronologic::Service::ObjectlessFeed
+    when "feed"
+      Chronologic::Service::Feed
+    else
+      raise "Unknown feed strategy: #{strategy}"
+    end
+    strategy.create(timeline_key, options)
   end
 
   def self.feed_count(timeline_key)

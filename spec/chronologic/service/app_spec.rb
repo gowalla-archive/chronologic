@@ -226,6 +226,11 @@ describe Chronologic::Service::App do
     last_response.status.should == 404
   end
 
+  it "reads a timeline feed with a non-default strategy" do
+    Chronologic::Service::ObjectlessFeed.should_receive(:create).and_return(double.as_null_object)
+    get "/timeline/user_1_home?strategy=objectless"
+  end
+
   it "reads a timeline feed" do
     jp = {"name" => "Juan Pelota's", "awesome_factor" => "100"}
     keeg = {"name" => "Keegan", "awesome_factor" => "109"}

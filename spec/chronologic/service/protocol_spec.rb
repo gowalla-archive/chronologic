@@ -122,7 +122,24 @@ describe Chronologic::Service::Protocol do
     end
 
   end
-  # AKK: no test for Protocol.feed since it delegates everything to Feed
+
+  describe ".feed" do
+
+    it "uses the default feed strategy" do
+      Chronologic::Service::Feed.should_receive(:create)
+      protocol.feed('home')
+    end
+
+    it "uses the specified feed strategy" do
+      Chronologic::Service::ObjectlessFeed.should_receive(:create)
+      protocol.feed('home', :strategy => 'objectless')
+    end
+
+    it "raises if an unknown feed strategy is specified" do
+      expect { protocol.feed('home', :strategy => 'none') }.to raise_exception
+    end
+
+  end
 
   describe ".fetch_event" do
 

@@ -16,6 +16,7 @@ module Chronologic
   module Service
     autoload :App, "chronologic/service/app"
     autoload :Feed, "chronologic/service/feed"
+    autoload :ObjectlessFeed, "chronologic/service/objectless_feed"
     autoload :Protocol, "chronologic/service/protocol"
     autoload :Schema, "chronologic/service/schema"
   end

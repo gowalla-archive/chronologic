@@ -2,9 +2,11 @@ require "cassandra/0.7"
 
 module Chronologic::Service::Schema
   mattr_accessor :write_opts 
+  mattr_accessor :consistent_read_opts
   mattr_accessor :logger
 
   self.write_opts = {:consistency => Cassandra::Consistency::QUORUM}
+  self.consistent_read_opts = {:consistency => Cassandra::Consistency::QUORUM}
 
   MAX_SUBSCRIPTIONS = 50_000
   MAX_TIMELINES = 50_000
@@ -79,13 +81,13 @@ module Chronologic::Service::Schema
   def self.remove_event(event_key)
     log("remove_event(#{event_key})")
 
-    connection.remove(:Event, event_key)
+    connection.remove(:Event, event_key, write_opts)
   end
 
   def self.event_exists?(event_key)
     log("event_exists?(#{event_key.inspect})")
 
-    connection.exists?(:Event, event_key)
+    connection.exists?(:Event, event_key, consistent_read_opts)
   end
 
   def self.event_for(event_key)
@@ -97,9 +99,9 @@ module Chronologic::Service::Schema
     case event_key
     when Array
       return {} if event_key.empty?
-      connection.multi_get(:Event, event_key)
+      connection.multi_get(:Event, event_key, consistent_read_opts)
     when String
-      connection.get(:Event, event_key)
+      connection.get(:Event, event_key, consistent_read_opts)
     end
   end
 

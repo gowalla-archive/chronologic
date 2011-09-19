@@ -1,6 +1,8 @@
 require "chronologic"
 
-Chronologic.connection = Cassandra.new("ChronologicTest")
+keyspace = ENV.fetch('KEYSPACE', "ChronologicTest")
+puts "Using #{keyspace}"
+Chronologic.connection = Cassandra.new(keyspace)
 
 logger = Logger.new(STDOUT)
 logger.level = Logger::DEBUG

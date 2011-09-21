@@ -42,7 +42,11 @@ module Chronologic
     end
 
     def inspect
-      "#<Chronologic::ServiceError: #{response.exception_class} - #{response.message}"
+      "#<Chronologic::ServiceError: #{response.exception_class} - #{response.message}>"
+    end
+
+    def to_s
+      inspect
     end
   end
 

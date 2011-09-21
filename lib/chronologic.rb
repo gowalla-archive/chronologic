@@ -32,12 +32,17 @@ module Chronologic
   class NotFound < RuntimeError; end
   class Duplicate < RuntimeError; end
   class TimestampAlreadySet < RuntimeError; end
+
   class ServiceError < RuntimeError
     attr_reader :response
 
     def initialize(resp)
       @response = Hashie::Mash.new(resp)
-      super("Chronologic service error: #{response.message}")
+      super
+    end
+
+    def inspect
+      "#<Chronologic::ServiceError: #{response.exception_class} - #{response.message}"
     end
   end
 

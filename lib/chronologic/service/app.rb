@@ -154,6 +154,7 @@ class Chronologic::Service::App < Sinatra::Base
 
     status 500
     json({
+      "exception_class" => exception.class,
       "message" => exception.message,
       "backtrace" => exception.backtrace.take(20),
       "params" => params

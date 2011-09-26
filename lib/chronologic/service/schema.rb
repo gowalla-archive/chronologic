@@ -12,7 +12,7 @@ module Chronologic::Service::Schema
   MAX_TIMELINES = 50_000
 
   def self.create_object(key, attrs)
-    log("create_object(#{key})")
+    log("create_object(#{key}, #{attrs.inspect})")
 
     connection.insert(:Object, key, attrs, write_opts)
   end
@@ -68,13 +68,13 @@ module Chronologic::Service::Schema
   end
 
   def self.create_event(event_key, data)
-    log("create_event(#{event_key})")
+    log("create_event(#{event_key}, #{data.inspect})")
 
     connection.insert(:Event, event_key, data, write_opts)
   end
 
   def self.update_event(event_key, data)
-    log("update_event(#{event_key})")
+    log("update_event(#{event_key}, #{data.inspect})")
 
     connection.insert(:Event, event_key, data, write_opts)
   end

@@ -8,22 +8,30 @@ class Chronologic::Service::App < Sinatra::Base
   cattr_accessor :logger
 
   post "/object" do
+    log_params
+
     protocol.record(params["object_key"], params["data"])
     status 201
   end
 
   get "/object/:object_key" do
+    log_params
+
     # FIXME: stomping on Demeter here
     status 200
     json protocol.schema.object_for(params["object_key"])
   end
 
   delete "/object/:object_key" do
+    log_params
+
     protocol.unrecord(params["object_key"])
     status 204
   end
 
   post "/subscription" do
+    log_params
+
     protocol.subscribe(
       params["timeline_key"],
       params["subscriber_key"],
@@ -34,11 +42,15 @@ class Chronologic::Service::App < Sinatra::Base
   end
 
   delete "/subscription/:subscriber_key/:timeline_key" do
+    log_params
+
     protocol.unsubscribe(params["subscriber_key"], params["timeline_key"])
     status 204
   end
 
   get '/subscription/is_connected' do
+    log_params
+
     connection = protocol.connected?(
       params['subscriber_key'],
       params['timeline_backlink']
@@ -49,6 +61,8 @@ class Chronologic::Service::App < Sinatra::Base
   end
 
   post "/event" do
+    log_params
+
     begin
       fanout = params.fetch("fanout", "") == "1"
       force_timestamp = params.fetch("force_timestamp", false)
@@ -63,6 +77,8 @@ class Chronologic::Service::App < Sinatra::Base
   end
 
   delete "/event/:event_key" do
+    log_params
+
     raw_event = protocol.schema.event_for(params["event_key"])
     if raw_event.empty?
       status 204
@@ -75,6 +91,8 @@ class Chronologic::Service::App < Sinatra::Base
   end
 
   get '/event/:event_key' do
+    log_params
+
     begin
       event = protocol.fetch_event(params['event_key'])
       json('event' => event.to_client_encoding)
@@ -84,6 +102,8 @@ class Chronologic::Service::App < Sinatra::Base
   end
 
   put '/event/:event_key' do
+    log_params
+
     update_timelines = if params.fetch('update_timelines', '') == "true"
       true
     else
@@ -95,6 +115,8 @@ class Chronologic::Service::App < Sinatra::Base
   end
 
   get "/timeline/:timeline_key" do
+    log_params
+
     options = {
       :fetch_subevents => params["subevents"] == "true",
       :page => params["page"] || nil,
@@ -112,6 +134,10 @@ class Chronologic::Service::App < Sinatra::Base
   end
 
   helpers do
+
+    def log_params
+      logger.debug "Params: #{params.inspect}"
+    end
 
     def json(object)
       content_type("application/json")

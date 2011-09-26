@@ -12,7 +12,7 @@ module Chronologic::Service::Schema
   MAX_TIMELINES = 50_000
 
   def self.create_object(key, attrs)
-    log "create_object(#{key})"
+    log("create_object(#{key})")
 
     connection.insert(:Object, key, attrs, write_opts)
   end
@@ -63,6 +63,7 @@ module Chronologic::Service::Schema
   end
 
   def self.followers_for(timeline_key)
+    log("followers_for(#{timeline_key})")
     connection.get(:Subscription, timeline_key, :count => MAX_SUBSCRIPTIONS).values
   end
 

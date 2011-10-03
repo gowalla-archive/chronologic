@@ -94,7 +94,9 @@ class Chronologic::Service::App < Sinatra::Base
     log_params
 
     begin
-      event = protocol.fetch_event(params['event_key'])
+      options = {}
+      options[:strategy] = params.fetch("strategy", "default").to_sym
+      event = protocol.fetch_event(params['event_key'], options)
       json('event' => event.to_client_encoding)
     rescue Chronologic::NotFound => e
       status 404

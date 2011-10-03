@@ -1,5 +1,4 @@
 require "hashie"
-require "cassandra/0.7"
 require "active_support/core_ext/module"
 require "chronologic/cassandra_ext"
 

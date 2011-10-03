@@ -1,5 +1,6 @@
 require 'chronologic'
 require 'webmock/rspec'
+require 'cassandra/0.7'
 require 'cassandra/mock'
 require 'helpers'
 

@@ -19,15 +19,13 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 
-  s.add_dependency('cassandra', ["0.11.3"])
-  s.add_dependency('httparty', ["~> 0.6.1"])
-  s.add_dependency('hashie', ["~> 0.4.0"])
-  s.add_dependency('will_paginate', ["~> 3.0.pre2"])
+  s.add_dependency('cassandra')
+  s.add_dependency('httparty')
+  s.add_dependency('hashie')
   s.add_dependency('yajl-ruby', ["~> 0.7.7"])
   s.add_dependency('activesupport', ["~> 3.0.0"])
   s.add_dependency('i18n', ["~> 0.5.0"])
   s.add_dependency('sinatra', ["~> 1.0.0"])
-  s.add_dependency('activemodel', ['~> 3.0.0'])
 
   # HAX
   s.add_dependency('thrift', ['~> 0.6.0'])

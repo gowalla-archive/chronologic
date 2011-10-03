@@ -1,5 +1,3 @@
-require "cassandra/0.7"
-
 module Chronologic::Service::Schema
   mattr_accessor :write_opts 
   mattr_accessor :consistent_read_opts

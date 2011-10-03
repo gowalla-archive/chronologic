@@ -1,3 +1,4 @@
+require 'cassandra/0.7'
 require 'chronologic'
 require 'rack/test'
 require 'helpers'
@@ -28,3 +29,4 @@ RSpec.configure do |config|
 
   config.before { FunctionalTestHelpers.truncate_cfs }
 end
+

@@ -1,6 +1,5 @@
 require "active_support/core_ext/module"
 require 'active_support/core_ext/hash'
-require "will_paginate/array"
 require "httparty"
 
 class Chronologic::Client::Connection

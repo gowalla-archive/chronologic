@@ -1,7 +1,6 @@
 require 'active_support/concern'
 require 'active_support/core_ext/class'
 require 'active_support/inflector'
-require 'active_model'
 
 module Chronologic::Client::Event
 

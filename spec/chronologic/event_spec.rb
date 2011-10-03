@@ -13,9 +13,9 @@ describe Chronologic::Event do
   end
 
   it "serializes structured data columns" do
-    event.to_columns["data"].should == JSON.dump(event.data)
-    event.to_columns["objects"].should == JSON.dump(event.objects)
-    event.to_columns["timelines"].should == JSON.dump(event.timelines)
+    event.to_columns["data"].should == MultiJson.encode(event.data)
+    event.to_columns["objects"].should == MultiJson.encode(event.objects)
+    event.to_columns["timelines"].should == MultiJson.encode(event.timelines)
   end
 
   it "loads an event fetched from Cassandra" do
@@ -36,9 +36,9 @@ describe Chronologic::Event do
 
   it "serializes for HTTP transport" do
     event.to_transport.should_not have_key("timestamp")
-    event.to_transport["data"].should == JSON.dump(event.data)
-    event.to_transport["objects"].should == JSON.dump(event.objects)
-    event.to_transport["timelines"].should == JSON.dump(event.timelines)
+    event.to_transport["data"].should == MultiJson.encode(event.data)
+    event.to_transport["objects"].should == MultiJson.encode(event.objects)
+    event.to_transport["timelines"].should == MultiJson.encode(event.timelines)
     event.to_transport["key"].should == event.key
   end
 

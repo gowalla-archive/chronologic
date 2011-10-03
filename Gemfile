@@ -7,6 +7,7 @@ group :development do
   gem 'unicorn'
   gem 'foreman'
   gem 'shotgun'
+  gem 'yajl-ruby'
 end
 
 group :test do

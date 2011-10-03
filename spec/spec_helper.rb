@@ -4,6 +4,8 @@ require 'cassandra/0.7'
 require 'cassandra/mock'
 require 'helpers'
 
+MultiJson.engine = :yajl
+
 RSpec.configure do |config|
   config.include(ChronologicHelpers)
   config.include(WebMock::API)

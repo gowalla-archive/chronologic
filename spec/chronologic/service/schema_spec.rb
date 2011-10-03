@@ -126,7 +126,7 @@ describe Chronologic::Service::Schema do
   it "creates a new timeline event" do
     key = "gizmo_1111"
     token = [Time.now.tv_sec, key].join('_')
-    data = {"gizmo" => JSON.dump({"message" => "I'm here!"})}
+    data = {"gizmo" => MultiJson.encode({"message" => "I'm here!"})}
     @schema.create_event(key, data)
     @schema.create_timeline_event("_global", token, key)
 
@@ -323,7 +323,7 @@ describe Chronologic::Service::Schema do
   end
 
   def simple_data
-    {"checkin" => JSON.dump({"message" => "I'm here!"})}
+    {"checkin" => MultiJson.encode({"message" => "I'm here!"})}
   end
 
   def raise_on_multiget

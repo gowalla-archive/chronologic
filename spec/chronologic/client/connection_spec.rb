@@ -235,7 +235,7 @@ describe Chronologic::Client::Connection do
         :response,
         :code => 500,
         :content_type => 'application/json',
-        :body => JSON.dump({})
+        :body => MultiJson.encode({})
       )
 
       expect { client.handle(resp, 'message') }.to raise_exception(Chronologic::ServiceError)

@@ -3,6 +3,8 @@ require 'chronologic'
 require 'rack/test'
 require 'helpers'
 
+MultiJson.engine = :yajl
+
 module FunctionalTestHelpers
 
   def self.truncate_cfs

@@ -18,7 +18,7 @@ describe "Privacy controls in Chronologic" do
       'timeline_backlink' => 'user_ak'
     }
     last_response.status.must_equal 200
-    obj = JSON.load(last_response.body)
+    obj = MultiJson.decode(last_response.body)
     obj['user_bo'].must_equal true
   end
 

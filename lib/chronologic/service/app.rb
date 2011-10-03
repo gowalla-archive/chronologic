@@ -1,6 +1,5 @@
 require "sinatra/base"
 require "active_support/core_ext/class"
-require "yajl"
 
 # TODO: caching headers?
 class Chronologic::Service::App < Sinatra::Base
@@ -143,15 +142,15 @@ class Chronologic::Service::App < Sinatra::Base
 
     def json(object)
       content_type("application/json")
-      Yajl.dump(object)
+      MultiJson.encode(object)
     end
 
     def event
       Chronologic::Event.new(
         "key" => params["key"],
-        "data" => JSON.load(params["data"]),
-        "objects" => JSON.load(params["objects"]),
-        "timelines" => JSON.load(params["timelines"])
+        "data" => MultiJson.decode(params["data"]),
+        "objects" => MultiJson.decode(params["objects"]),
+        "timelines" => MultiJson.decode(params["timelines"])
       )
     end
 

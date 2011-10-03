@@ -97,7 +97,7 @@ describe Chronologic::Service::App do
     }
 
     last_response.status.should == 200
-    obj = JSON.load(last_response.body)
+    obj = MultiJson.decode(last_response.body)
     obj['user_bo'].should == true
   end
 
@@ -106,9 +106,9 @@ describe Chronologic::Service::App do
     it "publishes an event" do
       event = {
         "key" => "checkin_1212",
-        "data" => JSON.dump({"type" => "checkin", "message" => "I'm here!"}),
-        "objects" => JSON.dump({"user" => "user_1", "spot" => "spot_1"}),
-        "timelines" => JSON.dump(["user_1", "spot_1"])
+        "data" => MultiJson.encode({"type" => "checkin", "message" => "I'm here!"}),
+        "objects" => MultiJson.encode({"user" => "user_1", "spot" => "spot_1"}),
+        "timelines" => MultiJson.encode(["user_1", "spot_1"])
       }
 
       post "/event", event
@@ -125,9 +125,9 @@ describe Chronologic::Service::App do
     it "returns an error if a duplicate event is published" do
       event = {
         "key" => "checkin_1212",
-        "data" => JSON.dump({"type" => "checkin", "message" => "I'm here!"}),
-        "objects" => JSON.dump({"user" => "user_1", "spot" => "spot_1"}),
-        "timelines" => JSON.dump(["user_1", "spot_1"])
+        "data" => MultiJson.encode({"type" => "checkin", "message" => "I'm here!"}),
+        "objects" => MultiJson.encode({"user" => "user_1", "spot" => "spot_1"}),
+        "timelines" => MultiJson.encode(["user_1", "spot_1"])
       }
 
       post "/event?fanout=0", event
@@ -140,9 +140,9 @@ describe Chronologic::Service::App do
     it "publishes an event without fanout" do
       event = {
         "key" => "checkin_1212",
-        "data" => JSON.dump({"type" => "checkin", "message" => "I'm here!"}),
-        "objects" => JSON.dump({"user" => "user_1", "spot" => "spot_1"}),
-        "timelines" => JSON.dump(["user_1", "spot_1"])
+        "data" => MultiJson.encode({"type" => "checkin", "message" => "I'm here!"}),
+        "objects" => MultiJson.encode({"user" => "user_1", "spot" => "spot_1"}),
+        "timelines" => MultiJson.encode(["user_1", "spot_1"])
       }
       protocol.subscribe("user_1_home", "user_1")
 
@@ -159,9 +159,9 @@ describe Chronologic::Service::App do
     it "publishes an event with a forced timestamp" do
       event = {
         "key" => "checkin_1212",
-        "data" => JSON.dump({"type" => "checkin", "message" => "I'm here!"}),
-        "objects" => JSON.dump({"user" => "user_1", "spot" => "spot_1"}),
-        "timelines" => JSON.dump(["user_1", "spot_1"])
+        "data" => MultiJson.encode({"type" => "checkin", "message" => "I'm here!"}),
+        "objects" => MultiJson.encode({"user" => "user_1", "spot" => "spot_1"}),
+        "timelines" => MultiJson.encode(["user_1", "spot_1"])
       }
       t = Time.now.tv_sec - 120
 
@@ -302,7 +302,7 @@ describe Chronologic::Service::App do
   end
 
   def json_body
-    JSON.load(last_response.body)
+    MultiJson.decode(last_response.body)
   end
 
   def app

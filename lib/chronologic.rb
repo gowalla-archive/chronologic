@@ -1,6 +1,7 @@
 require "hashie"
 require "active_support/core_ext/module"
 require "chronologic/cassandra_ext"
+require "multi_json"
 
 module Chronologic
 

@@ -18,9 +18,9 @@ class Chronologic::Event < Hashie::Dash
   def to_columns
     {
       "token" => token,
-      "data" => JSON.dump(data),
-      "objects" => JSON.dump(objects),
-      "timelines" => JSON.dump(timelines)
+      "data" => MultiJson.encode(data),
+      "objects" => MultiJson.encode(objects),
+      "timelines" => MultiJson.encode(timelines)
     }
   end
 
@@ -42,9 +42,9 @@ class Chronologic::Event < Hashie::Dash
 
   def self.load_from_columns(columns)
     to_load = {
-      "data" => JSON.load(columns.fetch("data", '{}')),
-      "objects" => JSON.load(columns.fetch("objects", '{}')),
-      "timelines" => JSON.load(columns.fetch("timelines", '[]')),
+      "data" => MultiJson.decode(columns.fetch("data", '{}')),
+      "objects" => MultiJson.decode(columns.fetch("objects", '{}')),
+      "timelines" => MultiJson.decode(columns.fetch("timelines", '[]')),
       "token" => columns.fetch('token', '')
     }
 

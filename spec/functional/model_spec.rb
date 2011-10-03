@@ -19,7 +19,7 @@ describe 'Client-side models' do
     url = story.save
     event = schema.event_for(story.cl_key)
     event.should_not be_nil
-    JSON.load(event['data'])['title'].should eq(story.title)
+    MultiJson.decode(event['data'])['title'].should eq(story.title)
     event['timestamp'].should eq(story.timestamp.iso8601)
   end
 

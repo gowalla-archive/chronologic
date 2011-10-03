@@ -153,19 +153,6 @@ describe Chronologic::Service::Protocol do
       expect { protocol.fetch_event('abc_123') }.to raise_exception(Chronologic::NotFound)
     end
 
-    it "fetches an event with objects" do
-      user = {'username' => 'ak'}
-      spot = {'name' => 'JP'}
-      protocol.record('user_1', user)
-      protocol.record('spot_1', spot)
-
-      event = simple_event
-      protocol.publish(simple_event, false)
-
-      protocol.fetch_event(event.key).objects['user'].should eq(user)
-      protocol.fetch_event(event.key).objects['spot'].should eq(spot)
-    end
-
     it "fetches an event with subevents" do
       event = simple_event
       protocol.publish(event, false)
@@ -176,26 +163,78 @@ describe Chronologic::Service::Protocol do
       protocol.fetch_event(event.key).subevents.first.key.should eq(nested.key)
     end
 
-    it "fetches an event with subevents with objects" do
-      user = {'username' => 'ak'}
-      user2 = {'username' => 'ka'}
-      spot = {'name' => 'JP'}
-      protocol.record('user_1', user)
-      protocol.record('user_2', user2)
-      protocol.record('spot_1', spot)
+    context "default fetch strategy (with objects)" do
+      it "fetches an event with objects" do
+        user = {'username' => 'ak'}
+        spot = {'name' => 'JP'}
+        protocol.record('user_1', user)
+        protocol.record('spot_1', spot)
 
-      event = simple_event
-      protocol.publish(event, false)
+        event = simple_event
+        protocol.publish(simple_event, false)
 
-      nested = nested_event
-      protocol.publish(nested, false)
+        protocol.fetch_event(event.key).objects['user'].should eq(user)
+        protocol.fetch_event(event.key).objects['spot'].should eq(spot)
+      end
 
-      event = protocol.fetch_event(event.key)
-      event.objects['user'].should eq(user)
-      event.objects['spot'].should eq(spot)
-      event.subevents.first.objects['user'].should eq(user2)
+      it "fetches an event with subevents with objects" do
+        user = {'username' => 'ak'}
+        user2 = {'username' => 'ka'}
+        spot = {'name' => 'JP'}
+        protocol.record('user_1', user)
+        protocol.record('user_2', user2)
+        protocol.record('spot_1', spot)
+
+        event = simple_event
+        protocol.publish(event, false)
+
+        nested = nested_event
+        protocol.publish(nested, false)
+
+        event = protocol.fetch_event(event.key)
+        event.objects['user'].should eq(user)
+        event.objects['spot'].should eq(spot)
+        event.subevents.first.objects['user'].should eq(user2)
+      end
     end
 
+    context "objectless fetch strategy" do
+      it "fetches an event with only object references" do
+        user = {'username' => 'ak'}
+        spot = {'name' => 'JP'}
+        protocol.record('user_1', user)
+        protocol.record('spot_1', spot)
+
+        event = simple_event
+        protocol.publish(simple_event, false)
+
+        options = {:strategy => "objectless"}
+        fetched_event = protocol.fetch_event(event.key, options)
+        fetched_event.objects['user'].should eq('user_1')
+        fetched_event.objects['spot'].should eq('spot_1')
+      end
+
+      it "fetches an event with subevents with objects" do
+        user = {'username' => 'ak'}
+        user2 = {'username' => 'ka'}
+        spot = {'name' => 'JP'}
+        protocol.record('user_1', user)
+        protocol.record('user_2', user2)
+        protocol.record('spot_1', spot)
+
+        event = simple_event
+        protocol.publish(event, false)
+
+        nested = nested_event
+        protocol.publish(nested, false)
+
+        options = {:strategy => "objectless"}
+        fetched_event = protocol.fetch_event(event.key, options)
+        fetched_event.objects['user'].should eq('user_1')
+        fetched_event.objects['spot'].should eq('spot_1')
+        fetched_event.subevents.first.objects['user'].should eq('user_2')
+      end
+    end
   end
 
   describe ".update_event" do

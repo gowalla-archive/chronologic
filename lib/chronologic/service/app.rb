@@ -95,7 +95,7 @@ class Chronologic::Service::App < Sinatra::Base
 
     begin
       options = {}
-      options[:strategy] = params.fetch("strategy", "default").to_sym
+      options[:strategy] = params.fetch("strategy", "default")
       event = protocol.fetch_event(params['event_key'], options)
       json('event' => event.to_client_encoding)
     rescue Chronologic::NotFound => e

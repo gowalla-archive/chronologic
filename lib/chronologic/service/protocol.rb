@@ -90,11 +90,15 @@ module Chronologic::Service::Protocol
     end
 
     subevents = schema.fetch_timelines([event.key])
-    puts "subevents: #{subevents.inspect}"
-    if options[:strategy] == :objectless
-      populated_events = [event, subevents].flatten
+
+    strategy = options.fetch(:strategy, "default")
+    populated_events = case strategy
+    when "objectless"
+      [event, subevents].flatten
+    when "default"
+      schema.fetch_objects([event, subevents].flatten)
     else
-      populated_events = schema.fetch_objects([event, subevents].flatten)
+      raise Chronologic::Exception.new("Unknown fetch strategy: #{strategy}")
     end
     schema.reify_timeline(populated_events).first
   end

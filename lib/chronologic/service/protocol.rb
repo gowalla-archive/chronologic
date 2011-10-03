@@ -81,7 +81,7 @@ module Chronologic::Service::Protocol
     end
   end
 
-  def self.fetch_event(event_key)
+  def self.fetch_event(event_key, options={})
     raw_event = schema.event_for(event_key)
     raise Chronologic::NotFound.new('Event not found') if raw_event.empty?
 
@@ -90,7 +90,16 @@ module Chronologic::Service::Protocol
     end
 
     subevents = schema.fetch_timelines([event.key])
-    populated_events = schema.fetch_objects([event, subevents].flatten)
+
+    strategy = options.fetch(:strategy, "default")
+    populated_events = case strategy
+    when "objectless"
+      [event, subevents].flatten
+    when "default"
+      schema.fetch_objects([event, subevents].flatten)
+    else
+      raise Chronologic::Exception.new("Unknown fetch strategy: #{strategy}")
+    end
     schema.reify_timeline(populated_events).first
   end
 

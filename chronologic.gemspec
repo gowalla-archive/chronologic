@@ -28,8 +28,8 @@ Gem::Specification.new do |s|
   s.add_dependency('sinatra', ["~> 1"])
 
   # HAX
-  s.add_dependency('thrift', ['~> 0.6.0'])
-  s.add_dependency('thrift_client', ['~> 0.6.3'])
-  s.add_dependency('simple_uuid', ['~> 0.1.0'])
+  # s.add_dependency('thrift', ['~> 0.6.0'])
+  # s.add_dependency('thrift_client', ['~> 0.6.3'])
+  # s.add_dependency('simple_uuid', ['~> 0.1.0'])
 end
 

@@ -25,7 +25,7 @@ Gem::Specification.new do |s|
   s.add_dependency('multi_json')
   s.add_dependency('activesupport', ["~> 3.0.0"])
   s.add_dependency('i18n', ["~> 0.5.0"])
-  s.add_dependency('sinatra', ["~> 1.0.0"])
+  s.add_dependency('sinatra', ["~> 1"])
 
   # HAX
   s.add_dependency('thrift', ['~> 0.6.0'])

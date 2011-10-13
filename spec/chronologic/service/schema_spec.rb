@@ -107,6 +107,19 @@ describe Chronologic::Service::Schema do
     @schema.event_for([]).should == Hash.new
   end
 
+  it "iterates over events" do
+    keys = ["checkin_1111", "checkin_2222", "checkin_3333"]
+    keys.each { |k| @schema.create_event(k, simple_data) }
+
+    event_keys = []
+    @schema.each_event do |key, event|
+      event_keys << key
+      event.should eq(simple_data)
+    end
+
+    event_keys.should eq(keys)
+  end
+
   it "removes an event" do
     @schema.create_event("checkin_1111", simple_data)
     @schema.remove_event("checkin_1111")

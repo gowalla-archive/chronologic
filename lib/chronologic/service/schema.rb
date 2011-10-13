@@ -104,6 +104,13 @@ module Chronologic::Service::Schema
     end
   end
 
+  EVENTS_PER_PAGE = 100
+  def self.each_event
+    connection.each(:Event, :count => EVENTS_PER_PAGE) do |key, event|
+      yield(key, event)
+    end
+  end
+
   def self.create_timeline_event(timeline, uuid, event_key)
     log("create_timeline_event(#{timeline}, #{uuid}, #{event_key})")
 

@@ -23,7 +23,7 @@ describe "The Chronologic API" do
 
     it "backfills existing timeline events to the subscriber" do
       5.times do |n|
-        event = simple_event
+        event = simple_event(:client)
         event.key = "event_#{n}"
         event.timelines = ["tech"]
         connection.publish(event)
@@ -52,7 +52,7 @@ describe "The Chronologic API" do
       # events flow "tech" -> "home"
       connection.subscribe("home", "tech")
 
-      event = simple_event
+      event = simple_event(:client)
       event.timelines = ["tech"]
       connection.publish(event)
       connection.timeline("home")["items"].should have(1).item
@@ -67,8 +67,8 @@ describe "The Chronologic API" do
   context "GET /event/[event_key]" do
 
     it "returns an event" do
-      event = simple_event
-      url = connection.publish(simple_event)
+      event = simple_event(:client)
+      url = connection.publish(simple_event(:client))
 
       connection.fetch(url).key.should eq(event.key)
     end
@@ -82,8 +82,8 @@ describe "The Chronologic API" do
   context "PUT /event/[event_key]" do
 
     it "updates an existing event" do
-      event = simple_event
-      url = connection.publish(simple_event)
+      event = simple_event(:client)
+      url = connection.publish(simple_event(:client))
 
       event.data["brand-new"] = "totally fresh!"
       connection.update(event)
@@ -92,8 +92,8 @@ describe "The Chronologic API" do
     end
 
     it "reprocesses timelines if update_timeline is set" do
-      event = simple_event
-      url = connection.publish(simple_event)
+      event = simple_event(:client)
+      url = connection.publish(simple_event(:client))
 
       event.timelines << 'another_timeline'
       connection.update(event, true)
@@ -105,10 +105,10 @@ describe "The Chronologic API" do
 
   context "DELETE /event/[event_key]" do
 
-    let(:event) { simple_event }
+    let(:event) { simple_event(:client) }
 
     it "removes the specified event" do
-      url = connection.publish(simple_event)
+      url = connection.publish(simple_event(:client))
       connection.fetch(url).should be_true
 
       connection.unpublish(event.key)
@@ -194,7 +194,7 @@ describe "The Chronologic API" do
 
       connection.subscribe("user_1_feed", "user_#{i}")
 
-      event = simple_event
+      event = simple_event(:client)
       event.key = "checkin_#{i}"
       event.objects["user"] = key
       event.timelines = [key, "spot_1"]

@@ -3,7 +3,7 @@ require 'functional_helper'
 describe "Chronologic API uses cases" do
 
   it "publish an event with subevents, remove the event and subevents, get a blank timeline" do
-    event = simple_event
+    event = simple_event(:client)
     comment0 = Chronologic::Event.new(
       'key' => 'comment_1',
       'data' => {'type' => 'comment', 'message' => 'Me too!', 'parent' => 'checkin_1'},
@@ -39,12 +39,12 @@ describe "Chronologic API uses cases" do
   end
 
   it "publish an event with a forced timestamp so it appears in the right position" do
-    old_event = simple_event.merge(
+    old_event = simple_event(:client).merge(
       "key" => 'event_2',
       "data" => {'message' => 'This appears last'}
     )
 
-    new_event = simple_event.merge(
+    new_event = simple_event(:client).merge(
       "key" => 'event_1',
       "data" => {'message' => 'This appears first'}
     )

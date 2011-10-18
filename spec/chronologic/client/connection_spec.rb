@@ -43,8 +43,6 @@ describe Chronologic::Client::Connection do
     result.should eq(object)
   end
 
-
-
   it "subscribes a user to a timeline" do
     stub_request(:post, "http://localhost:3000/subscription").
       to_return(:status => 201)
@@ -107,7 +105,7 @@ describe Chronologic::Client::Connection do
   end
 
   it "publishes an event" do
-    event = simple_event
+    event = simple_event(:client)
     t = Time.now.utc.tv_sec
 
     body = event.to_transport
@@ -136,7 +134,7 @@ describe Chronologic::Client::Connection do
   end
 
   it 'updates an event' do
-    event = simple_event
+    event = simple_event(:client)
 
     url = "http://localhost:3000/event/#{event.key}?update_timelines=false"
     body = event.to_transport
@@ -153,7 +151,7 @@ describe Chronologic::Client::Connection do
   end
 
   it 'updates an event with timeline changes' do
-    event = simple_event
+    event = simple_event(:client)
 
     url = "http://localhost:3000/event/#{event.key}?update_timelines=true"
     body = event.to_transport
@@ -170,14 +168,14 @@ describe Chronologic::Client::Connection do
   end
 
   it "fetches an event" do
-    event = simple_event
+    event = simple_event(:client)
 
     stub_request(
       :get,
       "http://localhost:3000/events/#{event.key}"
     ).to_return(
       :status => 200,
-      :body => {'event' => simple_event}.to_json,
+      :body => {'event' => simple_event(:client)}.to_json,
       :headers => {'Content-Type' => 'application/json'}
     )
 
@@ -195,7 +193,7 @@ describe Chronologic::Client::Connection do
     stub_request(:get, "http://localhost:3000/timeline/user_1_home?subevents=false&page=abc-123&per_page=5").
       to_return(
         :status => 200,
-        :body => {"feed" => [event]}.to_json,
+        :body => {"feed" => [event.to_client_encoding]}.to_json,
         :headers => {"Content-Type" => "application/json"}
     )
 
@@ -203,18 +201,18 @@ describe Chronologic::Client::Connection do
     WebMock.should have_requested(:get, "http://localhost:3000/timeline/user_1_home?subevents=false&page=abc-123&per_page=5")
     result["feed"].length.should == 1
     (result["feed"].first.keys - ["timestamp"]).each do |k|
-      result["feed"].first[k].should == event[k]
+      result["feed"].first[k].should == event.send(k)
     end
   end
 
   it "fetches a timeline with subevents" do
     event = simple_event
-    event["subevents"] = [nested_event]
+    event.subevents = [nested_event]
 
     stub_request(:get, "http://localhost:3000/timeline/user_1_home?subevents=true").
       to_return(
         :status => 200,
-        :body => {"feed" => [event]}.to_json,
+        :body => {"feed" => [event.to_client_encoding]}.to_json,
         :headers => {"Content-Type" => "application/json"}
       )
 

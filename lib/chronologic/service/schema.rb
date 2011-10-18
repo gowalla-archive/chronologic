@@ -185,7 +185,7 @@ module Chronologic::Service::Schema
 
     event_for(event_keys.uniq).
       map do |k, e|
-        Chronologic::Event.load_from_columns(e).tap do |event|
+        Chronologic::Service::Event.load_from_columns(e).tap do |event|
           event.key = k
         end
       end
@@ -193,9 +193,9 @@ module Chronologic::Service::Schema
 
   # Fetch objects referenced by events and correctly populate the event objects
   #
-  # events - an array of Chronologic::Event objects to populate
+  # events - an array of Chronologic::Service::Event objects to populate
   #
-  # Returns a flat array of Chronologic::Event objects with their object
+  # Returns a flat array of Chronologic::Service::Event objects with their object
   # references populated.
   def self.fetch_objects(events)
     object_keys = events.map { |e| e.objects.values }.flatten.uniq
@@ -213,13 +213,13 @@ module Chronologic::Service::Schema
     end
   end
 
-  # Convert a flat array of Chronologic::Events into a properly hierarchical
+  # Convert a flat array of Chronologic::Service::Events into a properly hierarchical
   # timeline.
   #
-  # events - an array of Chronologic::Event objects, each possibly referencing
+  # events - an array of Chronologic::Service::Event objects, each possibly referencing
   # other events
   #
-  # Returns a flat array of Chronologic::Event objects with their subevent
+  # Returns a flat array of Chronologic::Service::Event objects with their subevent
   # references correctly populated.
   def self.reify_timeline(events)
     event_index = events.inject({}) { |idx, e| idx.update(e.key => e) }

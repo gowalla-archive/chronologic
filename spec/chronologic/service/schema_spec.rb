@@ -265,7 +265,7 @@ describe Chronologic::Service::Schema do
     events = subject.fetch_timelines(["user_1", "user_2"])
 
     events.length.should == 5
-    events.each { |e| e.should be_instance_of(Chronologic::Event) }
+    events.each { |e| e.should be_instance_of(Chronologic::Service::Event) }
   end
 
   it "fetches objects associated with an event" do

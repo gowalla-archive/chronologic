@@ -174,12 +174,7 @@ describe Chronologic::Service::App do
   end
 
   it "unpublishes an event" do
-    event = Chronologic::Event.new
-    event.key = "checkin_1111"
-    event.data = {"type" => "checkin", "message" => "I'm here!"}
-    event.objects = {"user" => "user_1", "spot" => "spot_1"}
-    event.timelines = ["user_1", "spot_1"]
-    uuid = protocol.publish(event)
+    uuid = protocol.publish(an_event)
 
     delete "/event/checkin_1111"
 
@@ -188,7 +183,7 @@ describe Chronologic::Service::App do
   end
 
   it "updates an event" do
-    event = simple_event
+    event = simple_event(:client)
     protocol.publish(event)
 
     put "/event/#{event.key}", event.to_transport
@@ -198,7 +193,7 @@ describe Chronologic::Service::App do
   end
 
   it "updates an event and its timelines" do
-    event = simple_event
+    event = simple_event(:client)
     protocol.publish(event)
     event.timelines << 'foo_1'
 
@@ -272,33 +267,44 @@ describe Chronologic::Service::App do
     protocol.record("user_2", sco)
     protocol.record("spot_1", jp)
 
-    event = Chronologic::Event.new
-    event.key = "checkin_1111"
-    event.data = {"type" => "checkin", "message" => "I'm here!"}
-    event.objects = {"user" => "user_1", "spot" => "spot_1"}
-    event.timelines = ["user_1", "spot_1"]
-
+    event = Chronologic::Service::Event.from_attributes(
+      "key" => "checkin_1111",
+      "data" => {"type" => "checkin", "message" => "I'm here!"},
+      "objects" => {"user" => "user_1", "spot" => "spot_1"},
+      "timelines" => ["user_1", "spot_1"]
+    )
     protocol.subscribe("user_1_home", "user_1")
     event = protocol.publish(event)
 
-    event = Chronologic::Event.new
-    event.key = "comment_1111"
-    event.data = {"type" => "comment", "message" => "Me too!", "parent" => "checkin_1111"}
-    event.objects = {"user" => "user_2"}
-    event.timelines = ["checkin_1111"]
+    event = Chronologic::Service::Event.from_attributes(
+      "key" => "comment_1111",
+      "data" => {"type" => "comment", "message" => "Me too!", "parent" => "checkin_1111"},
+      "objects" => {"user" => "user_2"},
+      "timelines" => ["checkin_1111"]
+    )
     protocol.publish(event)
 
-    event = Chronologic::Event.new
-    event.key = "comment_2222"
-    event.data = {"type" => "comment", "message" => "Great!", "parent" => "checkin_1111"}
-    event.objects = {"user" => "user_1"}
-    event.timelines = ["checkin_1111"]
+    event = Chronologic::Service::Event.from_attributes(
+      "key" => "comment_2222",
+      "data" => {"type" => "comment", "message" => "Great!", "parent" => "checkin_1111"},
+      "objects" => {"user" => "user_1"},
+      "timelines" => ["checkin_1111"]
+    )
     protocol.publish(event)
 
     get "/timeline/user_1_home", :subevents => true
     obj = json_body
     result = obj["feed"].first
     result["subevents"].length.should == 2
+  end
+
+  def an_event
+    Chronologic::Service::Event.from_attributes(
+      "key" => "checkin_1111",
+      "data" => {"type" => "checkin", "message" => "I'm here!"},
+      "objects" => {"user" => "user_1", "spot" => "spot_1"},
+      "timelines" => ["user_1", "spot_1"]
+    )
   end
 
   def json_body

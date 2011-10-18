@@ -128,7 +128,7 @@ class Chronologic::Service::App < Sinatra::Base
 
     status 200
     json(
-      "feed" => feed.items,
+      "feed" => feed.items.map { |i| i.to_client_encoding },
       "count" => feed.count,
       "next_page" => feed.next_page
     )

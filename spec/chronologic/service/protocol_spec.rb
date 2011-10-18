@@ -63,7 +63,7 @@ describe Chronologic::Service::Protocol do
   context "#publish" do
 
     it "publishes an event to one or more timeline keys" do
-      event = Chronologic::Event.new
+      event = Chronologic::Service::Event.new
       event.key = "checkin_1111"
       event.data = {"type" => "checkin", "message" => "I'm here!"}
       event.objects = {"user" => "user_1", "spot" => "spot_1"}
@@ -72,9 +72,9 @@ describe Chronologic::Service::Protocol do
       protocol.subscribe("user_1_home", "user_1")
       protocol.publish(event)
 
-      fetched = Chronologic::Event.load_from_columns(protocol.schema.event_for(event.key))
-      fetched["data"].should == event.data
-      fetched["objects"].should == event.objects
+      fetched = Chronologic::Service::Event.load_from_columns(protocol.schema.event_for(event.key))
+      fetched.data.should == event.data
+      fetched.objects.should == event.objects
       protocol.schema.timeline_events_for("user_1_home").values.should include(event.key)
       event.timelines.each do |t|
         protocol.schema.timeline_events_for(t).values.should include(event.key)

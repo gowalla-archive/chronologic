@@ -143,3 +143,49 @@ shared_examples "a feed strategy" do
 
 end
 
+shared_examples_for "a CL event" do
+
+  let(:nested_event) do
+    described_class.from_attributes(
+      :key => "comment_1",
+      :data => {"type" => "comment", "message" => "Me too!", "parent" => "checkin_1"},
+      :objects => {"user" => "user_2"},
+      :timelines => ["checkin_1"]
+    )
+  end
+
+  it "knows whether it is a subevent" do
+    nested_event.subevent?.should == true
+  end
+
+  it "knows its parent event" do
+    nested_event.parent.should == "checkin_1"
+  end
+
+  it "sets its parent event" do
+    event = nested_event
+    event.parent = "highlight_1"
+    event.parent.should == "highlight_1"
+  end
+
+  it "returns children as CL::Event objects" do
+    subevent = {
+      "key" => "bar_1",
+      "data" => {"bar" => "herp"}
+    }
+
+    event = described_class.from_attributes(
+      :key => "foo_1", 
+      :data => {"foo" => "derp"}, 
+      :subevents => [subevent]
+    )
+    event.children.should eq([described_class.from_attributes(subevent)])
+  end
+
+  it "flags an empty event" do
+    subject.data = {}
+    subject.should be_empty
+  end
+
+end
+

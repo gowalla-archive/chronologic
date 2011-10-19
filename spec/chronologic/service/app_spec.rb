@@ -183,25 +183,25 @@ describe Chronologic::Service::App do
   end
 
   it "updates an event" do
+    protocol.publish(simple_event)
     event = simple_event(:client)
-    protocol.publish(event)
 
     put "/event/#{event.key}", event.to_transport
 
     last_response.status.should eq(204)
-    last_response.headers["Location"].should match(%r!/event/#{event["key"]}!)
+    last_response.headers["Location"].should match(%r!/event/#{event.key}!)
   end
 
   it "updates an event and its timelines" do
     event = simple_event(:client)
-    protocol.publish(event)
+    protocol.publish(simple_event)
     event.timelines << 'foo_1'
 
     put "/event/#{event.key}?update_timelines=true", event.to_transport
 
     last_response.status.should eq(204)
-    Chronologic.schema.timeline_events_for('foo_1').values.should include(event['key'])
-    last_response.headers["Location"].should match(%r!/event/#{event["key"]}!)
+    Chronologic.schema.timeline_events_for('foo_1').values.should include(event.key)
+    last_response.headers["Location"].should match(%r!/event/#{event.key}!)
   end
 
   it 'fetches a single event' do

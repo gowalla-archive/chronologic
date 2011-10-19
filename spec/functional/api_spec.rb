@@ -125,14 +125,14 @@ describe "The Chronologic API" do
       url = connection.publish(event)
       event.timelines.each do |t|
         connection.timeline(t)["items"].
-          map { |e| e["key"] }.
+          map { |e| e.key }.
           should include(event.key)
       end
 
       connection.unpublish(event.key)
       event.timelines.each do |t|
         connection.timeline(t)["items"].
-          map { |e| e["key"] }.
+          map { |e| e.key }.
           should_not include(event.key)
       end
     end
@@ -149,14 +149,14 @@ describe "The Chronologic API" do
       connection.publish(event)
       subscribed_timelines.each do |t|
         connection.timeline(t)["items"].
-          map { |e| e["key"] }.
+          map { |e| e.key }.
           should include(event.key)
       end
 
       connection.unpublish(event.key)
       subscribed_timelines.each do |t|
         connection.timeline(t)["items"].
-          map { |e| e["key"] }.
+          map { |e| e.key }.
           should_not include(event.key)
       end
     end

@@ -175,7 +175,7 @@ describe Chronologic::Client::Connection do
       "http://localhost:3000/events/#{event.key}"
     ).to_return(
       :status => 200,
-      :body => {'event' => simple_event(:client)}.to_json,
+      :body => {'event' => simple_event.to_client_encoding}.to_json,
       :headers => {'Content-Type' => 'application/json'}
     )
 
@@ -184,7 +184,7 @@ describe Chronologic::Client::Connection do
       :get,
       "http://localhost:3000/events/#{event.key}"
     )
-    result.should be_a(Chronologic::Event)
+    result.should be_a(Chronologic::Client::Event)
   end
 
   it "fetches a timeline" do
@@ -218,7 +218,7 @@ describe Chronologic::Client::Connection do
 
     result = client.timeline("user_1_home", :subevents => true)
     WebMock.should have_requested(:get, "http://localhost:3000/timeline/user_1_home?subevents=true")
-    result["items"].first["subevents"].length.should == 1
+    result["items"].first.subevents.length.should == 1
   end
 
   it "provides an instance of itself" do

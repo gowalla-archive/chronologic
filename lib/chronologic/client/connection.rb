@@ -104,7 +104,7 @@ class Chronologic::Client::Connection
 
     handle(resp, "Error fetching event") do
       # FIXME: use #children instead?
-      Chronologic::Event.new(resp['event']).tap do |ev|
+      Chronologic::Client::Event.from_attributes(resp['event']).tap do |ev|
         ev.subevents = ev.subevents.map { |sub| Chronologic::Event.new(sub) }
       end
     end
@@ -133,8 +133,8 @@ class Chronologic::Client::Connection
     handle(resp, "Error fetching timeline") do
       items = resp["feed"].map do |ev|
         # FIXME: use #children instead?
-        Chronologic::Event.new(ev).tap do |e|
-          e.subevents = e.subevents.map { |sub| Chronologic::Event.new(sub) }
+        Chronologic::Client::Event.from_attributes(ev).tap do |e|
+          e.subevents = e.subevents.map { |sub| Chronologic::Client::Event.from_attributes(sub) }
         end
       end
       {

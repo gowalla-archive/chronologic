@@ -35,7 +35,7 @@ class Chronologic::Client::Fake
   end
 
   def publish(event)
-    raise ArgumentError.new("`event` should be a Chronologic::Event.") unless event.is_a?(Chronologic::Event)
+    raise ArgumentError.new("`event` should be a Chronologic::Client::Event.") unless event.is_a?(Chronologic::Client::Event)
     @events[event.key] = event
     event.timelines.each do |timeline|
       @timelines[timeline][event.token] = event.key
@@ -62,7 +62,7 @@ class Chronologic::Client::Fake
   end
 
   def update(event, update_timelines=false)
-    @events[event['key']] = event
+    @events[event.key] = event
     # XXX update timelines
   end
 
@@ -106,18 +106,18 @@ class Chronologic::Client::Fake
   def populate_objects_for(event)
     # At this point, objects is a hash of key -> array pairs. We need key -> hash.
     objects = Hash.new { |hsh, k| hsh[k] = Hash.new }
-    event.fetch('objects', {}).each do |k, refs|
+    event.objects.each do |k, refs|
       refs.each { |ref| objects[k][ref] = @objects[ref] }
     end
-    event['objects'] = objects
+    event.objects = objects
   end
 
   # Private
   def populate_subevents_for(event)
-    subevents = @timelines[event['key']].values.map do |event_key|
+    subevents = @timelines[event.key].values.map do |event_key|
       fetch(event_key)
     end
-    event['subevents'] = subevents
+    event.subevents = subevents
   end
 
 end

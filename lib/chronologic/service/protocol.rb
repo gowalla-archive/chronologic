@@ -85,7 +85,7 @@ module Chronologic::Service::Protocol
     raw_event = schema.event_for(event_key)
     raise Chronologic::NotFound.new('Event not found') if raw_event.empty?
 
-    event = Chronologic::Event.load_from_columns(raw_event).tap do |ev|
+    event = Chronologic::Service::Event.load_from_columns(raw_event).tap do |ev|
       ev.key = event_key
     end
 
@@ -104,7 +104,7 @@ module Chronologic::Service::Protocol
   end
 
   def self.update_event(event, update_timelines=false)
-    original = Chronologic::Event.load_from_columns(schema.event_for(event.key))
+    original = Chronologic::Service::Event.load_from_columns(schema.event_for(event.key))
     deleted_timelines = original.timelines - event.timelines
 
     event.token = original.token

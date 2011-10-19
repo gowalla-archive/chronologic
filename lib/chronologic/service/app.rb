@@ -83,7 +83,7 @@ class Chronologic::Service::App < Sinatra::Base
       status 204
       return
     end
-    event = Chronologic::Event.load_from_columns(raw_event)
+    event = Chronologic::Service::Event.load_from_columns(raw_event)
     event.key = params["event_key"]
     protocol.unpublish(event)
     status 204
@@ -146,7 +146,7 @@ class Chronologic::Service::App < Sinatra::Base
     end
 
     def event
-      Chronologic::Event.new(
+      Chronologic::Service::Event.from_attributes(
         "key" => params["key"],
         "data" => MultiJson.decode(params["data"]),
         "objects" => MultiJson.decode(params["objects"]),

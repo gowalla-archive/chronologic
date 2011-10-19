@@ -25,7 +25,6 @@ module Chronologic
   module Client
     autoload :Connection, "chronologic/client/connection"
     autoload :Event, 'chronologic/client/event'
-    autoload :Object, 'chronologic/client/object'
     autoload :Fake, 'chronologic/client/fake'
   end
 

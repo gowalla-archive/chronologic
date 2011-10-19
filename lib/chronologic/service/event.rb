@@ -1,6 +1,5 @@
 require 'active_support/concern'
 require 'active_support/core_ext/hash'
-require 'chronologic/event' # HAX
 
 class Chronologic::Service::Event
   include Chronologic::Event::Behavior

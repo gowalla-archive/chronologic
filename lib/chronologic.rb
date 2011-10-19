@@ -11,7 +11,10 @@ module Chronologic
     Chronologic::Service::Schema
   end
 
-  autoload :Event, "chronologic/event"
+  module Event
+    autoload :State, "chronologic/event"
+    autoload :Behavior, "chronologic/event"
+  end
 
   module Service
     autoload :App, "chronologic/service/app"

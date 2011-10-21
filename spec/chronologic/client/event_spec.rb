@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Chronologic::Client::Event do
   it_behaves_like "a CL event"
 
-  let(:event) { simple_event(:new_client) }
+  let(:event) { simple_event(:client) }
 
   it "serializes for HTTP transport" do
     event.to_transport.should_not have_key("timestamp")

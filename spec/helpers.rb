@@ -16,14 +16,6 @@ module ChronologicHelpers
         event.objects = {"user" => "user_1", "spot" => "spot_1"}
         event.timelines = ["user_1", "spot_1"]
       end
-    # HAX: remove this clause
-    when :new_client
-      Chronologic::Client::Event.new.tap do |event|
-        event.key = "checkin_1"
-        event.data = {"type" => "checkin", "message" => "I'm here!"}
-        event.objects = {"user" => "user_1", "spot" => "spot_1"}
-        event.timelines = ["user_1", "spot_1"]
-      end
     else
       raise ArgumentError.new("Unknown event: #{kind}")
     end

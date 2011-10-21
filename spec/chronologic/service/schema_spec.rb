@@ -2,6 +2,8 @@ require 'spec_helper'
 
 describe Chronologic::Service::Schema do 
 
+  let(:protocol) { Chronologic::Service::Protocol }
+
   before do
     @schema = Chronologic::Service::Schema
   end
@@ -239,8 +241,6 @@ describe Chronologic::Service::Schema do
   end
 
   it "fetches events for one or more timelines" do
-    protocol = Chronologic::Service::Protocol # HAX
-
     events = [simple_event]
     events << simple_event.tap do |e|
       e.key = "checkin_2"
@@ -269,8 +269,6 @@ describe Chronologic::Service::Schema do
   end
 
   it "fetches objects associated with an event" do
-    protocol = Chronologic::Service::Protocol # HAX
-
     protocol.record("spot_1", {"name" => "Juan Pelota's"})
     protocol.record("user_1", {"name" => "akk"})
     protocol.record("user_2", {"name" => "bf"})

@@ -185,7 +185,7 @@ module Chronologic::Service::Schema
 
     event_for(event_keys.uniq).
       map do |k, e|
-        Chronologic::Service::Event.load_from_columns(e).tap do |event|
+        Chronologic::Service::Event.from_columns(e).tap do |event|
           event.key = k
         end
       end

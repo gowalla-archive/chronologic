@@ -18,10 +18,6 @@ class Chronologic::Service::Event
       :token     => columns.fetch("token", '')
     )
   end
-  # Total HAX
-  class <<self
-    alias_method :load_from_columns, :from_columns
-  end
 
   def to_columns
     {

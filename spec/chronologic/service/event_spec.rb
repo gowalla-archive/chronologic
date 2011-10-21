@@ -28,7 +28,7 @@ describe Chronologic::Service::Event do
   end
 
   it "loads an empty event" do
-    empty_event = described_class.load_from_columns({})
+    empty_event = described_class.from_columns({})
     empty_event.token.should == ''
     empty_event.data.should == Hash.new
     empty_event.objects.should == Hash.new

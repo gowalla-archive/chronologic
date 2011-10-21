@@ -83,7 +83,7 @@ class Chronologic::Service::App < Sinatra::Base
       status 204
       return
     end
-    event = Chronologic::Service::Event.load_from_columns(raw_event)
+    event = Chronologic::Service::Event.from_columns(raw_event)
     event.key = params["event_key"]
     protocol.unpublish(event)
     status 204

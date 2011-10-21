@@ -72,7 +72,7 @@ describe Chronologic::Service::Protocol do
       protocol.subscribe("user_1_home", "user_1")
       protocol.publish(event)
 
-      fetched = Chronologic::Service::Event.load_from_columns(protocol.schema.event_for(event.key))
+      fetched = Chronologic::Service::Event.from_columns(protocol.schema.event_for(event.key))
       fetched.data.should == event.data
       fetched.objects.should == event.objects
       protocol.schema.timeline_events_for("user_1_home").values.should include(event.key)

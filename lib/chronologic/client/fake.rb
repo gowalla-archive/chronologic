@@ -34,8 +34,12 @@ class Chronologic::Client::Fake
     @subscribers[subscriber_key].values.include?(backlink_key)
   end
 
-  def publish(event)
-    raise ArgumentError.new("`event` should be a Chronologic::Client::Event.") unless event.is_a?(Chronologic::Client::Event)
+  def publish(e)
+    raise ArgumentError.new("`event` should be a Chronologic::Client::Event.") unless e.is_a?(Chronologic::Client::Event)
+
+    event = service_event_for(e)
+    event.key = e.key
+
     @events[event.key] = event
     event.timelines.each do |timeline|
       @timelines[timeline][event.token] = event.key
@@ -59,6 +63,7 @@ class Chronologic::Client::Fake
       populate_subevents_for(event)
       populate_objects_for(event)
     end
+    client_event_for(event)
   end
 
   def update(event, update_timelines=false)
@@ -118,6 +123,22 @@ class Chronologic::Client::Fake
       fetch(event_key)
     end
     event.subevents = subevents
+  end
+
+  # Private
+  def client_event_for(event)
+    Chronologic::Client::Event.from_attributes({
+      "key" => event.key,
+      "data" => event.data,
+      "objects" => event.objects,
+      "timelines" => event.timelines,
+      "subevents" => event.subevents.map { |e| client_event_for(e) }
+    })
+  end
+
+  # Private
+  def service_event_for(event)
+    Chronologic::Service::Event.from_columns(event.to_transport)
   end
 
 end

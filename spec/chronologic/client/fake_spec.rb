@@ -72,7 +72,7 @@ describe Chronologic::Client::Fake do
     it "creates a new event" do
       event = valid_event
       subject.publish(event)
-      subject.events.values.should include(event)
+      subject.events.keys.should include(event.key)
     end
 
     it "writes the event to each specified timeline" do

@@ -1,6 +1,3 @@
-require 'active_support/core_ext/hash'
-require 'active_support/concern'
-
 class Chronologic::Client::Event
   include Chronologic::Event::Behavior
   include Chronologic::Event::State

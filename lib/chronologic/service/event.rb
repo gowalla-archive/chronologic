@@ -1,9 +1,14 @@
-require 'active_support/concern'
-require 'active_support/core_ext/hash'
-
 class Chronologic::Service::Event
   include Chronologic::Event::Behavior
   include Chronologic::Event::State
+
+  attr_accessor :token
+
+  def self.from_attributes(hsh)
+    obj = super.tap do |e|
+      e.token = hsh.with_indifferent_access.fetch(:token, '')
+    end
+  end
 
   def self.from_columns(columns)
     from_attributes(
@@ -44,6 +49,10 @@ class Chronologic::Service::Event
       Time.now.utc.tv_sec
     end
     self.token = [timestamp, key].join('_')
+  end
+
+  def ==(other)
+    super && token == other.token
   end
 
 end

@@ -1,12 +1,12 @@
-require "hashie/dash"
+require 'active_support/core_ext/hash'
+require 'active_support/concern'
 require "time"
 
 module Chronologic::Event::State
   extend ActiveSupport::Concern
 
   included do
-    # HAX figure out how to get token out of the common state
-    attr_accessor :key, :token, :data, :objects, :timelines, :subevents
+    attr_accessor :key, :data, :objects, :timelines, :subevents
   end
 
   def initialize
@@ -21,10 +21,9 @@ module Chronologic::Event::State
   module ClassMethods
 
     def from_attributes(hsh)
-      attrs = hsh.with_indifferent_access # HAX?
+      attrs = hsh.with_indifferent_access
       new.tap do |event|
         event.key       = attrs.fetch(:key, '')
-        event.token     = attrs.fetch(:token, '')
         event.data      = attrs.fetch(:data, {})
         event.objects   = attrs.fetch(:objects, {})
         event.timelines = attrs.fetch(:timelines, [])
@@ -82,8 +81,8 @@ module Chronologic::Event::Behavior
   end
 
   def ==(other)
-    key == other.key &&
-      token == other.token &&
+    other.is_a?(self.class) &&
+      key == other.key &&
       data == other.data &&
       objects == other.objects &&
       timelines == other.timelines &&

@@ -103,10 +103,7 @@ class Chronologic::Client::Connection
     resp = self.class.get(event_url)
 
     handle(resp, "Error fetching event") do
-      # FIXME: use #children instead?
-      Chronologic::Client::Event.from_attributes(resp['event']).tap do |ev|
-        ev.subevents = ev.subevents.map { |sub| Chronologic::Event.new(sub) }
-      end
+      Chronologic::Client::Event.from_attributes(resp['event'])
     end
   end
 

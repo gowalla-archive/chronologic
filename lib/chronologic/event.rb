@@ -73,7 +73,14 @@ module Chronologic::Event::Behavior
   #
   # Returns an array of Chronologic::Service::Event objects.
   def children
-    @children ||= subevents.map { |s| self.class.from_attributes(s) }
+    # @children ||= subevents.map { |s| self.class.from_attributes(s) }
+    @children ||= subevents.map do |s|
+      if s.is_a?(self.class)
+        s
+      else
+        self.class.from_attributes(s)
+      end
+    end
   end
 
   def empty?

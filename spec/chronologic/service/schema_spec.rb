@@ -122,6 +122,19 @@ describe Chronologic::Service::Schema do
     event_keys.should eq(keys)
   end
 
+  it "iterates over events, starting from a key" do
+    keys = ["checkin_1111", "checkin_2222", "checkin_3333"]
+    keys.each { |k| @schema.create_event(k, simple_data) }
+
+    event_keys = []
+    @schema.each_event('checkin_2222') do |key, event|
+      event_keys << key
+      event.should eq(simple_data)
+    end
+
+    event_keys.should have(2).items
+  end
+
   it "removes an event" do
     @schema.create_event("checkin_1111", simple_data)
     @schema.remove_event("checkin_1111")

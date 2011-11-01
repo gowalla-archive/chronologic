@@ -104,11 +104,18 @@ module Chronologic::Service::Schema
     end
   end
 
-  EVENTS_PER_PAGE = 100
-  def self.each_event
-    connection.each(:Event, :count => EVENTS_PER_PAGE) do |key, event|
-      yield(key, event)
-    end
+  def self.each_event(start='')
+    # This is actually set in the Cassandra driver. Setting counts
+    # when calling `get_range` prevent successfully iterating over rows,
+    # so we end up with this hack.
+    events_per_page = 100
+
+    next_key ||= start
+    begin
+      rows = connection.get_range(:Event, :start_key => next_key)
+      rows.each { |(key, event)| yield(key, event) }
+      next_key = rows.keys.last
+    end while !rows.empty? && !(rows.length < events_per_page)
   end
 
   def self.create_timeline_event(timeline, uuid, event_key)

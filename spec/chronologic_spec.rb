@@ -9,7 +9,7 @@ describe Chronologic do
   end
 
   it "has a schema helper" do
-    Chronologic.schema.should eq(Chronologic::Service::Schema)
+    Chronologic.schema.should eq(Chronologic::Service::Schema::Cassandra)
   end
 
 end

@@ -8,7 +8,7 @@ module Chronologic
   mattr_accessor :connection
 
   def self.schema
-    Chronologic::Service::Schema
+    Chronologic::Service::Schema::Cassandra
   end
 
   module Event
@@ -22,7 +22,11 @@ module Chronologic
     autoload :Feed, "chronologic/service/feed"
     autoload :ObjectlessFeed, "chronologic/service/objectless_feed"
     autoload :Protocol, "chronologic/service/protocol"
-    autoload :Schema, "chronologic/service/schema"
+
+    module Schema
+      autoload :Cassandra, "chronologic/service/schema/cassandra"
+      autoload :Memory, "chronologic/service/schema/memory"
+    end
   end
 
   module Client

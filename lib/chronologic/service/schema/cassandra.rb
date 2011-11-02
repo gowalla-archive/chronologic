@@ -1,4 +1,4 @@
-module Chronologic::Service::Schema
+module Chronologic::Service::Schema::Cassandra
   mattr_accessor :write_opts 
   mattr_accessor :consistent_read_opts
   mattr_accessor :logger

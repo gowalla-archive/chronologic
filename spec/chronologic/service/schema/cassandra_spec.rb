@@ -1,11 +1,11 @@
 require 'spec_helper'
 
-describe Chronologic::Service::Schema do 
+describe Chronologic::Service::Schema::Cassandra do 
 
   let(:protocol) { Chronologic::Service::Protocol }
 
   before do
-    @schema = Chronologic::Service::Schema
+    @schema = Chronologic::Service::Schema::Cassandra
   end
 
   it "creates an object" do

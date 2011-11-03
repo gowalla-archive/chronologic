@@ -189,3 +189,255 @@ shared_examples_for "a CL event" do
 
 end
 
+shared_examples_for "a CL schema" do
+
+  let(:protocol) { Chronologic::Service::Protocol }
+
+  it "creates an object" do
+    attrs = {"name" => "akk"}
+    subject.create_object("user_1", attrs)
+
+    subject.object_for("user_1").should == attrs
+  end
+
+  it "fetches multiple objects" do
+    akk = {"name" => "akk"}
+    sco = {"name" => "sco"}
+    subject.create_object("user_1", akk)
+    subject.create_object("user_2", sco)
+
+    hsh = {"user_1" => akk, "user_2" => sco}
+    subject.object_for(["user_1", "user_2"]).should == hsh
+  end
+
+  it "doesn't fetch an empty array of objects" do
+    reject_multiget
+
+    subject.object_for([]).should == Hash.new
+  end
+
+  it "removes an object" do
+    subject.create_object("user_1", {"name" => "akk"})
+    subject.remove_object("user_1")
+    subject.object_for("user_1").should == Hash.new
+  end
+
+  it "creates a subscription" do
+    subject.create_subscription("user_1_home", "user_2")
+
+    subject.subscribers_for("user_2").should == ["user_1_home"]
+  end
+
+  it 'creates a subscription with backlinks' do
+    subject.create_subscription('user_1_home', 'user_2', 'user_1')
+
+    subject.followers_for('user_2').should == ['user_1']
+  end
+
+  it "fetches multiple subscriptions" do
+    subject.create_subscription("user_1_home", "user_2")
+    subject.create_subscription("user_2_home", "user_1")
+
+    subject.subscribers_for(["user_1", "user_2"]).should include("user_1_home")
+    subject.subscribers_for(["user_1", "user_2"]).should include("user_2_home")
+  end
+
+  it "doesn't fetch an empty array of subscriptions" do
+    reject_multiget
+
+    subject.subscribers_for([]).should == Array.new
+  end
+
+  it "removes a subscription" do
+    subject.create_subscription("user_1", "user_2")
+    subject.remove_subscription("user_1", "user_2")
+
+    subject.subscribers_for("user_1").should == []
+  end
+
+  it 'checks whether a feed is connected to a timeline' do
+    subject.create_subscription('user_1_home', 'user_2', 'user_1')
+    subject.create_subscription('user_3_home', 'user_2', 'user_3')
+
+    subject.followers_for('user_2').should == ['user_1', 'user_3']
+  end
+
+  it 'checks whether a feed is not connected to a timeline' do
+    subject.create_subscription('user_1_home', 'user_2', 'user_1')
+
+    subject.followers_for('user_1').should == []
+  end
+
+  it "checks the existence of an event" do
+    subject.create_event("checkin_1111", simple_data)
+    subject.event_exists?("checkin_1111").should be_true
+  end
+
+  it "creates an event" do
+    data = simple_data
+    subject.create_event("checkin_1111", data)
+    subject.event_for("checkin_1111").should == data
+  end
+
+  it "fetches multiple events" do
+    data = simple_data
+
+    subject.create_event("checkin_1111", data)
+    subject.create_event("checkin_1112", data)
+
+    subject.event_for(["checkin_1111", "checkin_1112"]).should == {"checkin_1111" => data, "checkin_1112" => data}
+  end
+
+  it "does not fetch an empty array of events" do
+    reject_multiget
+
+    subject.event_for([]).should == Hash.new
+  end
+
+  it "iterates over events" do
+    keys = ["checkin_1111", "checkin_2222", "checkin_3333"]
+    keys.each { |k| subject.create_event(k, simple_data) }
+
+    event_keys = []
+    subject.each_event do |key, event|
+      event_keys << key
+      event.should eq(simple_data)
+    end
+
+    event_keys.should eq(keys)
+  end
+
+  it "iterates over events, starting from a key" do
+    keys = ["checkin_1111", "checkin_2222", "checkin_3333"]
+    keys.each { |k| subject.create_event(k, simple_data) }
+
+    event_keys = []
+    subject.each_event('checkin_2222') do |key, event|
+      event_keys << key
+      event.should eq(simple_data)
+    end
+
+    event_keys.should have(2).items
+  end
+
+  it "removes an event" do
+    subject.create_event("checkin_1111", simple_data)
+    subject.remove_event("checkin_1111")
+    subject.event_for("checkin_1111").should == Hash.new
+  end
+
+  it "updates an event" do
+    data = simple_data
+    subject.create_event("checkin_1111", data)
+
+    data["hotness"] = "So new!"
+    subject.update_event("checkin_1111", data)
+
+    subject.event_for("checkin_1111").should eq(data)
+  end
+
+  it "creates a new timeline event" do
+    key = "gizmo_1111"
+    token = [Time.now.tv_sec, key].join('_')
+    data = {"gizmo" => MultiJson.encode({"message" => "I'm here!"})}
+    subject.create_event(key, data)
+    subject.create_timeline_event("_global", token, key)
+
+    subject.timeline_for("_global").should ==({token => key})
+    subject.timeline_events_for("_global").values.should == [key]
+  end
+
+  it "creates timeline events without duplicates if timestamps match" do
+    key = "gizmo_1111"
+    token = [Time.now.tv_sec, key].join('_')
+    subject.create_timeline_event("_global", token, key)
+    subject.create_timeline_event("_global", token, key)
+
+    subject.timeline_events_for("_global").length.should == 1
+  end
+
+  it "fetches timeline events with a count parameter" do
+    tokens = 15.times.inject({}) { |result, i|
+      key = "gizmo_#{i}"
+      token = [Time.now.tv_sec, key].join('_')
+
+      subject.create_timeline_event("_global", token, key)
+      result.update(token => key)
+    }.sort_by { |token, key| token }
+
+    events = subject.timeline_for("_global", :per_page => 10)
+    events.length.should == 10
+    events.sort_by { |token, key| token }.should == tokens.slice(5, 10)
+  end
+
+  it "fetches timeline events from a page offset" do
+    pending('rewrite to work with real cassandra and mocked cassandra')
+    uuids = 15.times.map { subject.new_guid }.reverse
+    uuids.each_with_index do |uuid, i|
+      ref = "gizmo_#{i}"
+      subject.create_timeline_event("_global", uuid, ref)
+    end
+
+    offset = uuids[10]
+    subject.timeline_for("_global", :page => offset).length.should == 5
+  end
+
+  it "fetches timeline events with a count and offset parameter" do
+    pending('rewrite to work with real cassandra and mocked cassandra')
+    uuids = 15.times.map { subject.new_guid }
+    uuids.each_with_index do |uuid, i|
+      ref = "gizmo_#{i}"
+      subject.create_timeline_event("_global", uuid, ref)
+    end
+
+    subject.timeline_for("_global", :per_page => 10, :page => uuids[11]).length.should == 10
+    subject.timeline_for("_global", :per_page => 10, :page => uuids[4]).length.should == 5#, "doesn't truncate when length(count+offset) > length(results)"
+  end
+
+  it "does not fetch an empty array of timelines" do
+    reject_multiget
+
+    subject.timeline_for([]).should == Hash.new
+  end
+
+  it "fetches an extra item when a page parameter is specified and truncates appropriately" do
+    pending('rewrite to work with real cassandra and mocked cassandra')
+    uuids = 15.times.inject({}) { |result, i|
+      uuid = subject.new_guid
+      ref = "gizmo_#{i}"
+
+      subject.create_timeline_event("_global", uuid, ref)
+      result.update(uuid => ref)
+    }.sort_by { |uuid, ref| uuid }
+
+    start = uuids[10][0]
+    events = subject.timeline_for(
+      "_global", 
+      :per_page => 5, 
+      :page => start
+    )
+    events.length.should == 5
+    events.sort_by { |uuid, ref| uuid }.should == uuids.slice(5, 5)
+  end
+
+  it "removes a timeline event" do
+    data = simple_data
+    key = "gizmo_1111"
+    token = [Time.now.tv_sec, key].join("_")
+
+    subject.create_event("gizmo_1111", data)
+    subject.create_timeline_event("_global", token, key)
+    subject.remove_timeline_event("_global", token)
+
+    subject.timeline_events_for("_global").values.should == []
+  end
+
+  def reject_multiget
+    subject.should_receive(:objects).exactly(0).times
+  end
+
+  def simple_data
+    {"checkin" => MultiJson.encode({"message" => "I'm here!"})}
+  end
+
+end

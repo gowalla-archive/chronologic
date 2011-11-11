@@ -9,11 +9,11 @@ class Chronologic::Service::Feed
     set_next_page
     set_count
 
-    events = schema.fetch_timelines(timeline_key, per_page, start)
-    subevents = schema.fetch_timelines(events.map { |e| e.key }, per_page, start)
+    events = fetch_timelines(timeline_key, per_page, start)
+    subevents = fetch_timelines(events.map { |e| e.key }, per_page, start)
 
-    all_events = schema.fetch_objects([events, subevents].flatten)
-    @items = schema.reify_timeline(all_events)
+    all_events = fetch_objects([events, subevents].flatten)
+    @items = reify_timeline(all_events)
   end
 
 end

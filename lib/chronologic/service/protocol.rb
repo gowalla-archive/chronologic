@@ -89,18 +89,22 @@ module Chronologic::Service::Protocol
       ev.key = event_key
     end
 
-    subevents = schema.fetch_timelines([event.key])
+    # Hack: need to use methods on feed, even though this is only
+    # sort of feed-ish. Need to find a way to really use Feed here
+    # or find a better home for these feed methods.
+    feed = Chronologic::Service::Feed.new("")
+    subevents = feed.fetch_timelines([event.key])
 
     strategy = options.fetch(:strategy, "default")
     populated_events = case strategy
     when "objectless"
       [event, subevents].flatten
     when "default"
-      schema.fetch_objects([event, subevents].flatten)
+      feed.fetch_objects([event, subevents].flatten)
     else
       raise Chronologic::Exception.new("Unknown fetch strategy: #{strategy}")
     end
-    schema.reify_timeline(populated_events).first
+    feed.reify_timeline(populated_events).first
   end
 
   def self.update_event(event, update_timelines=false)
